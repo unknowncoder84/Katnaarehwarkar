@@ -225,15 +225,15 @@ const CaseDetailsPage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <h1 className={`text-2xl font-bold font-cyber ${theme === 'light' ? 'text-gray-900' : 'holographic-text'}`}>Case Details</h1>
-          {isAdmin && (
-            <div className="flex gap-3">
-              <button 
-                onClick={handleEdit}
-                className="px-6 py-2 rounded-lg font-semibold font-cyber transition-all duration-300 flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:shadow-lg border border-amber-500/30"
-              >
-                <Edit size={18} />
-                EDIT
-              </button>
+          <div className="flex gap-3">
+            <button 
+              onClick={handleEdit}
+              className="px-6 py-2 rounded-lg font-semibold font-cyber transition-all duration-300 flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:shadow-lg border border-amber-500/30"
+            >
+              <Edit size={18} />
+              EDIT
+            </button>
+            {isAdmin && (
               <button 
                 onClick={() => setShowDeleteConfirm(true)}
                 className="px-6 py-2 rounded-lg font-semibold font-cyber transition-all duration-300 flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white hover:shadow-lg border border-red-500/30"
@@ -241,8 +241,8 @@ const CaseDetailsPage: React.FC = () => {
                 <Trash2 size={18} />
                 DELETE
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </motion.div>
 
