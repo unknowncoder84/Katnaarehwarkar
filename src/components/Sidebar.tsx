@@ -14,10 +14,10 @@ import {
   UserCheck,
   X,
   Shield,
-  Sparkles,
+  Scale,
   BookOpen,
-  Sofa,
   Archive,
+  TrendingDown,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -32,14 +32,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
   const { logout, isAdmin } = useAuth();
   const { theme } = useTheme();
   const [isOfficeCasesOpen, setIsOfficeCasesOpen] = useState(false);
-  const [isCounselCasesOpen, setIsCounselCasesOpen] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { icon: FileText, label: 'My Cases', path: '/cases' },
+    { icon: UserCheck, label: 'Tasks', path: '/tasks' },
+    { icon: UserCheck, label: 'Attendance', path: '/attendance' },
     { icon: Users, label: 'Appointments', path: '/appointments' },
     { icon: DollarSign, label: 'Payment', path: '/finance' },
+    { icon: TrendingDown, label: 'Expenses', path: '/expenses' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 
@@ -53,17 +55,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     { icon: UserCheck, label: 'List Clients', path: '/clients' },
   ];
 
-  const counselCasesSubmenu = [
-    { icon: Plus, label: 'Create Counsellor', path: '/counsel/create' },
-    { icon: List, label: 'List Counsellors', path: '/counsel' },
-    { icon: Plus, label: 'Create Case', path: '/counsel/cases/create' },
-    { icon: List, label: 'List Cases', path: '/counsel/cases' },
-  ];
+
 
   const librarySubmenu = [
-    { icon: BookOpen, label: 'Add Book (L1)', path: '/library/books' },
-    { icon: Sofa, label: 'Sofa', path: '/library/sofa' },
-    { icon: Archive, label: 'Dispose', path: '/library/dispose' },
+    { icon: BookOpen, label: 'Library', path: '/library/books' },
+    { icon: Archive, label: 'Storage', path: '/library/storage' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -98,7 +94,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur-lg opacity-50" />
                 <div className="relative w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-glow">
-                  <Sparkles className="text-white" size={22} />
+                  <Scale className="text-white" size={24} />
                 </div>
               </div>
               <div>
@@ -172,36 +168,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                   const active = isActive(subItem.path);
                   return (
                     <Link key={subItem.path + subItem.label} to={subItem.path} className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm ${active ? (theme === 'light' ? 'bg-purple-100 text-purple-700' : 'bg-purple-500/20 text-purple-400') : `${textClass} ${hoverClass}`}`}>
-                      <SubIcon size={16} />
-                      <span className="font-medium">{subItem.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Counsel Cases */}
-          <div>
-            <button
-              onClick={() => setIsCounselCasesOpen(!isCounselCasesOpen)}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
-                isCounselCasesOpen ? (theme === 'light' ? 'bg-cyan-100 text-cyan-700' : 'bg-cyan-500/20 text-cyan-400') : `${textClass} ${hoverClass}`
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Users size={20} />
-                <span className="font-medium">Counsel Cases</span>
-              </div>
-              {isCounselCasesOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-            </button>
-            {isCounselCasesOpen && (
-              <div className="ml-4 mt-2 space-y-1 border-l-2 border-cyan-500/30 pl-4">
-                {counselCasesSubmenu.map((subItem) => {
-                  const SubIcon = subItem.icon;
-                  const active = isActive(subItem.path);
-                  return (
-                    <Link key={subItem.path + subItem.label} to={subItem.path} className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm ${active ? (theme === 'light' ? 'bg-cyan-100 text-cyan-700' : 'bg-cyan-500/20 text-cyan-400') : `${textClass} ${hoverClass}`}`}>
                       <SubIcon size={16} />
                       <span className="font-medium">{subItem.label}</span>
                     </Link>

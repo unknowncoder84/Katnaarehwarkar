@@ -73,20 +73,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const initializeAuth = async () => {
       try {
+        // TEMPORARY: Skip Supabase check for frontend development
         // Get current session
-        const { data: { session } } = await supabase.auth.getSession();
+        // const { data: { session } } = await supabase.auth.getSession();
         
-        if (session?.user && mounted) {
-          const profile = await fetchProfile(session.user.id);
-          const mappedUser = mapSupabaseUser(session.user, profile);
-          setUser(mappedUser);
+        // if (session?.user && mounted) {
+        //   const profile = await fetchProfile(session.user.id);
+        //   const mappedUser = mapSupabaseUser(session.user, profile);
+        //   setUser(mappedUser);
           
-          // Fetch all users if admin
-          if (profile?.role === 'admin') {
-            const allUsers = await fetchAllUsers();
-            setUsers(allUsers);
-          }
-        }
+        //   // Fetch all users if admin
+        //   if (profile?.role === 'admin') {
+        //     const allUsers = await fetchAllUsers();
+        //     setUsers(allUsers);
+        //   }
+        // }
       } catch (err) {
         console.error('Auth initialization error:', err);
       } finally {
@@ -123,36 +124,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const login = async (email: string, password: string): Promise<void> => {
+  const login = async (username: string, password: string): Promise<void> => {
     setLoading(true);
     setError(null);
 
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        throw new Error(signInError.message);
-      }
-
-      if (data.user) {
-        const profile = await fetchProfile(data.user.id);
+      // TEMPORARY: Mock login for frontend development
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mock user for testing
+      if (username === 'admin' && password === 'admin') {
+        const mockUser: User = {
+          id: '1',
+          name: 'Admin User',
+          email: 'admin@katneshwarkar.com',
+          role: 'admin',
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        setUser(mockUser);
         
-        if (profile && !profile.is_active) {
-          await supabase.auth.signOut();
-          throw new Error('Account is deactivated. Please contact an administrator.');
-        }
-
-        const mappedUser = mapSupabaseUser(data.user, profile);
-        setUser(mappedUser);
-
-        if (profile?.role === 'admin') {
-          const allUsers = await fetchAllUsers();
-          setUsers(allUsers);
-        }
+        // Mock users list
+        setUsers([
+          mockUser,
+          {
+            id: '2',
+            name: 'Vipin User',
+            email: 'vipin@katneshwarkar.com',
+            role: 'vipin',
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          {
+            id: '3',
+            name: 'Regular User',
+            email: 'user@katneshwarkar.com',
+            role: 'user',
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ]);
+      } else {
+        throw new Error('Invalid username or password');
       }
+
+      // TODO: Replace with actual API call when backend is ready
+      // const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      //   email,
+      //   password,
+      // });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
       setError(errorMessage);

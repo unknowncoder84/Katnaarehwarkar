@@ -21,6 +21,18 @@ export interface CreateUserData {
 }
 
 // Case Types
+export type CaseStage = 
+  | 'consultation'
+  | 'drafting'
+  | 'filing'
+  | 'circulation'
+  | 'notice'
+  | 'pre-admission'
+  | 'admitted'
+  | 'final-hearing'
+  | 'reserved'
+  | 'disposed';
+
 export interface Case {
   id: string;
   clientName: string;
@@ -40,6 +52,7 @@ export interface Case {
   additionalDetails: string;
   feesQuoted: number;
   status: 'pending' | 'active' | 'closed' | 'on-hold';
+  stage: CaseStage;
   nextDate: Date;
   filingDate: Date;
   circulationStatus: 'circulated' | 'non-circulated';
@@ -76,14 +89,29 @@ export interface Appointment {
 }
 
 // Transaction Types
+export type PaymentMode = 'upi' | 'cash' | 'check' | 'bank-transfer' | 'card' | 'other';
+
 export interface Transaction {
   id: string;
   amount: number;
   status: 'received' | 'pending';
+  paymentMode: PaymentMode;
   receivedBy: string;
   confirmedBy: string;
   caseId: string;
   createdAt: Date;
+}
+
+// Expense Types
+export interface Expense {
+  id: string;
+  amount: number;
+  description: string;
+  addedBy: string; // User ID
+  addedByName: string; // User name for display
+  month: string; // Format: "YYYY-MM"
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Court Types
@@ -115,6 +143,43 @@ export interface SofaItem {
   compartment: 'C1' | 'C2';
   addedAt: Date;
   addedBy: string;
+}
+
+// Task Management Types
+export type TaskType = 'case' | 'custom';
+export type TaskStatus = 'pending' | 'completed';
+
+export interface Task {
+  id: string;
+  type: TaskType;
+  title: string;
+  description: string;
+  assignedTo: string; // User ID
+  assignedToName: string; // User name for display
+  assignedBy: string; // User ID
+  assignedByName: string; // User name for display
+  caseId?: string; // Only for case tasks
+  caseName?: string; // Case client name for display
+  deadline: Date;
+  status: TaskStatus;
+  completedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Attendance Management Types
+export type AttendanceStatus = 'present' | 'absent';
+
+export interface Attendance {
+  id: string;
+  userId: string;
+  userName: string;
+  date: Date;
+  status: AttendanceStatus;
+  markedBy: string; // Admin user ID
+  markedByName: string; // Admin name for display
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Auth Context Types
@@ -151,6 +216,9 @@ export interface DataContextType {
   caseTypes: CaseType[];
   books: Book[];
   sofaItems: SofaItem[];
+  tasks: Task[];
+  attendance: Attendance[];
+  expenses: Expense[];
   addCase: (caseData: Omit<Case, 'id' | 'createdAt' | 'updatedAt'>) => void | Promise<void>;
   updateCase: (id: string, caseData: Partial<Case>) => void | Promise<void>;
   deleteCase: (id: string) => void | Promise<void>;
@@ -171,4 +239,20 @@ export interface DataContextType {
   addSofaItem: (caseId: string, compartment: 'C1' | 'C2') => { success: boolean; error?: string } | Promise<{ success: boolean; error?: string }>;
   removeSofaItem: (id: string) => void | Promise<void>;
   getDisposedCases: () => Case[];
+  // Task Management
+  addTask: (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void | Promise<void>;
+  updateTask: (id: string, taskData: Partial<Task>) => void | Promise<void>;
+  deleteTask: (id: string) => void | Promise<void>;
+  completeTask: (id: string) => void | Promise<void>;
+  getPendingTasksCount: (userId?: string) => number;
+  // Attendance Management
+  markAttendance: (userId: string, date: Date, status: AttendanceStatus) => void | Promise<void>;
+  getAttendanceByUser: (userId: string, month?: number, year?: number) => Attendance[];
+  getAttendanceByDate: (date: Date) => Attendance[];
+  // Expense Management
+  addExpense: (expenseData: Omit<Expense, 'id' | 'createdAt' | 'updatedAt'>) => void | Promise<void>;
+  updateExpense: (id: string, expenseData: Partial<Expense>) => void | Promise<void>;
+  deleteExpense: (id: string) => void | Promise<void>;
+  getExpensesByMonth: (month: string) => Expense[];
+  updateTransaction: (id: string, transactionData: Partial<Transaction>) => void | Promise<void>;
 }

@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
 import { useTheme } from '../contexts/ThemeContext';
+import { useData } from '../contexts/DataContext';
 
 const Calendar: React.FC = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const { appointments, cases } = useData();
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const monthStart = startOfMonth(currentDate);
@@ -16,6 +18,27 @@ const Calendar: React.FC = () => {
   const startingDayOfWeek = monthStart.getDay();
   const previousMonthDays = Array(startingDayOfWeek).fill(null);
   const allDays = [...previousMonthDays, ...daysInMonth];
+
+  // Get appointments and case dates for the current month
+  const dayEvents = useMemo(() => {
+    const events: Record<string, { appointments: number; cases: number }> = {};
+    
+    // Count appointments per day
+    appointments.forEach((apt) => {
+      const dateStr = format(new Date(apt.date), 'yyyy-MM-dd');
+      if (!events[dateStr]) events[dateStr] = { appointments: 0, cases: 0 };
+      events[dateStr].appointments++;
+    });
+    
+    // Count case next dates per day
+    cases.forEach((c) => {
+      const dateStr = format(new Date(c.nextDate), 'yyyy-MM-dd');
+      if (!events[dateStr]) events[dateStr] = { appointments: 0, cases: 0 };
+      events[dateStr].cases++;
+    });
+    
+    return events;
+  }, [appointments, cases, currentDate]);
 
   const handlePrevMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
@@ -71,35 +94,65 @@ const Calendar: React.FC = () => {
 
       {/* Days */}
       <div className="grid grid-cols-7 gap-1">
-        {allDays.map((day, index) => (
-          <div
-            key={index}
-            onClick={() => {
-              if (day) {
-                const dateStr = format(day, 'yyyy-MM-dd');
-                navigate(`/events/${dateStr}`);
-              }
-            }}
-            className={`aspect-square flex items-center justify-center rounded-xl text-sm font-medium font-cyber transition-all cursor-pointer ${
-              day === null
-                ? 'text-gray-600 cursor-default'
-                : isToday(day)
-                  ? 'bg-gradient-cyber text-white font-bold shadow-cyber border border-cyber-blue/50 hover:shadow-justice'
-                  : isSameMonth(day, currentDate)
-                    ? `${textPrimary} ${hoverBg} hover:scale-110 hover:border-cyber-blue/30`
-                    : 'text-gray-600'
-            }`}
-          >
-            {day ? format(day, 'd') : ''}
-          </div>
-        ))}
+        {allDays.map((day, index) => {
+          const dateStr = day ? format(day, 'yyyy-MM-dd') : '';
+          const events = dateStr ? dayEvents[dateStr] : null;
+          const hasEvents = events && (events.appointments > 0 || events.cases > 0);
+          
+          return (
+            <div
+              key={index}
+              onClick={() => {
+                if (day) {
+                  navigate(`/events/${dateStr}`);
+                }
+              }}
+              className={`aspect-square flex flex-col items-center justify-center rounded-xl text-sm font-medium font-cyber transition-all cursor-pointer relative group ${
+                day === null
+                  ? 'text-gray-600 cursor-default'
+                  : isToday(day)
+                    ? 'bg-gradient-cyber text-white font-bold shadow-cyber border border-cyber-blue/50 hover:shadow-justice animate-pulse-slow'
+                    : isSameMonth(day, currentDate)
+                      ? `${textPrimary} ${hoverBg} hover:scale-110 hover:border-cyber-blue/30 ${hasEvents ? 'border border-purple-400/40' : ''}`
+                      : 'text-gray-600'
+              }`}
+            >
+              <span className="relative z-10">{day ? format(day, 'd') : ''}</span>
+              {hasEvents && day && (
+                <div className="absolute bottom-1 flex gap-0.5 z-10">
+                  {events.appointments > 0 && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-bounce" title={`${events.appointments} appointment(s)`} />
+                  )}
+                  {events.cases > 0 && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '0.1s' }} title={`${events.cases} case date(s)`} />
+                  )}
+                </div>
+              )}
+              {hasEvents && day && (
+                <div className={`absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity ${
+                  theme === 'light' ? 'bg-purple-100' : 'bg-purple-500/20'
+                } pointer-events-none`} />
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Today indicator */}
-      <div className={`mt-4 pt-4 border-t ${theme === 'light' ? 'border-gray-200' : 'border-cyber-blue/20'}`}>
+      {/* Legend and Today indicator */}
+      <div className={`mt-4 pt-4 border-t ${theme === 'light' ? 'border-gray-200' : 'border-cyber-blue/20'} space-y-3`}>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-gradient-cyber animate-cyber-pulse" />
           <span className={`text-sm font-court ${textSecondary}`}>Today: {format(new Date(), 'MMMM d, yyyy')}</span>
+        </div>
+        <div className="flex items-center gap-4 text-xs">
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-blue-500" />
+            <span className={textSecondary}>Appointments</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-amber-500" />
+            <span className={textSecondary}>Case Dates</span>
+          </div>
         </div>
       </div>
     </div>

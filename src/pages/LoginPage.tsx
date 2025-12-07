@@ -2,46 +2,27 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
-import { Mail, Lock, Sparkles, ArrowRight, UserPlus } from 'lucide-react';
+import { User, Lock, Sparkles, ArrowRight } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
     setLoading(true);
 
     try {
-      if (isSignUp) {
-        // Sign up new user
-        const { error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { name: name || email.split('@')[0], role: 'user' }
-          }
-        });
-        if (signUpError) throw signUpError;
-        setSuccess('Account created! Check your email to confirm, then login.');
-        setIsSignUp(false);
-      } else {
-        // Login existing user
-        await login(email, password);
-        navigate('/dashboard');
-      }
+      // Simple username/password login
+      await login(username, password);
+      navigate('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Authentication failed');
+      setError(err.message || 'Invalid username or password');
     } finally {
       setLoading(false);
     }
@@ -95,49 +76,28 @@ const LoginPage: React.FC = () => {
               className="text-center mb-8"
             >
               <h1 className="text-3xl font-bold text-white mb-2">Katneshwarkar Office</h1>
-              <p className="text-gray-400">{isSignUp ? 'Create your account' : 'Legal Case Management Dashboard'}</p>
+              <p className="text-gray-400">Legal Case Management Dashboard</p>
             </motion.div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {isSignUp && (
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                >
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity" />
-                    <div className="relative">
-                      <UserPlus className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-400" size={20} />
-                      <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Enter your name"
-                        className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all"
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Username</label>
                 <div className="relative group">
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity" />
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-400" size={20} />
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-400" size={20} />
                     <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email"
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="Enter your username"
                       className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all"
                       required
+                      autoComplete="username"
                     />
                   </div>
                 </div>
@@ -160,6 +120,7 @@ const LoginPage: React.FC = () => {
                       placeholder="Enter your password"
                       className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all"
                       required
+                      autoComplete="current-password"
                     />
                   </div>
                 </div>
@@ -172,16 +133,6 @@ const LoginPage: React.FC = () => {
                   className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm text-center"
                 >
                   {error}
-                </motion.div>
-              )}
-
-              {success && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="p-3 bg-green-500/10 border border-green-500/30 rounded-xl text-green-400 text-sm text-center"
-                >
-                  {success}
                 </motion.div>
               )}
 
@@ -199,37 +150,24 @@ const LoginPage: React.FC = () => {
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
-                    {isSignUp ? 'Create Account' : 'Sign In'}
+                    Sign In
                     <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
               </motion.button>
-
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.7 }}
-                type="button"
-                onClick={() => { setIsSignUp(!isSignUp); setError(''); setSuccess(''); }}
-                className="w-full text-gray-400 hover:text-white text-sm py-2 transition-colors"
-              >
-                {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
-              </motion.button>
             </form>
 
-            {!isSignUp && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8 }}
-                className="mt-8 p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-white/5"
-              >
-                <p className="text-gray-300 text-sm text-center font-medium mb-3">First Time?</p>
-                <p className="text-gray-400 text-xs text-center">
-                  Click "Sign Up" above to create your account, then login.
-                </p>
-              </motion.div>
-            )}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="mt-8 p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-white/5"
+            >
+              <p className="text-gray-300 text-sm text-center font-medium mb-2">Need Access?</p>
+              <p className="text-gray-400 text-xs text-center">
+                Contact your administrator to create an account for you.
+              </p>
+            </motion.div>
           </div>
         </div>
       </motion.div>

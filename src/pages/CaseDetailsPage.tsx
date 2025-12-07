@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Edit, Home, FileText, Shield, RefreshCw, CreditCard, CheckSquare, Clock, Trash2, ExternalLink } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
 import RichTextEditor from '../components/RichTextEditor';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 
 type TabType = 'basic' | 'files' | 'interim' | 'circulation' | 'payments' | 'tasks' | 'timeline';
 
@@ -44,10 +45,13 @@ interface TimelineEvent {
 
 const CaseDetailsPage: React.FC = () => {
   const { id } = useParams();
-  const { cases } = useData();
+  const navigate = useNavigate();
+  const { cases, deleteCase, courts, caseTypes } = useData();
   const { theme } = useTheme();
+  const { isAdmin } = useAuth();
   
   const [activeTab, setActiveTab] = useState<TabType>('basic');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   // Files state
   const [files, setFiles] = useState<CaseFile[]>([]);
@@ -94,6 +98,10 @@ const CaseDetailsPage: React.FC = () => {
   const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300 placeholder-gray-500' : 'bg-white/5 text-white border-purple-500/30 placeholder-gray-400';
   const labelClass = theme === 'light' ? 'text-gray-700' : 'text-cyber-blue/80';
   const cardBgClass = theme === 'light' ? 'bg-orange-50 border border-orange-200' : 'bg-cyber-blue/10 border border-cyber-blue/20';
+
+  // Debug: Log courts and case types
+  console.log('Courts available:', courts);
+  console.log('Case Types available:', caseTypes);
 
   if (!caseData) {
     return (
@@ -163,6 +171,19 @@ const CaseDetailsPage: React.FC = () => {
     }
   };
 
+  const handleEdit = () => {
+    if (id) {
+      navigate(`/cases/${id}/edit`);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (id) {
+      await deleteCase(id);
+      navigate('/cases');
+    }
+  };
+
   return (
     <MainLayout>
       {/* Header */}
@@ -173,14 +194,68 @@ const CaseDetailsPage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <h1 className={`text-2xl font-bold font-cyber ${theme === 'light' ? 'text-gray-900' : 'holographic-text'}`}>Case Details</h1>
-          <button className={`px-6 py-2 rounded-lg font-semibold font-cyber transition-all duration-300 flex items-center gap-2 ${
-            theme === 'light' ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-cyber-blue/10 text-cyber-blue hover:bg-cyber-blue/20 border border-cyber-blue/30'
-          }`}>
-            <Edit size={18} />
-            EDIT
-          </button>
+          {isAdmin && (
+            <div className="flex gap-3">
+              <button 
+                onClick={handleEdit}
+                className="px-6 py-2 rounded-lg font-semibold font-cyber transition-all duration-300 flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:shadow-lg border border-amber-500/30"
+              >
+                <Edit size={18} />
+                EDIT
+              </button>
+              <button 
+                onClick={() => setShowDeleteConfirm(true)}
+                className="px-6 py-2 rounded-lg font-semibold font-cyber transition-all duration-300 flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white hover:shadow-lg border border-red-500/30"
+              >
+                <Trash2 size={18} />
+                DELETE
+              </button>
+            </div>
+          )}
         </div>
       </motion.div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={() => setShowDeleteConfirm(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className={`${bgClass} p-8 rounded-2xl border ${borderClass} max-w-md w-full mx-4`}
+          >
+            <h2 className={`text-2xl font-bold mb-4 ${theme === 'light' ? 'text-gray-900' : 'text-cyber-blue'}`}>
+              Confirm Delete
+            </h2>
+            <p className={`mb-6 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+              Are you sure you want to delete this case? This action cannot be undone.
+            </p>
+            <div className="flex gap-4">
+              <button
+                onClick={handleDelete}
+                className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold py-3 rounded-lg hover:shadow-lg transition-all duration-300 border border-red-500/30"
+              >
+                Yes, Delete
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className={`flex-1 font-semibold py-3 rounded-lg transition-all duration-300 ${
+                  theme === 'light' 
+                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300' 
+                    : 'bg-cyber-blue/10 text-cyber-blue hover:bg-cyber-blue/20 border border-cyber-blue/30'
+                }`}
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
 
       {/* Tabs */}
       <div className={`flex gap-1 mb-6 border-b ${borderClass} overflow-x-auto`}>
@@ -227,8 +302,24 @@ const CaseDetailsPage: React.FC = () => {
                   </select>
                 </div>
                 <p><span className="font-medium">On Behalf Of -</span> {caseData.onBehalfOf || 'PETITIONER'}</p>
-                <p><span className="font-medium">Case Type -</span> {caseData.caseType}</p>
-                <p><span className="font-medium">Court -</span> {caseData.court}</p>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">Case Type -</span>
+                  <select className={`px-3 py-1 rounded border ${inputBgClass}`} defaultValue={caseData.caseType}>
+                    <option value="">Select Case Type</option>
+                    {caseTypes.map((ct) => (
+                      <option key={ct.id} value={ct.name}>{ct.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">Court -</span>
+                  <select className={`px-3 py-1 rounded border ${inputBgClass}`} defaultValue={caseData.court}>
+                    <option value="">Select Court</option>
+                    {courts.map((court) => (
+                      <option key={court.id} value={court.name}>{court.name}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium">District -</span>
                   <select className={`px-3 py-1 rounded border ${inputBgClass}`} defaultValue={caseData.district}>
@@ -314,7 +405,7 @@ const CaseDetailsPage: React.FC = () => {
                   <th className={`text-left py-3 px-4 ${labelClass}`}>ATTACHMENT TITLE</th>
                   <th className={`text-left py-3 px-4 ${labelClass}`}>DATE ATTACHED</th>
                   <th className={`text-left py-3 px-4 ${labelClass}`}>ATTACHED BY</th>
-                  <th className={`text-left py-3 px-4 ${labelClass}`}>DELETE</th>
+                  <th className={`text-left py-3 px-4 ${labelClass}`}>ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
@@ -324,13 +415,52 @@ const CaseDetailsPage: React.FC = () => {
                   files.map((file, index) => (
                     <tr key={file.id} className={`border-b ${borderClass}`}>
                       <td className="py-3 px-4">{index + 1}</td>
-                      <td className="py-3 px-4">{file.title}</td>
+                      <td className="py-3 px-4">
+                        <button
+                          onClick={() => {
+                            if (file.url) {
+                              window.open(file.url, '_blank');
+                            } else if (file.file) {
+                              const link = document.createElement('a');
+                              link.href = file.file;
+                              link.download = file.title;
+                              link.click();
+                            }
+                          }}
+                          className="text-blue-400 hover:text-blue-300 underline hover:no-underline transition-all cursor-pointer font-medium text-left"
+                          title="Click to download file"
+                        >
+                          {file.title}
+                        </button>
+                      </td>
                       <td className="py-3 px-4">{new Date(file.dateAttached).toLocaleDateString()}</td>
                       <td className="py-3 px-4">{file.attachedBy}</td>
                       <td className="py-3 px-4">
-                        <button onClick={() => setFiles(files.filter(f => f.id !== file.id))} className="text-red-400 hover:text-red-300">
-                          <Trash2 size={18} />
-                        </button>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => {
+                              if (file.url) {
+                                window.open(file.url, '_blank');
+                              } else if (file.file) {
+                                const link = document.createElement('a');
+                                link.href = file.file;
+                                link.download = file.title;
+                                link.click();
+                              }
+                            }}
+                            className="text-blue-400 hover:text-blue-300 p-2 rounded-lg hover:bg-blue-500/20 transition-all"
+                            title="Download File"
+                          >
+                            <ExternalLink size={18} />
+                          </button>
+                          <button 
+                            onClick={() => setFiles(files.filter(f => f.id !== file.id))} 
+                            className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500/20 transition-all"
+                            title="Delete File"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

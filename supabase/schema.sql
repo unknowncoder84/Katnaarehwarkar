@@ -28,14 +28,48 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- DROP FUNCTION IF EXISTS public.handle_new_user CASCADE;
 
 -- =====================================================
--- 1. PROFILES TABLE (extends Supabase auth.users)
+-- 1. USER_ACCOUNTS TABLE (Simple Username/Password Auth)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS public.user_accounts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  username VARCHAR(100) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('admin', 'user', 'vipin')),
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  created_by UUID REFERENCES public.user_accounts(id),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE public.user_accounts ENABLE ROW LEVEL SECURITY;
+
+-- Policies for user_accounts
+CREATE POLICY "Anyone can view active users" ON public.user_accounts FOR SELECT USING (is_active = true);
+CREATE POLICY "Admins can insert users" ON public.user_accounts FOR INSERT WITH CHECK (
+  EXISTS (SELECT 1 FROM public.user_accounts WHERE id = auth.uid() AND role = 'admin')
+);
+CREATE POLICY "Admins can update users" ON public.user_accounts FOR UPDATE USING (
+  EXISTS (SELECT 1 FROM public.user_accounts WHERE id = auth.uid() AND role = 'admin')
+);
+CREATE POLICY "Admins can delete users" ON public.user_accounts FOR DELETE USING (
+  EXISTS (SELECT 1 FROM public.user_accounts WHERE id = auth.uid() AND role = 'admin')
+);
+CREATE POLICY "Allow first admin creation" ON public.user_accounts FOR INSERT WITH CHECK (
+  NOT EXISTS (SELECT 1 FROM public.user_accounts)
+);
+
+-- Index for faster username lookups
+CREATE INDEX IF NOT EXISTS idx_user_accounts_username ON public.user_accounts(username);
+CREATE INDEX IF NOT EXISTS idx_user_accounts_role ON public.user_accounts(role);
+
+-- =====================================================
+-- 2. PROFILES TABLE (User profile information)
 -- =====================================================
 CREATE TABLE IF NOT EXISTS public.profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  id UUID PRIMARY KEY REFERENCES public.user_accounts(id) ON DELETE CASCADE,
   name VARCHAR(255) NOT NULL,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('admin', 'user')),
-  is_active BOOLEAN DEFAULT true,
+  email VARCHAR(255),
   avatar TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -48,18 +82,15 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view all profiles" ON public.profiles FOR SELECT USING (true);
 CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 CREATE POLICY "Admins can update any profile" ON public.profiles FOR UPDATE USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
+  EXISTS (SELECT 1 FROM public.user_accounts WHERE id = auth.uid() AND role = 'admin')
 );
 CREATE POLICY "Admins can insert profiles" ON public.profiles FOR INSERT WITH CHECK (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-);
-CREATE POLICY "Allow first user signup" ON public.profiles FOR INSERT WITH CHECK (
-  NOT EXISTS (SELECT 1 FROM public.profiles)
+  EXISTS (SELECT 1 FROM public.user_accounts WHERE id = auth.uid() AND role = 'admin')
 );
 
 
 -- =====================================================
--- 2. COURTS TABLE
+-- 3. COURTS TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS public.courts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -74,11 +105,11 @@ ALTER TABLE public.courts ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can view courts" ON public.courts FOR SELECT USING (true);
 CREATE POLICY "Authenticated users can insert courts" ON public.courts FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 CREATE POLICY "Admins can delete courts" ON public.courts FOR DELETE USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
+  EXISTS (SELECT 1 FROM public.user_accounts WHERE id = auth.uid() AND role = 'admin')
 );
 
 -- =====================================================
--- 3. CASE_TYPES TABLE
+-- 4. CASE_TYPES TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS public.case_types (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -93,11 +124,11 @@ ALTER TABLE public.case_types ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can view case types" ON public.case_types FOR SELECT USING (true);
 CREATE POLICY "Authenticated users can insert case types" ON public.case_types FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 CREATE POLICY "Admins can delete case types" ON public.case_types FOR DELETE USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
+  EXISTS (SELECT 1 FROM public.user_accounts WHERE id = auth.uid() AND role = 'admin')
 );
 
 -- =====================================================
--- 4. CASES TABLE (Complete with all columns)
+-- 5. CASES TABLE (Complete with all columns)
 -- =====================================================
 CREATE TABLE IF NOT EXISTS public.cases (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -128,7 +159,7 @@ CREATE TABLE IF NOT EXISTS public.cases (
   circulation_status VARCHAR(20) DEFAULT 'non-circulated' CHECK (circulation_status IN ('circulated', 'non-circulated')),
   interim_relief VARCHAR(20) DEFAULT 'none' CHECK (interim_relief IN ('favor', 'against', 'none')),
   -- Metadata
-  created_by UUID REFERENCES public.profiles(id),
+  created_by UUID REFERENCES public.user_accounts(id),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -141,7 +172,7 @@ CREATE POLICY "Users can view all cases" ON public.cases FOR SELECT USING (true)
 CREATE POLICY "Authenticated users can insert cases" ON public.cases FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 CREATE POLICY "Users can update cases" ON public.cases FOR UPDATE USING (auth.uid() IS NOT NULL);
 CREATE POLICY "Admins can delete cases" ON public.cases FOR DELETE USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
+  EXISTS (SELECT 1 FROM public.user_accounts WHERE id = auth.uid() AND role = 'admin')
 );
 
 -- Indexes for faster queries
@@ -155,7 +186,7 @@ CREATE INDEX IF NOT EXISTS idx_cases_created_by ON public.cases(created_by);
 
 
 -- =====================================================
--- 5. COUNSEL TABLE
+-- 6. COUNSEL TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS public.counsel (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -165,7 +196,7 @@ CREATE TABLE IF NOT EXISTS public.counsel (
   address TEXT,
   details TEXT,
   total_cases INTEGER DEFAULT 0,
-  created_by UUID REFERENCES public.profiles(id),
+  created_by UUID REFERENCES public.user_accounts(id),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -178,7 +209,7 @@ CREATE POLICY "Users can view all counsel" ON public.counsel FOR SELECT USING (t
 CREATE POLICY "Authenticated users can insert counsel" ON public.counsel FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 CREATE POLICY "Users can update counsel" ON public.counsel FOR UPDATE USING (auth.uid() IS NOT NULL);
 CREATE POLICY "Admins can delete counsel" ON public.counsel FOR DELETE USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
+  EXISTS (SELECT 1 FROM public.user_accounts WHERE id = auth.uid() AND role = 'admin')
 );
 
 -- Indexes
@@ -186,13 +217,13 @@ CREATE INDEX IF NOT EXISTS idx_counsel_name ON public.counsel(name);
 CREATE INDEX IF NOT EXISTS idx_counsel_email ON public.counsel(email);
 
 -- =====================================================
--- 6. APPOINTMENTS TABLE
+-- 7. APPOINTMENTS TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS public.appointments (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   date DATE NOT NULL,
   time VARCHAR(10),
-  user_id UUID REFERENCES public.profiles(id),
+  user_id UUID REFERENCES public.user_accounts(id),
   user_name VARCHAR(255),
   client VARCHAR(255),
   details TEXT,
@@ -209,7 +240,7 @@ CREATE POLICY "Authenticated users can insert appointments" ON public.appointmen
 CREATE POLICY "Users can update appointments" ON public.appointments FOR UPDATE USING (auth.uid() IS NOT NULL);
 CREATE POLICY "Users can delete own appointments" ON public.appointments FOR DELETE USING (
   auth.uid() = user_id OR 
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
+  EXISTS (SELECT 1 FROM public.user_accounts WHERE id = auth.uid() AND role = 'admin')
 );
 
 -- Indexes
@@ -217,7 +248,7 @@ CREATE INDEX IF NOT EXISTS idx_appointments_date ON public.appointments(date);
 CREATE INDEX IF NOT EXISTS idx_appointments_user_id ON public.appointments(user_id);
 
 -- =====================================================
--- 7. TRANSACTIONS TABLE
+-- 8. TRANSACTIONS TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS public.transactions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -237,7 +268,7 @@ CREATE POLICY "Users can view all transactions" ON public.transactions FOR SELEC
 CREATE POLICY "Authenticated users can insert transactions" ON public.transactions FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 CREATE POLICY "Users can update transactions" ON public.transactions FOR UPDATE USING (auth.uid() IS NOT NULL);
 CREATE POLICY "Admins can delete transactions" ON public.transactions FOR DELETE USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
+  EXISTS (SELECT 1 FROM public.user_accounts WHERE id = auth.uid() AND role = 'admin')
 );
 
 -- Indexes
@@ -247,13 +278,13 @@ CREATE INDEX IF NOT EXISTS idx_transactions_created_at ON public.transactions(cr
 
 
 -- =====================================================
--- 8. BOOKS TABLE (Library Management - L1)
+-- 9. BOOKS TABLE (Library Management - L1)
 -- =====================================================
 CREATE TABLE IF NOT EXISTS public.books (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR(255) NOT NULL,
   location VARCHAR(10) DEFAULT 'L1' CHECK (location IN ('L1')),
-  added_by UUID REFERENCES public.profiles(id),
+  added_by UUID REFERENCES public.user_accounts(id),
   added_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -269,13 +300,13 @@ CREATE POLICY "Users can delete books" ON public.books FOR DELETE USING (auth.ui
 CREATE INDEX IF NOT EXISTS idx_books_name ON public.books(name);
 
 -- =====================================================
--- 9. SOFA_ITEMS TABLE (Library Management - Sofa C1/C2)
+-- 10. SOFA_ITEMS TABLE (Library Management - Sofa C1/C2)
 -- =====================================================
 CREATE TABLE IF NOT EXISTS public.sofa_items (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   case_id UUID REFERENCES public.cases(id) ON DELETE CASCADE,
   compartment VARCHAR(5) NOT NULL CHECK (compartment IN ('C1', 'C2')),
-  added_by UUID REFERENCES public.profiles(id),
+  added_by UUID REFERENCES public.user_accounts(id),
   added_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(case_id, compartment)
 );
@@ -293,7 +324,7 @@ CREATE INDEX IF NOT EXISTS idx_sofa_items_case_id ON public.sofa_items(case_id);
 CREATE INDEX IF NOT EXISTS idx_sofa_items_compartment ON public.sofa_items(compartment);
 
 -- =====================================================
--- 10. COUNSEL_CASES TABLE (Link Counsel to Cases)
+-- 11. COUNSEL_CASES TABLE (Link Counsel to Cases)
 -- =====================================================
 CREATE TABLE IF NOT EXISTS public.counsel_cases (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

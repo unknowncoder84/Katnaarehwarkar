@@ -8,7 +8,11 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import CasesPage from './pages/CasesPage';
 import CreateCasePage from './pages/CreateCasePage';
+import EditCasePage from './pages/EditCasePage';
 import CaseDetailsPage from './pages/CaseDetailsPage';
+import TasksPage from './pages/TasksPage';
+import AttendancePage from './pages/AttendancePage';
+import ExpensesPage from './pages/ExpensesPage';
 import ClientsPage from './pages/ClientsPage';
 import CounselPage from './pages/CounselPage';
 import CreateCounsellorPage from './pages/CreateCounsellorPage';
@@ -19,9 +23,9 @@ import FinancePage from './pages/FinancePage';
 import SettingsPage from './pages/SettingsPage';
 import AdminPage from './pages/AdminPage';
 import DateEventsPage from './pages/DateEventsPage';
-import LibraryBooksPage from './pages/LibraryBooksPage';
-import SofaPage from './pages/SofaPage';
-import DisposePage from './pages/DisposePage';
+import LibraryPage from './pages/LibraryPage';
+import StoragePage from './pages/StoragePage';
+
 import './index.css';
 
 function App() {
@@ -57,10 +61,42 @@ function App() {
                 }
               />
               <Route
+                path="/cases/:id/edit"
+                element={
+                  <AdminRoute>
+                    <EditCasePage />
+                  </AdminRoute>
+                }
+              />
+              <Route
                 path="/cases/:id"
                 element={
                   <ProtectedRoute>
                     <CaseDetailsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/tasks"
+                element={
+                  <ProtectedRoute>
+                    <TasksPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/attendance"
+                element={
+                  <ProtectedRoute>
+                    <AttendancePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/expenses"
+                element={
+                  <ProtectedRoute>
+                    <ExpensesPage />
                   </ProtectedRoute>
                 }
               />
@@ -149,26 +185,19 @@ function App() {
                 path="/library/books"
                 element={
                   <ProtectedRoute>
-                    <LibraryBooksPage />
+                    <LibraryPage />
                   </ProtectedRoute>
                 }
               />
               <Route
-                path="/library/sofa"
+                path="/library/storage"
                 element={
                   <ProtectedRoute>
-                    <SofaPage />
+                    <StoragePage />
                   </ProtectedRoute>
                 }
               />
-              <Route
-                path="/library/dispose"
-                element={
-                  <ProtectedRoute>
-                    <DisposePage />
-                  </ProtectedRoute>
-                }
-              />
+
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </Router>

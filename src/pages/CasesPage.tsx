@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Search, Edit } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import { exportToCSV, exportToExcel, exportToPDF } from '../utils/exportData';
 import { Case } from '../types';
 
@@ -12,12 +13,23 @@ type CaseView = 'my-cases' | 'all-cases' | 'office-cases';
 
 const CasesPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { cases } = useData();
   const { theme } = useTheme();
+  const { isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState<CaseView>('all-cases');
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
 
-  // Filter cases based on active tab and search
+  // Read filter from URL on mount
+  useEffect(() => {
+    const filter = searchParams.get('filter');
+    if (filter) {
+      setStatusFilter(filter);
+    }
+  }, [searchParams]);
+
+  // Filter cases based on active tab, search, and status filter
   const filteredCases = useMemo(() => {
     let filtered = cases;
 
@@ -33,6 +45,39 @@ const CasesPage: React.FC = () => {
         break;
     }
 
+    // Apply status filter from URL
+    if (statusFilter) {
+      filtered = filtered.filter((c) => {
+        switch (statusFilter) {
+          // Stage filters
+          case 'consultation':
+          case 'drafting':
+          case 'filing':
+          case 'circulation':
+          case 'notice':
+          case 'pre-admission':
+          case 'admitted':
+          case 'final-hearing':
+          case 'reserved':
+          case 'disposed':
+            return c.stage === statusFilter;
+          // Legacy status filters
+          case 'pending':
+            return c.status === 'pending';
+          case 'active':
+            return c.status === 'active';
+          case 'closed':
+            return c.status === 'closed';
+          case 'circulated':
+            return c.circulationStatus === 'circulated';
+          case 'non-circulated':
+            return c.circulationStatus === 'non-circulated';
+          default:
+            return true;
+        }
+      });
+    }
+
     if (searchTerm) {
       filtered = filtered.filter(
         (c) =>
@@ -43,7 +88,7 @@ const CasesPage: React.FC = () => {
     }
 
     return filtered;
-  }, [cases, activeTab, searchTerm]);
+  }, [cases, activeTab, searchTerm, statusFilter]);
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -71,12 +116,32 @@ const CasesPage: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className={`${cardBg} p-5 md:p-6 rounded-2xl mb-6 border`}
       >
-        <h1 className={`text-2xl md:text-3xl font-bold font-cyber ${textPrimary}`}>
-          Case Management <span className="text-cyber-blue text-glow">({filteredCases.length})</span>
-        </h1>
-        <p className={`mt-1 ${textSecondary} font-court`}>
-          Showing results for {activeTab === 'my-cases' ? 'My Cases' : activeTab === 'all-cases' ? 'All Cases' : 'Office Cases'}
-        </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className={`text-2xl md:text-3xl font-bold font-cyber ${textPrimary}`}>
+              Case Management <span className="text-cyber-blue text-glow">({filteredCases.length})</span>
+            </h1>
+            <p className={`mt-1 ${textSecondary} font-court`}>
+              Showing results for {activeTab === 'my-cases' ? 'My Cases' : activeTab === 'all-cases' ? 'All Cases' : 'Office Cases'}
+            </p>
+          </div>
+          {statusFilter && (
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1.5 bg-purple-500/20 text-purple-400 rounded-lg text-sm font-semibold border border-purple-500/30">
+                Filter: {statusFilter.replace('-', ' ').toUpperCase()}
+              </span>
+              <button
+                onClick={() => {
+                  setStatusFilter('');
+                  navigate('/cases');
+                }}
+                className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg text-sm font-semibold hover:bg-red-500/30 transition-colors border border-red-500/30"
+              >
+                Clear
+              </button>
+            </div>
+          )}
+        </div>
       </motion.div>
 
       {/* Export Buttons and Search */}
@@ -180,12 +245,23 @@ const CasesPage: React.FC = () => {
                   <p className="truncate font-semibold">{caseItem.partiesName}</p>
                 </div>
               </div>
-              <button 
-                onClick={() => navigate(`/cases/${caseItem.id}`)}
-                className="w-full bg-gradient-cyber text-white py-3 rounded-xl font-semibold font-cyber hover:shadow-cyber transition-all border border-cyber-blue/30"
-              >
-                View Details
-              </button>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => navigate(`/cases/${caseItem.id}`)}
+                  className="flex-1 bg-gradient-cyber text-white py-3 rounded-xl font-semibold font-cyber hover:shadow-cyber transition-all border border-cyber-blue/30"
+                >
+                  View Details
+                </button>
+                {isAdmin && (
+                  <button 
+                    onClick={() => navigate(`/cases/${caseItem.id}/edit`)}
+                    className="px-4 py-3 rounded-xl font-semibold font-cyber transition-all bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:shadow-lg border border-amber-500/30 flex items-center justify-center gap-1"
+                  >
+                    <Edit size={16} />
+                    Edit
+                  </button>
+                )}
+              </div>
             </motion.div>
           ))
         ) : (
@@ -221,7 +297,8 @@ const CasesPage: React.FC = () => {
                 filteredCases.map((caseItem: Case, index: number) => (
                   <tr
                     key={caseItem.id}
-                    className={`border-b ${borderClass} ${hoverClass} transition-colors duration-200`}
+                    onClick={() => navigate(`/cases/${caseItem.id}`)}
+                    className={`border-b ${borderClass} ${hoverClass} transition-colors duration-200 cursor-pointer`}
                   >
                     <td className="py-4 px-4 lg:px-6 text-sm">{index + 1}</td>
                     <td className="py-4 px-4 lg:px-6 font-medium text-sm">{caseItem.clientName}</td>
@@ -236,13 +313,24 @@ const CasesPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-4 px-4 lg:px-6 text-sm hidden lg:table-cell">{caseItem.caseType}</td>
-                    <td className="py-4 px-4 lg:px-6">
-                      <button 
-                        onClick={() => navigate(`/cases/${caseItem.id}`)}
-                        className="px-4 py-2 rounded-lg font-medium font-cyber transition-all text-sm bg-gradient-cyber text-white hover:shadow-cyber border border-cyber-blue/30"
-                      >
-                        View
-                      </button>
+                    <td className="py-4 px-4 lg:px-6" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => navigate(`/cases/${caseItem.id}`)}
+                          className="px-4 py-2 rounded-lg font-medium font-cyber transition-all text-sm bg-gradient-cyber text-white hover:shadow-cyber border border-cyber-blue/30"
+                        >
+                          View
+                        </button>
+                        {isAdmin && (
+                          <button 
+                            onClick={() => navigate(`/cases/${caseItem.id}/edit`)}
+                            className="px-4 py-2 rounded-lg font-medium font-cyber transition-all text-sm bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:shadow-lg border border-amber-500/30 flex items-center gap-1"
+                          >
+                            <Edit size={14} />
+                            Edit
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))

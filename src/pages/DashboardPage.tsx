@@ -137,25 +137,32 @@ const DashboardPage: React.FC = () => {
             <table className="w-full">
               <tbody className="divide-y divide-gray-200/10">
                 {[
-                  { label: 'Consultation', value: cases.filter((c) => c.status === 'pending').length },
-                  { label: 'Drafting', value: cases.filter((c) => c.status === 'active').length },
-                  { label: 'Filing', value: cases.filter((c) => c.status === 'closed').length },
-                  { label: 'Circulation', value: cases.filter((c) => c.circulationStatus === 'circulated').length },
-                  { label: 'Notice', value: 11 },
-                  { label: 'Pre Admission', value: 229 },
-                  { label: 'Admitted', value: 62 },
-                  { label: 'Final Hearing', value: 82 },
-                  { label: 'Reserved For Judgement', value: 0 },
-                  { label: 'Disposed', value: 25 },
+                  { label: 'Consultation', value: cases.filter((c) => c.stage === 'consultation').length, filter: 'consultation' },
+                  { label: 'Drafting', value: cases.filter((c) => c.stage === 'drafting').length, filter: 'drafting' },
+                  { label: 'Filing', value: cases.filter((c) => c.stage === 'filing').length, filter: 'filing' },
+                  { label: 'Circulation', value: cases.filter((c) => c.stage === 'circulation').length, filter: 'circulation' },
+                  { label: 'Notice', value: cases.filter((c) => c.stage === 'notice').length, filter: 'notice' },
+                  { label: 'Pre Admission', value: cases.filter((c) => c.stage === 'pre-admission').length, filter: 'pre-admission' },
+                  { label: 'Admitted', value: cases.filter((c) => c.stage === 'admitted').length, filter: 'admitted' },
+                  { label: 'Final Hearing', value: cases.filter((c) => c.stage === 'final-hearing').length, filter: 'final-hearing' },
+                  { label: 'Reserved For Judgement', value: cases.filter((c) => c.stage === 'reserved').length, filter: 'reserved' },
+                  { label: 'Disposed', value: cases.filter((c) => c.stage === 'disposed').length, filter: 'disposed' },
                 ].map((row, idx) => (
-                  <tr key={idx} className={`${theme === 'light' ? 'hover:bg-purple-50/80' : 'hover:bg-white/5'} transition-colors`}>
+                  <tr 
+                    key={idx} 
+                    onClick={() => navigate(`/cases?filter=${row.filter}`)}
+                    className={`${theme === 'light' ? 'hover:bg-purple-50/80' : 'hover:bg-white/5'} transition-colors cursor-pointer`}
+                  >
                     <td className={`py-3 px-4 uppercase text-sm font-semibold tracking-wide ${theme === 'light' ? 'text-gray-700' : 'text-cyber-blue/60'}`}>{row.label}</td>
                     <td className={`py-3 px-4 text-right font-bold text-lg ${theme === 'light' ? 'text-gray-900' : 'text-cyber-blue'}`}>{row.value}</td>
                   </tr>
                 ))}
-                <tr className={`${theme === 'light' ? 'bg-purple-100/50' : 'bg-purple-500/10'}`}>
+                <tr 
+                  onClick={() => navigate('/cases')}
+                  className={`${theme === 'light' ? 'bg-purple-100/50 hover:bg-purple-200/50' : 'bg-purple-500/10 hover:bg-purple-500/20'} cursor-pointer transition-colors`}
+                >
                   <td className={`py-4 px-4 uppercase text-sm font-bold tracking-wide ${theme === 'light' ? 'text-purple-700' : 'text-purple-400'}`}>Total Cases</td>
-                  <td className={`py-4 px-4 text-right font-bold text-xl ${theme === 'light' ? 'text-purple-700' : 'text-purple-400'}`}>541</td>
+                  <td className={`py-4 px-4 text-right font-bold text-xl ${theme === 'light' ? 'text-purple-700' : 'text-purple-400'}`}>{cases.length}</td>
                 </tr>
               </tbody>
             </table>

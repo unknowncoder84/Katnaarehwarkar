@@ -1,16 +1,24 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Sofa, Plus, Trash2, FileText } from 'lucide-react';
+import { Archive, Plus, Trash2, Search } from 'lucide-react';
 import MainLayout from '../components/MainLayout';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const SofaPage: React.FC = () => {
-  const { cases, sofaItems, addSofaItem, removeSofaItem } = useData();
+  const { sofaItems, addSofaItem, removeSofaItem } = useData();
   const { theme } = useTheme();
-  const [selectedCase, setSelectedCase] = useState('');
-  const [selectedCompartment, setSelectedCompartment] = useState<'C1' | 'C2'>('C1');
+  const { isAdmin } = useAuth();
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
+  
+  // Form fields
+  const [itemName, setItemName] = useState('');
+  const [itemNumber, setItemNumber] = useState('');
+  const [itemLocation, setItemLocation] = useState('');
+  const [itemType, setItemType] = useState<'File' | 'Book'>('File');
 
   const c1Items = useMemo(() => 
     sofaItems.filter((item) => item.compartment === 'C1'), [sofaItems]

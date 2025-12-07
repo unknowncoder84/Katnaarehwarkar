@@ -64,38 +64,49 @@ const SettingsPage: React.FC = () => {
         className={`${cardBg} p-6 rounded-2xl mb-6 border`}
       >
         <h2 className={`text-xl font-bold mb-4 ${textPrimary}`}>Court Management</h2>
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <input
-            type="text"
-            value={courtName}
-            onChange={(e) => setCourtName(e.target.value)}
-            placeholder="Enter court name"
-            className={`flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:border-purple-500 transition-colors ${inputBgClass}`}
-            onKeyPress={(e) => e.key === 'Enter' && handleAddCourt()}
-          />
-          <button
-            onClick={handleAddCourt}
-            className="bg-gradient-to-r from-cyber-green to-emerald-500 text-white px-6 py-3 rounded-xl hover:shadow-cyber transition-all duration-300 font-medium font-cyber border border-cyber-green/30"
-          >
-            Add Court
-          </button>
+        <p className={`text-sm mb-4 ${textSecondary}`}>Add and manage courts for case filing</p>
+        
+        {/* Add Court Form */}
+        <div className="mb-6">
+          <label className={`block text-sm font-semibold mb-2 ${textSecondary}`}>Add New Court</label>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <textarea
+              value={courtName}
+              onChange={(e) => setCourtName(e.target.value)}
+              placeholder="Enter court name (e.g., High Court of Mumbai)"
+              rows={2}
+              className={`flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:border-purple-500 transition-colors resize-none ${inputBgClass}`}
+            />
+            <button
+              onClick={handleAddCourt}
+              className="bg-gradient-to-r from-cyber-green to-emerald-500 text-white px-6 py-3 rounded-xl hover:shadow-cyber transition-all duration-300 font-medium font-cyber border border-cyber-green/30 self-start"
+            >
+              Add Court
+            </button>
+          </div>
         </div>
-        <div className="space-y-2">
-          {courts.length === 0 ? (
-            <p className={`text-center py-6 ${textSecondary}`}>No courts added yet</p>
-          ) : (
-            courts.map((court) => (
-              <div key={court.id} className={`flex items-center justify-between ${itemBgClass} p-4 rounded-xl`}>
-                <span className={textPrimary}>{court.name}</span>
-                <button
-                  onClick={() => deleteCourt(court.id)}
-                  className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            ))
-          )}
+
+        {/* Courts List with Dropdown */}
+        <div>
+          <label className={`block text-sm font-semibold mb-2 ${textSecondary}`}>Existing Courts ({courts.length})</label>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {courts.length === 0 ? (
+              <p className={`text-center py-6 ${textSecondary}`}>No courts added yet</p>
+            ) : (
+              courts.map((court) => (
+                <div key={court.id} className={`flex items-center justify-between ${itemBgClass} p-4 rounded-xl hover:shadow-md transition-all`}>
+                  <span className={`${textPrimary} font-medium`}>{court.name}</span>
+                  <button
+                    onClick={() => deleteCourt(court.id)}
+                    className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
+                    title="Delete Court"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </motion.div>
 
@@ -107,38 +118,49 @@ const SettingsPage: React.FC = () => {
         className={`${cardBg} p-6 rounded-2xl border`}
       >
         <h2 className={`text-xl font-bold mb-4 ${textPrimary}`}>Case Type Management</h2>
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <input
-            type="text"
-            value={caseTypeName}
-            onChange={(e) => setCaseTypeName(e.target.value)}
-            placeholder="Enter case type"
-            className={`flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:border-purple-500 transition-colors ${inputBgClass}`}
-            onKeyPress={(e) => e.key === 'Enter' && handleAddCaseType()}
-          />
-          <button
-            onClick={handleAddCaseType}
-            className="bg-gradient-to-r from-cyber-blue to-neon-blue text-white px-6 py-3 rounded-xl hover:shadow-cyber transition-all duration-300 font-medium font-cyber border border-cyber-blue/30"
-          >
-            Add Type
-          </button>
+        <p className={`text-sm mb-4 ${textSecondary}`}>Add and manage case types for categorization</p>
+        
+        {/* Add Case Type Form */}
+        <div className="mb-6">
+          <label className={`block text-sm font-semibold mb-2 ${textSecondary}`}>Add New Case Type</label>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <textarea
+              value={caseTypeName}
+              onChange={(e) => setCaseTypeName(e.target.value)}
+              placeholder="Enter case type (e.g., Civil, Criminal, Family Law)"
+              rows={2}
+              className={`flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:border-purple-500 transition-colors resize-none ${inputBgClass}`}
+            />
+            <button
+              onClick={handleAddCaseType}
+              className="bg-gradient-to-r from-cyber-blue to-neon-blue text-white px-6 py-3 rounded-xl hover:shadow-cyber transition-all duration-300 font-medium font-cyber border border-cyber-blue/30 self-start"
+            >
+              Add Type
+            </button>
+          </div>
         </div>
-        <div className="space-y-2">
-          {caseTypes.length === 0 ? (
-            <p className={`text-center py-6 ${textSecondary}`}>No case types added yet</p>
-          ) : (
-            caseTypes.map((ct) => (
-              <div key={ct.id} className={`flex items-center justify-between ${itemBgClass} p-4 rounded-xl`}>
-                <span className={textPrimary}>{ct.name}</span>
-                <button
-                  onClick={() => deleteCaseType(ct.id)}
-                  className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            ))
-          )}
+
+        {/* Case Types List with Dropdown */}
+        <div>
+          <label className={`block text-sm font-semibold mb-2 ${textSecondary}`}>Existing Case Types ({caseTypes.length})</label>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {caseTypes.length === 0 ? (
+              <p className={`text-center py-6 ${textSecondary}`}>No case types added yet</p>
+            ) : (
+              caseTypes.map((ct) => (
+                <div key={ct.id} className={`flex items-center justify-between ${itemBgClass} p-4 rounded-xl hover:shadow-md transition-all`}>
+                  <span className={`${textPrimary} font-medium`}>{ct.name}</span>
+                  <button
+                    onClick={() => deleteCaseType(ct.id)}
+                    className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
+                    title="Delete Case Type"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </motion.div>
     </MainLayout>

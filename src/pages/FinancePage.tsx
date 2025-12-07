@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { DollarSign, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
+import PaymentModeBadge from '../components/PaymentModeBadge';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -91,6 +92,7 @@ const FinancePage: React.FC = () => {
             <thead>
               <tr className={`border-b ${theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-white/10 bg-white/5'}`}>
                 <th className={`text-left py-4 px-6 font-semibold text-sm uppercase tracking-wider ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>Amount</th>
+                <th className={`text-left py-4 px-6 font-semibold text-sm uppercase tracking-wider ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>Payment Mode</th>
                 <th className={`text-left py-4 px-6 font-semibold text-sm uppercase tracking-wider ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>Status</th>
                 <th className={`text-left py-4 px-6 font-semibold text-sm uppercase tracking-wider ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>Received By</th>
                 <th className={`text-left py-4 px-6 font-semibold text-sm uppercase tracking-wider ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>Confirmed By</th>
@@ -103,6 +105,9 @@ const FinancePage: React.FC = () => {
                 return (
                   <tr key={t.id} className={`border-b ${theme === 'light' ? 'border-gray-100 hover:bg-purple-50/50' : 'border-white/10 hover:bg-white/5'} transition-colors`}>
                     <td className={`py-4 px-6 font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>₹{t.amount.toLocaleString()}</td>
+                    <td className="py-4 px-6">
+                      <PaymentModeBadge mode={t.paymentMode} size="md" />
+                    </td>
                     <td className="py-4 px-6">
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-semibold ${

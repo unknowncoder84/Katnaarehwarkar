@@ -26,6 +26,8 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
     ? 'flex-1 bg-gray-100 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-200 transition-all duration-300 border border-gray-300'
     : 'flex-1 bg-cyber-blue/10 text-cyber-blue font-semibold font-cyber py-3 rounded-lg hover:bg-cyber-blue/20 transition-all duration-300 border border-cyber-blue/30';
 
+  const [isCounselSectionOpen, setIsCounselSectionOpen] = useState(false);
+  
   const [formData, setFormData] = useState({
     // Client Info
     clientName: '',
@@ -39,6 +41,7 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
     court: '',
     onBehalfOf: '',
     noResp: '',
+    stage: 'consultation',
     // Legal Details
     fileNo: '',
     stampNo: '',
@@ -46,26 +49,21 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
     feesQuoted: '',
     // Opposition
     opponentLawyer: '',
+    // Payment
+    paymentMode: 'cash',
+    // Counsel Info
+    counselRequired: 'No',
+    counselName: '',
+    counselEmail: '',
+    counselMobile: '',
+    counselAddress: '',
     // Extras
     additionalDetails: '',
   });
 
   const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.clientName) newErrors.clientName = 'Client name is required';
-    if (!formData.clientEmail) newErrors.clientEmail = 'Email is required';
-    if (!formData.clientMobile) newErrors.clientMobile = 'Mobile is required';
-    if (!formData.partiesName) newErrors.partiesName = 'Parties name is required';
-    if (!formData.district) newErrors.district = 'District is required';
-    if (!formData.caseType) newErrors.caseType = 'Case type is required';
-    if (!formData.court) newErrors.court = 'Court is required';
-    if (!formData.fileNo) newErrors.fileNo = 'File number is required';
-    if (!formData.stampNo) newErrors.stampNo = 'Stamp number is required';
-    if (!formData.regNo) newErrors.regNo = 'Registration number is required';
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    // All fields are now optional - no validation required
+    return true;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -82,12 +80,15 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('📝 Form submitted');
 
     if (!validateForm()) {
+      console.log('❌ Form validation failed');
       return;
     }
 
     setLoading(true);
+    console.log('⏳ Loading started');
 
     try {
       const newCase: Omit<Case, 'id' | 'createdAt' | 'updatedAt'> = {
@@ -101,6 +102,7 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
         court: formData.court,
         onBehalfOf: formData.onBehalfOf,
         noResp: formData.noResp,
+        stage: formData.stage as any,
         fileNo: formData.fileNo,
         stampNo: formData.stampNo,
         regNo: formData.regNo,
@@ -115,7 +117,10 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
         createdBy: 'current-user',
       };
 
-      addCase(newCase);
+      console.log('📋 New case object created:', newCase);
+      console.log('🚀 Calling addCase...');
+      await addCase(newCase);
+      console.log('✅ addCase completed');
 
       // Reset form
       setFormData({
@@ -129,17 +134,32 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
         court: '',
         onBehalfOf: '',
         noResp: '',
+        stage: 'consultation',
         fileNo: '',
         stampNo: '',
         regNo: '',
         feesQuoted: '',
         opponentLawyer: '',
+        paymentMode: 'cash',
+        counselRequired: 'No',
+        counselName: '',
+        counselEmail: '',
+        counselMobile: '',
+        counselAddress: '',
         additionalDetails: '',
       });
+      console.log('🔄 Form reset');
 
-      onSuccess?.();
+      // Call success callback to navigate to cases page
+      if (onSuccess) {
+        console.log('🎯 Calling onSuccess callback');
+        onSuccess();
+      }
+    } catch (error) {
+      console.error('❌ Error creating case:', error);
     } finally {
       setLoading(false);
+      console.log('⏹️ Loading stopped');
     }
   };
 
@@ -164,7 +184,6 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
             value={formData.clientName}
             onChange={handleInputChange}
             error={errors.clientName}
-            required
           />
           <FormInput
             label="Email"
@@ -173,7 +192,6 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
             value={formData.clientEmail}
             onChange={handleInputChange}
             error={errors.clientEmail}
-            required
           />
           <FormInput
             label="Mobile"
@@ -181,7 +199,6 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
             value={formData.clientMobile}
             onChange={handleInputChange}
             error={errors.clientMobile}
-            required
           />
           <FormInput
             label="Alternate No"
@@ -202,7 +219,6 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
             value={formData.partiesName}
             onChange={handleInputChange}
             error={errors.partiesName}
-            required
           />
           <FormInput
             label="District"
@@ -210,7 +226,6 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
             value={formData.district}
             onChange={handleInputChange}
             error={errors.district}
-            required
           />
           <FormSelect
             label="Case Type"
@@ -219,7 +234,6 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
             value={formData.caseType}
             onChange={handleInputChange}
             error={errors.caseType}
-            required
           />
           <FormSelect
             label="Court"
@@ -228,7 +242,6 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
             value={formData.court}
             onChange={handleInputChange}
             error={errors.court}
-            required
           />
           <FormInput
             label="On Behalf Of"
@@ -240,6 +253,38 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
             label="No Resp"
             name="noResp"
             value={formData.noResp}
+            onChange={handleInputChange}
+          />
+          <FormSelect
+            label="Case Stage"
+            name="stage"
+            options={[
+              { value: 'consultation', label: 'Consultation' },
+              { value: 'drafting', label: 'Drafting' },
+              { value: 'filing', label: 'Filing' },
+              { value: 'circulation', label: 'Circulation' },
+              { value: 'notice', label: 'Notice' },
+              { value: 'pre-admission', label: 'Pre Admission' },
+              { value: 'admitted', label: 'Admitted' },
+              { value: 'final-hearing', label: 'Final Hearing' },
+              { value: 'reserved', label: 'Reserved For Judgement' },
+              { value: 'disposed', label: 'Disposed' },
+            ]}
+            value={formData.stage}
+            onChange={handleInputChange}
+          />
+          <FormSelect
+            label="Payment Mode"
+            name="paymentMode"
+            options={[
+              { value: 'cash', label: 'Cash' },
+              { value: 'upi', label: 'UPI' },
+              { value: 'check', label: 'Check' },
+              { value: 'bank-transfer', label: 'Bank Transfer' },
+              { value: 'card', label: 'Card' },
+              { value: 'other', label: 'Other' },
+            ]}
+            value={formData.paymentMode}
             onChange={handleInputChange}
           />
         </div>
@@ -255,7 +300,6 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
             value={formData.fileNo}
             onChange={handleInputChange}
             error={errors.fileNo}
-            required
           />
           <FormInput
             label="Stamp No"
@@ -263,7 +307,6 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
             value={formData.stampNo}
             onChange={handleInputChange}
             error={errors.stampNo}
-            required
           />
           <FormInput
             label="Registration No"
@@ -271,7 +314,6 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
             value={formData.regNo}
             onChange={handleInputChange}
             error={errors.regNo}
-            required
           />
           <FormInput
             label="Fees Quoted"
@@ -292,6 +334,75 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
           value={formData.opponentLawyer}
           onChange={handleInputChange}
         />
+      </div>
+
+      {/* Counsel Section - Collapsible */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setIsCounselSectionOpen(!isCounselSectionOpen)}
+          className={`w-full flex items-center justify-between p-4 rounded-xl transition-all duration-200 ${
+            theme === 'light' 
+              ? 'bg-purple-50 hover:bg-purple-100 text-purple-700' 
+              : 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30'
+          }`}
+        >
+          <h3 className={`text-lg font-bold ${theme === 'light' ? 'text-purple-700' : 'text-purple-400'}`}>
+            Counsel Information (Optional)
+          </h3>
+          <span className="text-2xl">{isCounselSectionOpen ? '−' : '+'}</span>
+        </button>
+        
+        {isCounselSectionOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="mt-4 space-y-4"
+          >
+            <FormSelect
+              label="Counsel Required"
+              name="counselRequired"
+              options={[
+                { value: 'No', label: 'No' },
+                { value: 'Yes', label: 'Yes' }
+              ]}
+              value={formData.counselRequired}
+              onChange={handleInputChange}
+            />
+            
+            {formData.counselRequired === 'Yes' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <FormInput
+                  label="Counsel Name"
+                  name="counselName"
+                  value={formData.counselName}
+                  onChange={handleInputChange}
+                />
+                <FormInput
+                  label="Counsel Email"
+                  name="counselEmail"
+                  type="email"
+                  value={formData.counselEmail}
+                  onChange={handleInputChange}
+                />
+                <FormInput
+                  label="Counsel Mobile"
+                  name="counselMobile"
+                  value={formData.counselMobile}
+                  onChange={handleInputChange}
+                />
+                <FormInput
+                  label="Counsel Address"
+                  name="counselAddress"
+                  value={formData.counselAddress}
+                  onChange={handleInputChange}
+                />
+              </div>
+            )}
+          </motion.div>
+        )}
       </div>
 
       {/* Additional Details Section */}
