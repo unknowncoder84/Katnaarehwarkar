@@ -7,6 +7,7 @@ import RichTextEditor from '../components/RichTextEditor';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import downloadFile from '../utils/exportData';
 
 type TabType = 'basic' | 'files' | 'interim' | 'circulation' | 'payments' | 'tasks' | 'timeline';
 
@@ -184,6 +185,251 @@ const CaseDetailsPage: React.FC = () => {
     }
   };
 
+  const handleDownloadCaseDetails = () => {
+    if (!caseData) return;
+
+    const html = `
+      <html>
+        <head>
+          <title>Case Details - ${caseData.fileNo}</title>
+          <style>
+            body { 
+              font-family: Arial, sans-serif; 
+              margin: 20px; 
+              color: #333;
+            }
+            h1 { 
+              text-align: center; 
+              color: #E040FB; 
+              border-bottom: 3px solid #E040FB;
+              padding-bottom: 10px;
+            }
+            h2 { 
+              color: #E040FB; 
+              margin-top: 30px;
+              border-bottom: 2px solid #ddd;
+              padding-bottom: 5px;
+            }
+            .info-section { 
+              margin: 20px 0; 
+              padding: 15px;
+              background-color: #f9f9f9;
+              border-left: 4px solid #E040FB;
+            }
+            .info-row { 
+              margin: 10px 0; 
+              display: flex;
+            }
+            .label { 
+              font-weight: bold; 
+              min-width: 200px;
+              color: #555;
+            }
+            .value { 
+              color: #000;
+            }
+            table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              margin-top: 20px; 
+            }
+            th { 
+              background-color: #E040FB; 
+              color: white; 
+              padding: 12px; 
+              text-align: left; 
+            }
+            td { 
+              padding: 10px; 
+              border-bottom: 1px solid #ddd; 
+            }
+            .footer {
+              margin-top: 40px;
+              text-align: center;
+              color: #888;
+              font-size: 12px;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Case Details Report</h1>
+          <p style="text-align: center; color: #888;">Generated on: ${new Date().toLocaleString()}</p>
+          
+          <div class="info-section">
+            <h2>Basic Information</h2>
+            <div class="info-row">
+              <span class="label">Office File Number:</span>
+              <span class="value">${caseData.fileNo}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Client Name:</span>
+              <span class="value">${caseData.clientName}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Client Mobile:</span>
+              <span class="value">${caseData.clientMobile}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Name of Parties:</span>
+              <span class="value">${caseData.partiesName}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Case Status:</span>
+              <span class="value">${caseData.status.toUpperCase()}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">On Behalf Of:</span>
+              <span class="value">${caseData.onBehalfOf || 'PETITIONER'}</span>
+            </div>
+          </div>
+
+          <div class="info-section">
+            <h2>Case Details</h2>
+            <div class="info-row">
+              <span class="label">Case Type:</span>
+              <span class="value">${caseData.caseType}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Court:</span>
+              <span class="value">${caseData.court}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">District:</span>
+              <span class="value">${caseData.district || '-'}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Registration Number:</span>
+              <span class="value">${caseData.regNo}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Stamp Number:</span>
+              <span class="value">${caseData.stampNo || '-'}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Filing Date:</span>
+              <span class="value">${new Date(caseData.filingDate).toLocaleDateString()}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Next Date:</span>
+              <span class="value">${new Date(caseData.nextDate).toLocaleDateString()}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Circulation Status:</span>
+              <span class="value">${caseData.circulationStatus?.toUpperCase() || 'NON CIRCULATED'}</span>
+            </div>
+          </div>
+
+          ${caseData.additionalDetails ? `
+          <div class="info-section">
+            <h2>Additional Details</h2>
+            <p>${caseData.additionalDetails}</p>
+          </div>
+          ` : ''}
+
+          ${files.length > 0 ? `
+          <div class="info-section">
+            <h2>Attached Files</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>SR</th>
+                  <th>File Title</th>
+                  <th>Date Attached</th>
+                  <th>Attached By</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${files.map((file, index) => `
+                  <tr>
+                    <td>${index + 1}</td>
+                    <td>${file.title}</td>
+                    <td>${new Date(file.dateAttached).toLocaleDateString()}</td>
+                    <td>${file.attachedBy}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+          ` : ''}
+
+          ${payments.length > 0 ? `
+          <div class="info-section">
+            <h2>Payment History</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>SR</th>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Received By</th>
+                  <th>Accepted</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${payments.map((payment, index) => `
+                  <tr>
+                    <td>${index + 1}</td>
+                    <td>${new Date(payment.date).toLocaleDateString()}</td>
+                    <td>₹${payment.amount}</td>
+                    <td>${payment.receivedBy}</td>
+                    <td>${payment.isAccepted ? 'YES' : 'NO'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            <div style="margin-top: 20px;">
+              <div class="info-row">
+                <span class="label">Fees Quoted:</span>
+                <span class="value">₹${feesQuoted}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Fees Paid:</span>
+                <span class="value">₹${feesPaid}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Pending Fees:</span>
+                <span class="value">₹${feesQuoted - feesPaid}</span>
+              </div>
+            </div>
+          </div>
+          ` : ''}
+
+          ${timeline.length > 0 ? `
+          <div class="info-section">
+            <h2>Case Timeline</h2>
+            ${timeline.map(event => `
+              <div style="margin: 15px 0; padding-left: 20px; border-left: 3px solid #E040FB;">
+                <div style="font-weight: bold; color: #E040FB;">${event.title}</div>
+                ${event.description ? `<div style="color: #666;">${event.description}</div>` : ''}
+                <div style="color: #888; font-size: 12px;">${new Date(event.date).toLocaleDateString()}</div>
+              </div>
+            `).join('')}
+          </div>
+          ` : ''}
+
+          <div class="footer">
+            <p>Designed and Developed by sawantrishi152@gmail.com © 2025</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // For mobile devices, use print to PDF
+    const printWindow = window.open('', '', 'height=600,width=800');
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+      
+      // Wait for content to load then trigger print
+      setTimeout(() => {
+        printWindow.print();
+      }, 250);
+    } else {
+      // Fallback: download as HTML file
+      downloadFile(html, `Case_${caseData.fileNo}_${new Date().toISOString().split('T')[0]}.html`, 'text/html');
+    }
+  };
+
   return (
     <MainLayout>
       {/* Header */}
@@ -194,24 +440,34 @@ const CaseDetailsPage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <h1 className={`text-2xl font-bold font-cyber ${theme === 'light' ? 'text-gray-900' : 'holographic-text'}`}>Case Details</h1>
-          {isAdmin && (
-            <div className="flex gap-3">
-              <button 
-                onClick={handleEdit}
-                className="px-6 py-2 rounded-lg font-semibold font-cyber transition-all duration-300 flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:shadow-lg border border-amber-500/30"
-              >
-                <Edit size={18} />
-                EDIT
-              </button>
-              <button 
-                onClick={() => setShowDeleteConfirm(true)}
-                className="px-6 py-2 rounded-lg font-semibold font-cyber transition-all duration-300 flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white hover:shadow-lg border border-red-500/30"
-              >
-                <Trash2 size={18} />
-                DELETE
-              </button>
-            </div>
-          )}
+          <div className="flex gap-3">
+            <button 
+              onClick={handleDownloadCaseDetails}
+              className="px-6 py-2 rounded-lg font-semibold font-cyber transition-all duration-300 flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-lg border border-green-500/30"
+              title="Download case details as PDF"
+            >
+              <Download size={18} />
+              DOWNLOAD
+            </button>
+            {isAdmin && (
+              <>
+                <button 
+                  onClick={handleEdit}
+                  className="px-6 py-2 rounded-lg font-semibold font-cyber transition-all duration-300 flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:shadow-lg border border-amber-500/30"
+                >
+                  <Edit size={18} />
+                  EDIT
+                </button>
+                <button 
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="px-6 py-2 rounded-lg font-semibold font-cyber transition-all duration-300 flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white hover:shadow-lg border border-red-500/30"
+                >
+                  <Trash2 size={18} />
+                  DELETE
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </motion.div>
 
