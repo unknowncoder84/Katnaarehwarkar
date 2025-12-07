@@ -13,31 +13,112 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { user, isAdmin } = useAuth();
-  const { cases, counsel } = useData();
+  const { cases, counsel, appointments, tasks, expenses, books, sofaItems } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [showResults, setShowResults] = useState(false);
 
   const searchResults = useMemo(() => {
-    if (!searchTerm.trim()) return { cases: [], counsel: [] };
-    const term = searchTerm.toLowerCase();
-    return {
-      cases: cases.filter(c => 
-        c.clientName.toLowerCase().includes(term) ||
-        c.fileNo.toLowerCase().includes(term) ||
-        c.partiesName.toLowerCase().includes(term)
-      ).slice(0, 5),
-      counsel: counsel.filter(c =>
-        c.name.toLowerCase().includes(term) ||
-        c.email.toLowerCase().includes(term)
-      ).slice(0, 3)
+    if (!searchTerm.trim()) return { 
+      cases: [], 
+      counsel: [], 
+      appointments: [], 
+      tasks: [], 
+      expenses: [], 
+      books: [], 
+      sofaItems: [] 
     };
-  }, [searchTerm, cases, counsel]);
+    
+    const term = searchTerm.toLowerCase();
+    
+    // Search cases: client name, file number, parties name, case type
+    const matchedCases = cases.filter(c => 
+      c.clientName.toLowerCase().includes(term) ||
+      c.fileNo.toLowerCase().includes(term) ||
+      c.partiesName.toLowerCase().includes(term) ||
+      c.caseType.toLowerCase().includes(term)
+    ).slice(0, 5);
+    
+    // Search counsel: name, email
+    const matchedCounsel = counsel.filter(c =>
+      c.name.toLowerCase().includes(term) ||
+      c.email.toLowerCase().includes(term)
+    ).slice(0, 5);
+    
+    // Search appointments: client name, details
+    const matchedAppointments = appointments.filter(a =>
+      a.client.toLowerCase().includes(term) ||
+      a.details.toLowerCase().includes(term)
+    ).slice(0, 5);
+    
+    // Search tasks: title, description, assigned to name
+    const matchedTasks = tasks.filter(t =>
+      t.title.toLowerCase().includes(term) ||
+      t.description.toLowerCase().includes(term) ||
+      t.assignedToName.toLowerCase().includes(term)
+    ).slice(0, 5);
+    
+    // Search expenses: description
+    const matchedExpenses = expenses.filter(e =>
+      e.description.toLowerCase().includes(term)
+    ).slice(0, 5);
+    
+    // Search books: book name
+    const matchedBooks = books.filter(b =>
+      b.name.toLowerCase().includes(term)
+    ).slice(0, 5);
+    
+    // Search sofa items: associated case name
+    const matchedSofaItems = sofaItems
+      .map(item => {
+        const associatedCase = cases.find(c => c.id === item.caseId);
+        return {
+          ...item,
+          caseName: associatedCase?.clientName || 'Unknown Case'
+        };
+      })
+      .filter(item =>
+        item.caseName.toLowerCase().includes(term)
+      )
+      .slice(0, 5);
+    
+    return {
+      cases: matchedCases,
+      counsel: matchedCounsel,
+      appointments: matchedAppointments,
+      tasks: matchedTasks,
+      expenses: matchedExpenses,
+      books: matchedBooks,
+      sofaItems: matchedSofaItems
+    };
+  }, [searchTerm, cases, counsel, appointments, tasks, expenses, books, sofaItems]);
 
-  const handleResultClick = (type: 'case' | 'counsel', id: string) => {
+  const handleResultClick = (type: 'case' | 'counsel' | 'appointment' | 'task' | 'expense' | 'book' | 'sofaItem', id: string) => {
     setSearchTerm('');
     setShowResults(false);
-    if (type === 'case') navigate(`/cases/${id}`);
-    else navigate('/counsel');
+    
+    switch (type) {
+      case 'case':
+        navigate(`/cases/${id}`);
+        break;
+      case 'counsel':
+        navigate('/counsel');
+        break;
+      case 'appointment':
+        navigate('/appointments');
+        break;
+      case 'task':
+        navigate('/tasks');
+        break;
+      case 'expense':
+        navigate('/expenses');
+        break;
+      case 'book':
+        navigate('/library/books');
+        break;
+      case 'sofaItem':
+        navigate('/library/sofa');
+        break;
+    }
   };
 
   const bgClass = theme === 'light' 
@@ -88,40 +169,144 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           </div>
           
           {/* Search Results Dropdown */}
-          {showResults && searchTerm && (searchResults.cases.length > 0 || searchResults.counsel.length > 0) && (
-            <div className={`absolute top-full left-0 right-0 mt-2 ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-[#1a1a2e] border-purple-500/30'} border rounded-xl shadow-xl z-50 overflow-hidden`}>
-              {searchResults.cases.length > 0 && (
-                <div>
-                  <p className={`px-4 py-2 text-xs font-semibold uppercase ${theme === 'light' ? 'bg-gray-50 text-gray-600' : 'bg-white/5 text-gray-400'}`}>Cases</p>
-                  {searchResults.cases.map(c => (
-                    <button
-                      key={c.id}
-                      onClick={() => handleResultClick('case', c.id)}
-                      className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} transition-colors`}
-                    >
-                      <p className={`font-medium ${textClass}`}>{c.clientName}</p>
-                      <p className={`text-xs ${secondaryText}`}>File: {c.fileNo} | {c.caseType}</p>
-                    </button>
-                  ))}
-                </div>
-              )}
-              {searchResults.counsel.length > 0 && (
-                <div>
-                  <p className={`px-4 py-2 text-xs font-semibold uppercase ${theme === 'light' ? 'bg-gray-50 text-gray-600' : 'bg-white/5 text-gray-400'}`}>Counsel</p>
-                  {searchResults.counsel.map(c => (
-                    <button
-                      key={c.id}
-                      onClick={() => handleResultClick('counsel', c.id)}
-                      className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} transition-colors`}
-                    >
-                      <p className={`font-medium ${textClass}`}>{c.name}</p>
-                      <p className={`text-xs ${secondaryText}`}>{c.email}</p>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+          {showResults && searchTerm && (() => {
+            const hasResults = searchResults.cases.length > 0 || 
+                              searchResults.counsel.length > 0 || 
+                              searchResults.appointments.length > 0 || 
+                              searchResults.tasks.length > 0 || 
+                              searchResults.expenses.length > 0 || 
+                              searchResults.books.length > 0 || 
+                              searchResults.sofaItems.length > 0;
+            
+            return (
+              <div className={`absolute top-full left-0 right-0 mt-2 ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-[#1a1a2e] border-purple-500/30'} border rounded-xl shadow-xl z-50 overflow-hidden max-h-96 overflow-y-auto`}>
+                {!hasResults && (
+                  <div className="px-4 py-6 text-center">
+                    <p className={`text-sm ${secondaryText}`}>No results found</p>
+                  </div>
+                )}
+                
+                {/* Cases */}
+                {searchResults.cases.length > 0 && (
+                  <div>
+                    <p className={`px-4 py-2 text-xs font-semibold uppercase ${theme === 'light' ? 'bg-gray-50 text-gray-600' : 'bg-white/5 text-gray-400'}`}>Cases</p>
+                    {searchResults.cases.map(c => (
+                      <button
+                        key={c.id}
+                        onClick={() => handleResultClick('case', c.id)}
+                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} transition-colors`}
+                      >
+                        <p className={`font-medium ${textClass}`}>{c.clientName}</p>
+                        <p className={`text-xs ${secondaryText}`}>File: {c.fileNo} | {c.caseType}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Counsel */}
+                {searchResults.counsel.length > 0 && (
+                  <div>
+                    <p className={`px-4 py-2 text-xs font-semibold uppercase ${theme === 'light' ? 'bg-gray-50 text-gray-600' : 'bg-white/5 text-gray-400'}`}>Counsel</p>
+                    {searchResults.counsel.map(c => (
+                      <button
+                        key={c.id}
+                        onClick={() => handleResultClick('counsel', c.id)}
+                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} transition-colors`}
+                      >
+                        <p className={`font-medium ${textClass}`}>{c.name}</p>
+                        <p className={`text-xs ${secondaryText}`}>{c.email}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Appointments */}
+                {searchResults.appointments.length > 0 && (
+                  <div>
+                    <p className={`px-4 py-2 text-xs font-semibold uppercase ${theme === 'light' ? 'bg-gray-50 text-gray-600' : 'bg-white/5 text-gray-400'}`}>Appointments</p>
+                    {searchResults.appointments.map(a => (
+                      <button
+                        key={a.id}
+                        onClick={() => handleResultClick('appointment', a.id)}
+                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} transition-colors`}
+                      >
+                        <p className={`font-medium ${textClass}`}>{a.client}</p>
+                        <p className={`text-xs ${secondaryText}`}>{new Date(a.date).toLocaleDateString()} | {a.time}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Tasks */}
+                {searchResults.tasks.length > 0 && (
+                  <div>
+                    <p className={`px-4 py-2 text-xs font-semibold uppercase ${theme === 'light' ? 'bg-gray-50 text-gray-600' : 'bg-white/5 text-gray-400'}`}>Tasks</p>
+                    {searchResults.tasks.map(t => (
+                      <button
+                        key={t.id}
+                        onClick={() => handleResultClick('task', t.id)}
+                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} transition-colors`}
+                      >
+                        <p className={`font-medium ${textClass}`}>{t.title}</p>
+                        <p className={`text-xs ${secondaryText}`}>Assigned to: {t.assignedToName} | Due: {new Date(t.deadline).toLocaleDateString()}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Expenses */}
+                {searchResults.expenses.length > 0 && (
+                  <div>
+                    <p className={`px-4 py-2 text-xs font-semibold uppercase ${theme === 'light' ? 'bg-gray-50 text-gray-600' : 'bg-white/5 text-gray-400'}`}>Expenses</p>
+                    {searchResults.expenses.map(e => (
+                      <button
+                        key={e.id}
+                        onClick={() => handleResultClick('expense', e.id)}
+                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} transition-colors`}
+                      >
+                        <p className={`font-medium ${textClass}`}>{e.description}</p>
+                        <p className={`text-xs ${secondaryText}`}>₹{e.amount.toLocaleString()} | {e.month}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Books */}
+                {searchResults.books.length > 0 && (
+                  <div>
+                    <p className={`px-4 py-2 text-xs font-semibold uppercase ${theme === 'light' ? 'bg-gray-50 text-gray-600' : 'bg-white/5 text-gray-400'}`}>Books</p>
+                    {searchResults.books.map(b => (
+                      <button
+                        key={b.id}
+                        onClick={() => handleResultClick('book', b.id)}
+                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} transition-colors`}
+                      >
+                        <p className={`font-medium ${textClass}`}>{b.name}</p>
+                        <p className={`text-xs ${secondaryText}`}>Added: {new Date(b.addedAt).toLocaleDateString()}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Sofa Items */}
+                {searchResults.sofaItems.length > 0 && (
+                  <div>
+                    <p className={`px-4 py-2 text-xs font-semibold uppercase ${theme === 'light' ? 'bg-gray-50 text-gray-600' : 'bg-white/5 text-gray-400'}`}>Sofa Storage</p>
+                    {searchResults.sofaItems.map(s => (
+                      <button
+                        key={s.id}
+                        onClick={() => handleResultClick('sofaItem', s.id)}
+                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} transition-colors`}
+                      >
+                        <p className={`font-medium ${textClass}`}>{s.caseName}</p>
+                        <p className={`text-xs ${secondaryText}`}>Compartment: {s.compartment} | Added: {new Date(s.addedAt).toLocaleDateString()}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </div>
 

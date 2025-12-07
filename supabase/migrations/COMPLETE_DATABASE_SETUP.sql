@@ -44,9 +44,16 @@ CREATE TABLE IF NOT EXISTS public.user_accounts (
 );
 
 -- Add self-referencing foreign key
-ALTER TABLE public.user_accounts 
-ADD CONSTRAINT fk_created_by 
-FOREIGN KEY (created_by) REFERENCES public.user_accounts(id);
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'fk_created_by'
+  ) THEN
+    ALTER TABLE public.user_accounts 
+    ADD CONSTRAINT fk_created_by 
+    FOREIGN KEY (created_by) REFERENCES public.user_accounts(id);
+  END IF;
+END $$;
 
 -- Enable RLS
 ALTER TABLE public.user_accounts ENABLE ROW LEVEL SECURITY;
@@ -1117,14 +1124,58 @@ END $$;
 -- PART 21: ENABLE REALTIME (OPTIONAL)
 -- =====================================================
 
--- Enable realtime for key tables
-ALTER PUBLICATION supabase_realtime ADD TABLE public.cases;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.appointments;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.transactions;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.counsel;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.tasks;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.attendance;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.expenses;
+-- Enable realtime for key tables (only if not already added)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'cases'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.cases;
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'appointments'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.appointments;
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'transactions'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.transactions;
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'counsel'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.counsel;
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'tasks'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.tasks;
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'attendance'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.attendance;
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'expenses'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.expenses;
+  END IF;
+END $$;
 
 -- =====================================================
 -- SETUP COMPLETE! ✅

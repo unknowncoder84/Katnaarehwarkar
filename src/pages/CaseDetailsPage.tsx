@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Edit, Home, FileText, Shield, RefreshCw, CreditCard, CheckSquare, Clock, Trash2, ExternalLink } from 'lucide-react';
+import { Edit, Home, FileText, Shield, RefreshCw, CreditCard, CheckSquare, Clock, Trash2, ExternalLink, Download } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
 import RichTextEditor from '../components/RichTextEditor';
@@ -448,8 +448,19 @@ const CaseDetailsPage: React.FC = () => {
                                 link.click();
                               }
                             }}
-                            className="text-blue-400 hover:text-blue-300 p-2 rounded-lg hover:bg-blue-500/20 transition-all"
+                            className="text-green-400 hover:text-green-300 p-2 rounded-lg hover:bg-green-500/20 transition-all flex items-center gap-1"
                             title="Download File"
+                          >
+                            <Download size={18} />
+                          </button>
+                          <button 
+                            onClick={() => {
+                              if (file.url) {
+                                window.open(file.url, '_blank');
+                              }
+                            }}
+                            className="text-blue-400 hover:text-blue-300 p-2 rounded-lg hover:bg-blue-500/20 transition-all"
+                            title="Open in New Tab"
                           >
                             <ExternalLink size={18} />
                           </button>
