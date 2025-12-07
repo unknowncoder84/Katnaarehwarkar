@@ -1,6 +1,9 @@
 [build]
-  command = "npm run build"
+  command = "vite build"
   publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "18"
 
 # Handle SPA routing - redirect all routes to index.html
 [[redirects]]
