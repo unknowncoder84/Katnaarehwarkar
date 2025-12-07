@@ -2,6 +2,14 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, AuthContextType, CreateUserData, UserRole } from '../types';
 import { supabase } from '../lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+import {
+  authenticateUser as authenticateUserDb,
+  getAllUsers as getAllUsersDb,
+  createUserAccount as createUserAccountDb,
+  updateUserRoleDb,
+  toggleUserStatusDb,
+  deleteUserAccountDb,
+} from '../lib/userManagement';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -129,54 +137,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
 
     try {
-      // TEMPORARY: Mock login for frontend development
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Authenticate with Supabase
+      const result = await authenticateUserDb(username, password);
       
-      // Mock user for testing
-      if (username === 'admin' && password === 'admin') {
-        const mockUser: User = {
-          id: '1',
-          name: 'Admin User',
-          email: 'admin@katneshwarkar.com',
-          role: 'admin',
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-        setUser(mockUser);
-        
-        // Mock users list
-        setUsers([
-          mockUser,
-          {
-            id: '2',
-            name: 'Vipin User',
-            email: 'vipin@katneshwarkar.com',
-            role: 'vipin',
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-          {
-            id: '3',
-            name: 'Regular User',
-            email: 'user@katneshwarkar.com',
-            role: 'user',
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ]);
-      } else {
-        throw new Error('Invalid username or password');
+      if (!result.success || !result.user) {
+        throw new Error(result.error || 'Invalid username or password');
       }
 
-      // TODO: Replace with actual API call when backend is ready
-      // const { data, error: signInError } = await supabase.auth.signInWithPassword({
-      //   email,
-      //   password,
-      // });
+      // Set current user
+      setUser(result.user);
+      localStorage.setItem('current_user', JSON.stringify(result.user));
+
+      // If admin, fetch all users
+      if (result.user.role === 'admin') {
+        const usersResult = await getAllUsersDb();
+        if (usersResult.success && usersResult.users) {
+          setUsers(usersResult.users);
+        }
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
       setError(errorMessage);
@@ -190,30 +168,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await supabase.auth.signOut();
     setUser(null);
     setUsers([]);
+    // Clear current user from localStorage but keep users list
+    localStorage.removeItem('current_user');
   };
 
 
   const createUser = async (userData: CreateUserData): Promise<{ success: boolean; error?: string }> => {
     try {
-      // Create user in Supabase Auth
-      const { error: signUpError } = await supabase.auth.signUp({
-        email: userData.email,
-        password: userData.password,
-        options: {
-          data: {
-            name: userData.name,
-            role: userData.role,
-          },
-        },
-      });
-
-      if (signUpError) {
-        return { success: false, error: signUpError.message };
+      // Create user in Supabase
+      const result = await createUserAccountDb(userData, user?.id);
+      
+      if (!result.success) {
+        return { success: false, error: result.error };
       }
 
       // Refresh users list
-      const allUsers = await fetchAllUsers();
-      setUsers(allUsers);
+      const usersResult = await getAllUsersDb();
+      if (usersResult.success && usersResult.users) {
+        setUsers(usersResult.users);
+      }
 
       return { success: true };
     } catch (err) {
@@ -223,31 +196,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateUserRole = async (userId: string, role: UserRole): Promise<{ success: boolean; error?: string }> => {
-    // Prevent self-demotion
-    if (user?.id === userId && role !== 'admin' && user.role === 'admin') {
-      return { success: false, error: 'You cannot demote yourself' };
+    if (!user) {
+      return { success: false, error: 'Not authenticated' };
     }
 
     try {
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ role, updated_at: new Date().toISOString() })
-        .eq('id', userId);
-
-      if (updateError) {
-        return { success: false, error: updateError.message };
+      // Update role in Supabase
+      const result = await updateUserRoleDb(userId, role, user.id);
+      
+      if (!result.success) {
+        return { success: false, error: result.error };
       }
 
-      // Update local state
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === userId ? { ...u, role, updatedAt: new Date() } : u
-        )
-      );
-
-      // Update current user if they changed their own role
-      if (user?.id === userId) {
-        setUser({ ...user, role, updatedAt: new Date() });
+      // Refresh users list
+      const usersResult = await getAllUsersDb();
+      if (usersResult.success && usersResult.users) {
+        setUsers(usersResult.users);
+        
+        // Update current user if they changed their own role
+        if (user.id === userId) {
+          const updatedUser = usersResult.users.find(u => u.id === userId);
+          if (updatedUser) {
+            setUser(updatedUser);
+            localStorage.setItem('current_user', JSON.stringify(updatedUser));
+          }
+        }
       }
 
       return { success: true };
@@ -258,34 +231,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const toggleUserStatus = async (userId: string): Promise<{ success: boolean; error?: string }> => {
-    // Prevent self-deactivation
-    if (user?.id === userId) {
-      return { success: false, error: 'You cannot deactivate your own account' };
+    if (!user) {
+      return { success: false, error: 'Not authenticated' };
     }
 
     try {
-      const targetUser = users.find((u) => u.id === userId);
-      if (!targetUser) {
-        return { success: false, error: 'User not found' };
+      // Toggle status in Supabase
+      const result = await toggleUserStatusDb(userId, user.id);
+      
+      if (!result.success) {
+        return { success: false, error: result.error };
       }
 
-      const newStatus = !targetUser.isActive;
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ is_active: newStatus, updated_at: new Date().toISOString() })
-        .eq('id', userId);
-
-      if (updateError) {
-        return { success: false, error: updateError.message };
+      // Refresh users list
+      const usersResult = await getAllUsersDb();
+      if (usersResult.success && usersResult.users) {
+        setUsers(usersResult.users);
       }
-
-      // Update local state
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === userId ? { ...u, isActive: newStatus, updatedAt: new Date() } : u
-        )
-      );
 
       return { success: true };
     } catch (err) {
@@ -295,26 +257,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const deleteUser = async (userId: string): Promise<{ success: boolean; error?: string }> => {
-    // Prevent self-deletion
-    if (user?.id === userId) {
-      return { success: false, error: 'You cannot delete your own account' };
+    if (!user) {
+      return { success: false, error: 'Not authenticated' };
     }
 
     try {
-      // Note: Deleting from profiles will cascade due to FK constraint
-      // But we can't delete from auth.users directly from client
-      // Instead, we deactivate the user
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ is_active: false, updated_at: new Date().toISOString() })
-        .eq('id', userId);
-
-      if (updateError) {
-        return { success: false, error: updateError.message };
+      // Delete user in Supabase (soft delete)
+      const result = await deleteUserAccountDb(userId, user.id);
+      
+      if (!result.success) {
+        return { success: false, error: result.error };
       }
 
-      // Remove from local state
-      setUsers((prev) => prev.filter((u) => u.id !== userId));
+      // Refresh users list
+      const usersResult = await getAllUsersDb();
+      if (usersResult.success && usersResult.users) {
+        setUsers(usersResult.users);
+      }
 
       return { success: true };
     } catch (err) {

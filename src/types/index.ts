@@ -1,10 +1,11 @@
 // User Types
-export type UserRole = 'admin' | 'user';
+export type UserRole = 'admin' | 'user' | 'vipin';
 
 export interface User {
   id: string;
   name: string;
   email: string;
+  username?: string;
   password?: string;
   role: UserRole;
   isActive: boolean;
@@ -16,6 +17,7 @@ export interface User {
 export interface CreateUserData {
   name: string;
   email: string;
+  username: string;
   password: string;
   role: UserRole;
 }

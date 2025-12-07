@@ -50,6 +50,7 @@ const CreateCounselCasePage: React.FC = () => {
       additionalDetails: formData.additionalDetails,
       feesQuoted: parseFloat(formData.fees) || 0,
       status: 'pending' as const,
+      stage: 'consultation' as const,
       nextDate: new Date(),
       filingDate: new Date(),
       circulationStatus: 'non-circulated' as const,

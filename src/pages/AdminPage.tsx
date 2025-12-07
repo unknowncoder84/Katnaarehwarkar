@@ -28,6 +28,7 @@ const AdminPage: React.FC = () => {
   const [formData, setFormData] = useState<CreateUserData>({
     name: '',
     email: '',
+    username: '',
     password: '',
     role: 'user',
   });
@@ -45,7 +46,7 @@ const AdminPage: React.FC = () => {
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.password) {
+    if (!formData.name || !formData.email || !formData.username || !formData.password) {
       showNotification('error', 'All fields are required');
       return;
     }
@@ -53,7 +54,7 @@ const AdminPage: React.FC = () => {
     if (result.success) {
       showNotification('success', 'User created successfully');
       setShowCreateModal(false);
-      setFormData({ name: '', email: '', password: '', role: 'user' });
+      setFormData({ name: '', email: '', username: '', password: '', role: 'user' });
     } else {
       showNotification('error', result.error || 'Failed to create user');
     }
@@ -203,6 +204,7 @@ const AdminPage: React.FC = () => {
               <thead className={theme === 'light' ? 'bg-gray-50' : 'bg-white/5'}>
                 <tr>
                   <th className={`px-6 py-4 text-left text-sm font-semibold ${textSecondary} uppercase tracking-wider`}>User</th>
+                  <th className={`px-6 py-4 text-left text-sm font-semibold ${textSecondary} uppercase tracking-wider`}>Username</th>
                   <th className={`px-6 py-4 text-left text-sm font-semibold ${textSecondary} uppercase tracking-wider`}>Email</th>
                   <th className={`px-6 py-4 text-left text-sm font-semibold ${textSecondary} uppercase tracking-wider`}>Role</th>
                   <th className={`px-6 py-4 text-left text-sm font-semibold ${textSecondary} uppercase tracking-wider`}>Status</th>
@@ -225,6 +227,7 @@ const AdminPage: React.FC = () => {
                         </div>
                       </div>
                     </td>
+                    <td className={`px-6 py-4 ${textSecondary}`}>{u.username || 'N/A'}</td>
                     <td className={`px-6 py-4 ${textSecondary}`}>{u.email}</td>
                     <td className="px-6 py-4">
                       <select
@@ -333,6 +336,18 @@ const AdminPage: React.FC = () => {
                       placeholder="Enter full name"
                       required
                     />
+                  </div>
+                  <div>
+                    <label className={`block text-sm font-medium ${textPrimary} mb-2`}>Username</label>
+                    <input
+                      type="text"
+                      value={formData.username}
+                      onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase().replace(/\s+/g, '') })}
+                      className={`w-full px-4 py-3 rounded-xl border ${inputBg} ${textPrimary} focus:outline-none focus:border-purple-500 transition-colors`}
+                      placeholder="Enter username (for login)"
+                      required
+                    />
+                    <p className={`text-xs ${textSecondary} mt-1`}>Used for login. No spaces allowed.</p>
                   </div>
                   <div>
                     <label className={`block text-sm font-medium ${textPrimary} mb-2`}>Email</label>

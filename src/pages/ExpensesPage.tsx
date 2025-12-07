@@ -7,7 +7,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 
 const ExpensesPage: React.FC = () => {
-  const { expenses, addExpense, deleteExpense, getExpensesByMonth } = useData();
+  const { expenses, deleteExpense, getExpensesByMonth } = useData();
   const { theme } = useTheme();
   const { user, isAdmin } = useAuth();
   const [showAddModal, setShowAddModal] = useState(false);
