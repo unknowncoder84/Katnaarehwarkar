@@ -255,7 +255,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const secondaryText = theme === 'light' ? 'text-gray-600' : 'text-cyber-blue/60';
 
   return (
-    <header className={`${bgClass} border-b px-4 md:px-6 py-3.5 flex items-center justify-between gap-4`}>
+    <header className={`${bgClass} border-b px-4 md:px-6 py-3.5 flex items-center justify-between gap-4 relative z-50`}>
       {/* Left - Menu */}
       <button
         onClick={onMenuClick}
@@ -450,7 +450,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           
           {/* Notifications Dropdown */}
           {showNotifications && (
-            <div className={`absolute top-full right-0 mt-2 w-80 md:w-96 ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-[#1a1a2e] border-purple-500/30'} border rounded-xl shadow-xl z-50 overflow-hidden max-h-96 overflow-y-auto`}>
+            <div className={`absolute top-full right-0 mt-2 w-80 md:w-96 ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-[#1a1a2e] border-purple-500/30'} border rounded-xl shadow-2xl z-[9999] overflow-hidden max-h-96 overflow-y-auto`}>
               <div className={`px-4 py-3 border-b ${theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-purple-500/30 bg-white/5'}`}>
                 <h3 className={`font-semibold ${textClass}`}>Notifications</h3>
                 <p className={`text-xs ${secondaryText}`}>{notifications.length} recent updates</p>
