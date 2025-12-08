@@ -57,8 +57,10 @@ export interface Case {
   stage: CaseStage;
   nextDate: Date;
   filingDate: Date;
-  circulationStatus: 'circulated' | 'non-circulated';
-  interimRelief: 'favor' | 'against' | 'none';
+  circulationStatus: string;
+  circulationDate?: Date;
+  interimRelief: string;
+  interimDate?: Date;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;

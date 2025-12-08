@@ -51,7 +51,7 @@ interface TimelineEvent {
 const CaseDetailsPage: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { cases, deleteCase, courts, caseTypes } = useData();
+  const { cases, deleteCase, updateCase, courts, caseTypes } = useData();
   const { theme } = useTheme();
   const { isAdmin, user } = useAuth();
   
@@ -70,11 +70,15 @@ const CaseDetailsPage: React.FC = () => {
   // Interim Relief state
   const [interimRelief, setInterimRelief] = useState('NA');
   const [interimDate, setInterimDate] = useState('');
+  const [isInterimLoading, setIsInterimLoading] = useState(false);
+  const [interimNotification, setInterimNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   
   // Circulation state
   const [circulationStatus, setCirculationStatus] = useState('NON CIRCULATED');
   const [circulationDate, setCirculationDate] = useState('');
   const [nextDate, setNextDate] = useState('');
+  const [isCirculationLoading, setIsCirculationLoading] = useState(false);
+  const [circulationNotification, setCirculationNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   
   // Payments state
   const [payments, setPayments] = useState<CasePayment[]>([
@@ -116,6 +120,30 @@ const CaseDetailsPage: React.FC = () => {
     }
     return cases[0];
   }, [cases, id]);
+
+  // Initialize state from case data
+  useEffect(() => {
+    if (caseData) {
+      // Set interim relief values
+      if (caseData.interimRelief) {
+        setInterimRelief(caseData.interimRelief);
+      }
+      if (caseData.interimDate) {
+        setInterimDate(new Date(caseData.interimDate).toISOString().split('T')[0]);
+      }
+      
+      // Set circulation values
+      if (caseData.circulationStatus) {
+        setCirculationStatus(caseData.circulationStatus);
+      }
+      if (caseData.circulationDate) {
+        setCirculationDate(new Date(caseData.circulationDate).toISOString().split('T')[0]);
+      }
+      if (caseData.nextDate) {
+        setNextDate(new Date(caseData.nextDate).toISOString().split('T')[0]);
+      }
+    }
+  }, [caseData]);
 
   const bgClass = theme === 'light' ? 'bg-white text-black' : 'glass-dark text-cyber-blue';
   const borderClass = theme === 'light' ? 'border-gray-300' : 'border-cyber-blue/20';
@@ -294,6 +322,65 @@ const CaseDetailsPage: React.FC = () => {
   const handleDeleteTimelineEvent = (eventId: string) => {
     if (window.confirm('Are you sure you want to delete this timeline event?')) {
       setTimeline(prev => prev.filter(e => e.id !== eventId));
+    }
+  };
+
+  // Handle Update Interim Relief
+  const handleUpdateInterimRelief = async () => {
+    if (!id) return;
+    
+    setIsInterimLoading(true);
+    try {
+      await updateCase(id, {
+        interimRelief: interimRelief,
+        interimDate: interimDate ? new Date(interimDate) : undefined,
+      });
+      
+      // Add to timeline
+      setTimeline([{
+        id: Date.now().toString(),
+        title: `Interim Relief Updated to ${interimRelief}`,
+        description: interimDate ? `Date: ${new Date(interimDate).toLocaleDateString()}` : '',
+        date: new Date()
+      }, ...timeline]);
+      
+      setInterimNotification({ type: 'success', message: `Interim Relief updated to ${interimRelief} successfully!` });
+      setTimeout(() => setInterimNotification(null), 4000);
+    } catch (error) {
+      setInterimNotification({ type: 'error', message: 'Failed to update interim relief' });
+      setTimeout(() => setInterimNotification(null), 3000);
+    } finally {
+      setIsInterimLoading(false);
+    }
+  };
+
+  // Handle Update Circulation Status
+  const handleUpdateCirculation = async () => {
+    if (!id) return;
+    
+    setIsCirculationLoading(true);
+    try {
+      await updateCase(id, {
+        circulationStatus: circulationStatus,
+        circulationDate: circulationDate ? new Date(circulationDate) : undefined,
+        nextDate: nextDate ? new Date(nextDate) : undefined,
+      });
+      
+      // Add to timeline
+      setTimeline([{
+        id: Date.now().toString(),
+        title: `Circulation Status Updated to ${circulationStatus}`,
+        description: circulationDate ? `Circulation Date: ${new Date(circulationDate).toLocaleDateString()}${nextDate ? `, Next Date: ${new Date(nextDate).toLocaleDateString()}` : ''}` : '',
+        date: new Date()
+      }, ...timeline]);
+      
+      setCirculationNotification({ type: 'success', message: `Circulation status updated to ${circulationStatus} successfully!` });
+      setTimeout(() => setCirculationNotification(null), 4000);
+    } catch (error) {
+      setCirculationNotification({ type: 'error', message: 'Failed to update circulation status' });
+      setTimeout(() => setCirculationNotification(null), 3000);
+    } finally {
+      setIsCirculationLoading(false);
     }
   };
 
@@ -638,6 +725,22 @@ const CaseDetailsPage: React.FC = () => {
         {/* Interim Relief Tab */}
         {activeTab === 'interim' && (
           <div className={`${bgClass} p-6 rounded-xl border ${borderClass}`}>
+            {/* Interim Relief Notification */}
+            {interimNotification && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className={`mb-4 p-4 rounded-xl flex items-center gap-3 ${
+                  interimNotification.type === 'success'
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                }`}
+              >
+                {interimNotification.type === 'success' ? <CheckCircle size={20} /> : <Bell size={20} />}
+                {interimNotification.message}
+              </motion.div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
               <div>
                 <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>INTERIM RELIEF</label>
@@ -660,8 +763,17 @@ const CaseDetailsPage: React.FC = () => {
                   className={`w-full px-4 py-3 rounded-lg border ${inputBgClass}`}
                 />
               </div>
-              <button className="bg-gradient-cyber text-white px-6 py-3 rounded-lg font-semibold font-cyber hover:shadow-cyber transition-all border border-cyber-blue/30">
-                UPDATE INTERIM RELIEF
+              <button 
+                onClick={handleUpdateInterimRelief}
+                disabled={isInterimLoading}
+                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
+                  isInterimLoading 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 hover:shadow-lg hover:shadow-purple-500/30'
+                } text-white border border-purple-500/30`}
+              >
+                <Shield size={18} />
+                {isInterimLoading ? 'UPDATING...' : 'UPDATE INTERIM RELIEF'}
               </button>
             </div>
           </div>
@@ -670,6 +782,22 @@ const CaseDetailsPage: React.FC = () => {
         {/* Circulation Tab */}
         {activeTab === 'circulation' && (
           <div className={`${bgClass} p-6 rounded-xl border ${borderClass}`}>
+            {/* Circulation Notification */}
+            {circulationNotification && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className={`mb-4 p-4 rounded-xl flex items-center gap-3 ${
+                  circulationNotification.type === 'success'
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                }`}
+              >
+                {circulationNotification.type === 'success' ? <CheckCircle size={20} /> : <Bell size={20} />}
+                {circulationNotification.message}
+              </motion.div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
               <div>
                 <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>CIRCULATION STATUS</label>
@@ -700,8 +828,17 @@ const CaseDetailsPage: React.FC = () => {
                   className={`w-full px-4 py-3 rounded-lg border ${inputBgClass}`}
                 />
               </div>
-              <button className="bg-gradient-cyber text-white px-6 py-3 rounded-lg font-semibold font-cyber hover:shadow-cyber transition-all border border-cyber-blue/30">
-                UPDATE CIRCULATION STATUS
+              <button 
+                onClick={handleUpdateCirculation}
+                disabled={isCirculationLoading}
+                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
+                  isCirculationLoading 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 hover:shadow-lg hover:shadow-purple-500/30'
+                } text-white border border-purple-500/30`}
+              >
+                <RefreshCw size={18} />
+                {isCirculationLoading ? 'UPDATING...' : 'UPDATE CIRCULATION STATUS'}
               </button>
             </div>
           </div>
