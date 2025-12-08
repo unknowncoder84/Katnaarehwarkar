@@ -19,7 +19,7 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
   const [loading, setLoading] = useState(false);
   
   const sectionHeaderClass = theme === 'light' 
-    ? 'text-lg font-bold mb-4 text-purple-700' 
+    ? 'text-lg font-bold mb-4 text-orange-700' 
     : 'text-lg font-bold font-cyber mb-4 text-cyber-blue text-glow';
     
   const cancelButtonClass = theme === 'light'
@@ -343,11 +343,11 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
           onClick={() => setIsCounselSectionOpen(!isCounselSectionOpen)}
           className={`w-full flex items-center justify-between p-4 rounded-xl transition-all duration-200 ${
             theme === 'light' 
-              ? 'bg-purple-50 hover:bg-purple-100 text-purple-700' 
-              : 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30'
+              ? 'bg-orange-50 hover:bg-orange-100 text-orange-700' 
+              : 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30'
           }`}
         >
-          <h3 className={`text-lg font-bold ${theme === 'light' ? 'text-purple-700' : 'text-purple-400'}`}>
+          <h3 className={`text-lg font-bold ${theme === 'light' ? 'text-orange-700' : 'text-orange-400'}`}>
             Counsel Information (Optional)
           </h3>
           <span className="text-2xl">{isCounselSectionOpen ? '−' : '+'}</span>

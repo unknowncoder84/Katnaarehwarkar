@@ -264,7 +264,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     : 'glass-dark border-cyber-blue/20';
   const inputBgClass = theme === 'light' 
     ? 'bg-gray-100 border-gray-300 text-gray-900 placeholder-gray-500' 
-    : 'bg-white/5 border-purple-500/30 text-white placeholder-gray-400';
+    : 'bg-white/5 border-orange-500/30 text-white placeholder-gray-400';
   const textClass = theme === 'light' ? 'text-gray-900' : 'text-cyber-blue';
   const secondaryText = theme === 'light' ? 'text-gray-600' : 'text-cyber-blue/60';
 
@@ -273,17 +273,17 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       {/* Left - Menu */}
       <button
         onClick={onMenuClick}
-        className={`p-2.5 rounded-xl transition-all duration-300 ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} group`}
+        className={`p-2.5 rounded-xl transition-all duration-300 ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} group`}
       >
-        <Menu size={22} className={`${textClass} group-hover:text-purple-500 transition-colors`} />
+        <Menu size={22} className={`${textClass} group-hover:text-orange-500 transition-colors`} />
       </button>
 
       {/* Center - Search */}
       <div className="flex-1 max-w-xl mx-2 md:mx-4">
         <div className="relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-opacity" />
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-amber-500/10 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-opacity" />
           <div className="relative">
-            <Search size={16} className={`absolute left-3 md:left-4 top-1/2 -translate-y-1/2 ${secondaryText} group-focus-within:text-purple-500 transition-colors`} />
+            <Search size={16} className={`absolute left-3 md:left-4 top-1/2 -translate-y-1/2 ${secondaryText} group-focus-within:text-orange-500 transition-colors`} />
             <input
               type="text"
               placeholder="Search..."
@@ -294,7 +294,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               }}
               onFocus={() => setShowResults(true)}
               onBlur={() => setTimeout(() => setShowResults(false), 200)}
-              className={`w-full pl-10 md:pl-11 pr-8 md:pr-10 py-2 md:py-3 ${inputBgClass} border rounded-xl md:rounded-2xl focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all text-sm`}
+              className={`w-full pl-10 md:pl-11 pr-8 md:pr-10 py-2 md:py-3 ${inputBgClass} border rounded-xl md:rounded-2xl focus:outline-none focus:border-orange-500/50 focus:bg-white/10 transition-all text-sm`}
             />
             {searchTerm && (
               <button
@@ -317,7 +317,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                               searchResults.sofaItems.length > 0;
             
             return (
-              <div className={`absolute top-full left-0 right-0 mt-2 ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-[#1a1a2e] border-purple-500/30'} border rounded-xl shadow-xl z-50 overflow-hidden max-h-96 overflow-y-auto`}>
+              <div className={`absolute top-full left-0 right-0 mt-2 ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-[#1a1a2e] border-orange-500/30'} border rounded-xl shadow-xl z-50 overflow-hidden max-h-96 overflow-y-auto`}>
                 {!hasResults && (
                   <div className="px-4 py-6 text-center">
                     <p className={`text-sm ${secondaryText}`}>No results found</p>
@@ -332,7 +332,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                       <button
                         key={c.id}
                         onClick={() => handleResultClick('case', c.id)}
-                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} transition-colors`}
+                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{c.clientName}</p>
                         <p className={`text-xs ${secondaryText}`}>File: {c.fileNo} | {c.caseType}</p>
@@ -349,7 +349,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                       <button
                         key={c.id}
                         onClick={() => handleResultClick('counsel', c.id)}
-                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} transition-colors`}
+                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{c.name}</p>
                         <p className={`text-xs ${secondaryText}`}>{c.email}</p>
@@ -366,7 +366,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                       <button
                         key={a.id}
                         onClick={() => handleResultClick('appointment', a.id)}
-                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} transition-colors`}
+                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{a.client}</p>
                         <p className={`text-xs ${secondaryText}`}>{new Date(a.date).toLocaleDateString()} | {a.time}</p>
@@ -383,7 +383,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                       <button
                         key={t.id}
                         onClick={() => handleResultClick('task', t.id)}
-                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} transition-colors`}
+                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{t.title}</p>
                         <p className={`text-xs ${secondaryText}`}>Assigned to: {t.assignedToName} | Due: {new Date(t.deadline).toLocaleDateString()}</p>
@@ -400,7 +400,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                       <button
                         key={e.id}
                         onClick={() => handleResultClick('expense', e.id)}
-                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} transition-colors`}
+                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{e.description}</p>
                         <p className={`text-xs ${secondaryText}`}>₹{e.amount.toLocaleString()} | {e.month}</p>
@@ -417,7 +417,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                       <button
                         key={b.id}
                         onClick={() => handleResultClick('book', b.id)}
-                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} transition-colors`}
+                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{b.name}</p>
                         <p className={`text-xs ${secondaryText}`}>Added: {new Date(b.addedAt).toLocaleDateString()}</p>
@@ -434,7 +434,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                       <button
                         key={s.id}
                         onClick={() => handleResultClick('sofaItem', s.id)}
-                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} transition-colors`}
+                        className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{s.caseName}</p>
                         <p className={`text-xs ${secondaryText}`}>Compartment: {s.compartment} | Added: {new Date(s.addedAt).toLocaleDateString()}</p>
@@ -454,9 +454,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         <div className="relative" ref={notificationRef}>
           <button 
             onClick={() => setShowNotifications(!showNotifications)}
-            className={`relative p-2.5 rounded-xl transition-all duration-300 ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} group`}
+            className={`relative p-2.5 rounded-xl transition-all duration-300 ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} group`}
           >
-            <Bell size={20} className={`${textClass} group-hover:text-purple-500 transition-colors`} />
+            <Bell size={20} className={`${textClass} group-hover:text-orange-500 transition-colors`} />
             {notifications.length > 0 && (
               <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-gradient-cyber rounded-full ring-2 ring-white dark:ring-dark-void animate-cyber-pulse" />
             )}
@@ -464,8 +464,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           
           {/* Notifications Dropdown */}
           {showNotifications && (
-            <div className={`absolute top-full right-0 mt-2 w-80 md:w-96 ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-[#1a1a2e] border-purple-500/30'} border rounded-xl shadow-2xl z-[9999] overflow-hidden max-h-96 overflow-y-auto`}>
-              <div className={`px-4 py-3 border-b ${theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-purple-500/30 bg-white/5'}`}>
+            <div className={`absolute top-full right-0 mt-2 w-80 md:w-96 ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-[#1a1a2e] border-orange-500/30'} border rounded-xl shadow-2xl z-[9999] overflow-hidden max-h-96 overflow-y-auto`}>
+              <div className={`px-4 py-3 border-b ${theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-orange-500/30 bg-white/5'}`}>
                 <h3 className={`font-semibold ${textClass}`}>Notifications</h3>
                 <p className={`text-xs ${secondaryText}`}>{notifications.length} recent updates</p>
               </div>
@@ -481,7 +481,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                   {notifications.map((notif) => (
                     <div
                       key={notif.id}
-                      className={`px-4 py-3 border-b ${theme === 'light' ? 'border-gray-100 hover:bg-purple-50' : 'border-white/5 hover:bg-white/5'} transition-colors cursor-pointer`}
+                      className={`px-4 py-3 border-b ${theme === 'light' ? 'border-gray-100 hover:bg-orange-50' : 'border-white/5 hover:bg-white/5'} transition-colors cursor-pointer`}
                       onClick={() => {
                         setShowNotifications(false);
                         // Navigate based on type
@@ -530,7 +530,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 </div>
               )}
               
-              <div className={`px-4 py-3 text-center border-t ${theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-purple-500/30 bg-white/5'}`}>
+              <div className={`px-4 py-3 text-center border-t ${theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-orange-500/30 bg-white/5'}`}>
                 <button
                   onClick={() => setShowNotifications(false)}
                   className={`text-xs font-medium ${theme === 'light' ? 'text-purple-600 hover:text-purple-700' : 'text-purple-400 hover:text-purple-300'} transition-colors`}

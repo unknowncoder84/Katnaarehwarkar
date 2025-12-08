@@ -151,7 +151,7 @@ const CaseDetailsPage: React.FC = () => {
 
   const bgClass = theme === 'light' ? 'bg-white text-black' : 'glass-dark text-cyber-blue';
   const borderClass = theme === 'light' ? 'border-gray-300' : 'border-cyber-blue/20';
-  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300 placeholder-gray-500' : 'bg-white/5 text-white border-purple-500/30 placeholder-gray-400';
+  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300 placeholder-gray-500' : 'bg-white/5 text-white border-orange-500/30 placeholder-gray-400';
   const labelClass = theme === 'light' ? 'text-gray-700' : 'text-cyber-blue/80';
   const cardBgClass = theme === 'light' ? 'bg-orange-50 border border-orange-200' : 'bg-cyber-blue/10 border border-cyber-blue/20';
 
@@ -787,8 +787,8 @@ const CaseDetailsPage: React.FC = () => {
                 className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
                   isInterimLoading 
                     ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 hover:shadow-lg hover:shadow-purple-500/30'
-                } text-white border border-purple-500/30`}
+                    : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-purple-600 hover:to-pink-600 hover:shadow-lg hover:shadow-orange-500/30'
+                } text-white border border-orange-500/30`}
               >
                 <Shield size={18} />
                 {isInterimLoading ? 'UPDATING...' : 'UPDATE INTERIM RELIEF'}
@@ -852,8 +852,8 @@ const CaseDetailsPage: React.FC = () => {
                 className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
                   isCirculationLoading 
                     ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 hover:shadow-lg hover:shadow-purple-500/30'
-                } text-white border border-purple-500/30`}
+                    : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-purple-600 hover:to-pink-600 hover:shadow-lg hover:shadow-orange-500/30'
+                } text-white border border-orange-500/30`}
               >
                 <RefreshCw size={18} />
                 {isCirculationLoading ? 'UPDATING...' : 'UPDATE CIRCULATION STATUS'}
@@ -1019,7 +1019,7 @@ const CaseDetailsPage: React.FC = () => {
                       <td className="py-3 px-4">
                         <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase flex items-center gap-1 w-fit ${
                           payment.paymentMode === 'cash' ? 'bg-green-500/20 text-green-500 border border-green-500/30' :
-                          payment.paymentMode === 'upi' ? 'bg-purple-500/20 text-purple-500 border border-purple-500/30' :
+                          payment.paymentMode === 'upi' ? 'bg-purple-500/20 text-purple-500 border border-orange-500/30' :
                           payment.paymentMode === 'bank-transfer' ? 'bg-blue-500/20 text-blue-500 border border-blue-500/30' :
                           payment.paymentMode === 'check' ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' :
                           payment.paymentMode === 'card' ? 'bg-pink-500/20 text-pink-500 border border-pink-500/30' :

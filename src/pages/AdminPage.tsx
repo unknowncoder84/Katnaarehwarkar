@@ -199,7 +199,7 @@ const AdminPage: React.FC = () => {
             className={`${cardBg} p-6 rounded-2xl border`}
           >
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
+              <div className="p-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl">
                 <CheckSquare className="text-white" size={24} />
               </div>
               <div>
@@ -219,7 +219,7 @@ const AdminPage: React.FC = () => {
         >
           <div className="p-6 border-b border-white/10 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
+              <div className="p-2 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg">
                 <CheckSquare className="text-white" size={20} />
               </div>
               <h2 className={`text-xl font-bold ${textPrimary}`}>Tasks Assigned by Admin</h2>

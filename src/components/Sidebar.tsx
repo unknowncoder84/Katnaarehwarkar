@@ -64,8 +64,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     : 'bg-[#1a1a2e]/98 backdrop-blur-2xl border-white/5';
   const textClass = theme === 'light' ? 'text-gray-800' : 'text-gray-300';
   const secondaryTextClass = theme === 'light' ? 'text-gray-500' : 'text-gray-500';
-  const hoverClass = theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5';
-  const activeBgClass = 'bg-gradient-to-r from-purple-500 via-orange-500 to-purple-500 text-white shadow-lg shadow-orange-500/30';
+  const hoverClass = theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5';
+  const activeBgClass = 'bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 text-white shadow-lg shadow-orange-500/30';
 
   return (
     <>
@@ -86,8 +86,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-orange-500 rounded-2xl blur-lg opacity-50" />
-                <div className="relative w-12 h-12 bg-gradient-to-r from-purple-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-glow">
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl blur-lg opacity-50" />
+                <div className="relative w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center shadow-glow">
                   <Scale className="text-white" size={24} />
                 </div>
               </div>
@@ -146,7 +146,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
             <button
               onClick={() => setIsOfficeCasesOpen(!isOfficeCasesOpen)}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
-                isOfficeCasesOpen ? (theme === 'light' ? 'bg-purple-100 text-purple-700' : 'bg-purple-500/20 text-purple-400') : `${textClass} ${hoverClass}`
+                isOfficeCasesOpen ? (theme === 'light' ? 'bg-orange-100 text-orange-700' : 'bg-orange-500/20 text-orange-400') : `${textClass} ${hoverClass}`
               }`}
             >
               <div className="flex items-center gap-3">
@@ -156,12 +156,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
               {isOfficeCasesOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
             </button>
             {isOfficeCasesOpen && (
-              <div className="ml-4 mt-2 space-y-1 border-l-2 border-purple-500/30 pl-4">
+              <div className="ml-4 mt-2 space-y-1 border-l-2 border-orange-500/30 pl-4">
                 {officeCasesSubmenu.map((subItem) => {
                   const SubIcon = subItem.icon;
                   const active = isActive(subItem.path);
                   return (
-                    <Link key={subItem.path + subItem.label} to={subItem.path} className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm ${active ? (theme === 'light' ? 'bg-purple-100 text-purple-700' : 'bg-purple-500/20 text-purple-400') : `${textClass} ${hoverClass}`}`}>
+                    <Link key={subItem.path + subItem.label} to={subItem.path} className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm ${active ? (theme === 'light' ? 'bg-orange-100 text-orange-700' : 'bg-orange-500/20 text-orange-400') : `${textClass} ${hoverClass}`}`}>
                       <SubIcon size={16} />
                       <span className="font-medium">{subItem.label}</span>
                     </Link>

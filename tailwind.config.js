@@ -35,7 +35,7 @@ export default {
         'gradient-card': 'linear-gradient(145deg, rgba(30, 30, 50, 0.95) 0%, rgba(20, 20, 35, 0.98) 100%)',
         'gradient-mesh':
           'radial-gradient(at 20% 30%, rgba(139, 92, 246, 0.2) 0px, transparent 50%), radial-gradient(at 80% 10%, rgba(6, 182, 212, 0.15) 0px, transparent 50%), radial-gradient(at 10% 70%, rgba(217, 70, 239, 0.15) 0px, transparent 50%)',
-        'gradient-cyber': 'linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #00d4ff 100%)',
+        'gradient-cyber': 'linear-gradient(135deg, #f97316 0%, #fb923c 50%, #fbbf24 100%)',
         'gradient-void': 'linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #0f0f1a 100%)',
       },
       backdropBlur: {

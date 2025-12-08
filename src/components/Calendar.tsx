@@ -55,7 +55,7 @@ const Calendar: React.FC = () => {
     : 'glass-dark border-cyber-blue/20';
   const textPrimary = theme === 'light' ? 'text-gray-900' : 'text-cyber-blue';
   const textSecondary = theme === 'light' ? 'text-gray-600' : 'text-cyber-blue/60';
-  const hoverBg = theme === 'light' ? 'hover:bg-purple-100' : 'hover:bg-cyber-blue/10';
+  const hoverBg = theme === 'light' ? 'hover:bg-orange-100' : 'hover:bg-cyber-blue/10';
 
   return (
     <div className={`${cardBg} rounded-2xl p-6 border shadow-card`}>
@@ -113,7 +113,7 @@ const Calendar: React.FC = () => {
                   : isToday(day)
                     ? 'bg-gradient-cyber text-white font-bold shadow-cyber border border-cyber-blue/50 hover:shadow-justice animate-pulse-slow'
                     : isSameMonth(day, currentDate)
-                      ? `${textPrimary} ${hoverBg} hover:scale-110 hover:border-cyber-blue/30 ${hasEvents ? 'border border-purple-400/40' : ''}`
+                      ? `${textPrimary} ${hoverBg} hover:scale-110 hover:border-cyber-blue/30 ${hasEvents ? 'border border-orange-400/40' : ''}`
                       : 'text-gray-600'
               }`}
             >
@@ -130,7 +130,7 @@ const Calendar: React.FC = () => {
               )}
               {hasEvents && day && (
                 <div className={`absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity ${
-                  theme === 'light' ? 'bg-purple-100' : 'bg-purple-500/20'
+                  theme === 'light' ? 'bg-orange-100' : 'bg-orange-500/20'
                 } pointer-events-none`} />
               )}
             </div>

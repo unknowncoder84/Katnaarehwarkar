@@ -137,7 +137,7 @@ const TasksPage: React.FC = () => {
                 onClick={() => setViewMode('list')}
                 className={`px-4 py-2 flex items-center gap-2 transition-all ${
                   viewMode === 'list'
-                    ? 'bg-gradient-to-r from-purple-500 to-orange-500 text-white'
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white'
                     : theme === 'light'
                       ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       : 'bg-white/5 text-gray-400 hover:bg-white/10'
@@ -150,7 +150,7 @@ const TasksPage: React.FC = () => {
                 onClick={() => setViewMode('calendar')}
                 className={`px-4 py-2 flex items-center gap-2 transition-all ${
                   viewMode === 'calendar'
-                    ? 'bg-gradient-to-r from-purple-500 to-orange-500 text-white'
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white'
                     : theme === 'light'
                       ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       : 'bg-white/5 text-gray-400 hover:bg-white/10'
@@ -163,7 +163,7 @@ const TasksPage: React.FC = () => {
             {isAdmin && (
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="bg-gradient-to-r from-purple-500 to-orange-500 text-white px-6 py-3 rounded-xl font-semibold font-cyber hover:shadow-lg hover:shadow-orange-500/30 transition-all duration-300 border border-orange-500/30 flex items-center gap-2"
+                className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-6 py-3 rounded-xl font-semibold font-cyber hover:shadow-lg hover:shadow-orange-500/30 transition-all duration-300 border border-orange-500/30 flex items-center gap-2"
               >
                 <Plus size={20} />
                 Create Task
@@ -264,10 +264,10 @@ const TasksPage: React.FC = () => {
               onClick={() => setTypeFilter(t)}
               className={`px-4 py-2 rounded-xl font-medium transition-all duration-300 text-sm ${
                 typeFilter === t
-                  ? 'bg-purple-500 text-white'
+                  ? 'bg-orange-500 text-white'
                   : theme === 'light'
                     ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/30'
+                    : 'bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 border border-orange-500/30'
               }`}
             >
               {t === 'all' ? 'All Types' : t === 'case' ? 'Case Tasks' : 'Custom Tasks'}
@@ -316,7 +316,7 @@ const TasksPage: React.FC = () => {
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                       task.type === 'case' 
                         ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
-                        : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                        : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
                     }`}>
                       {task.type === 'case' ? 'Case Task' : 'Custom Task'}
                     </span>
@@ -533,8 +533,8 @@ const TaskCalendarView: React.FC<TaskCalendarViewProps> = ({
                 isToday(day)
                   ? 'border-orange-500 bg-orange-500/10'
                   : theme === 'light'
-                    ? 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'
-                    : 'border-white/10 hover:border-purple-500/50 hover:bg-purple-500/10'
+                    ? 'border-gray-200 hover:border-orange-300 hover:bg-orange-50'
+                    : 'border-white/10 hover:border-orange-500/50 hover:bg-orange-500/10'
               }`}
             >
               <div className={`text-sm font-semibold mb-1 ${
@@ -606,7 +606,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ onClose }) => {
   const [caseTypeFilter, setCaseTypeFilter] = useState<string>('all');
 
   const cardBg = theme === 'light' ? 'bg-white' : 'glass-dark';
-  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300' : 'bg-white/5 text-white border-purple-500/30';
+  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300' : 'bg-white/5 text-white border-orange-500/30';
   const labelClass = theme === 'light' ? 'text-gray-700' : 'text-cyber-blue/80';
   const textPrimary = theme === 'light' ? 'text-gray-900' : 'text-cyber-blue';
 
@@ -674,10 +674,10 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ onClose }) => {
                 onClick={() => setTaskType('custom')}
                 className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all ${
                   taskType === 'custom'
-                    ? 'bg-purple-500 text-white shadow-lg'
+                    ? 'bg-orange-500 text-white shadow-lg'
                     : theme === 'light'
                       ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/30'
+                      : 'bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 border border-orange-500/30'
                 }`}
               >
                 Custom Task
@@ -723,10 +723,10 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ onClose }) => {
                   onClick={() => setCaseInputMode('custom')}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                     caseInputMode === 'custom'
-                      ? 'bg-purple-500 text-white shadow-lg'
+                      ? 'bg-orange-500 text-white shadow-lg'
                       : theme === 'light'
                         ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/30'
+                        : 'bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 border border-orange-500/30'
                   }`}
                 >
                   Custom Input
@@ -739,7 +739,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ onClose }) => {
                   value={formData.customCaseName}
                   placeholder="Enter custom case name or reference"
                   onChange={(e) => setFormData({ ...formData, customCaseName: e.target.value, caseId: '' })}
-                  className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-purple-500`}
+                  className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-orange-500`}
                   required
                 />
               ) : (
@@ -798,7 +798,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ onClose }) => {
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Enter task title"
-              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-purple-500`}
+              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-orange-500`}
               required
             />
           </div>
@@ -813,7 +813,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ onClose }) => {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Enter task description"
               rows={4}
-              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-purple-500 resize-none`}
+              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-orange-500 resize-none`}
             />
           </div>
 
@@ -825,7 +825,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ onClose }) => {
             <select
               value={formData.assignedTo}
               onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
-              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-purple-500`}
+              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-orange-500`}
               required
             >
               <option value="">Select user...</option>
@@ -847,7 +847,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ onClose }) => {
               value={formData.deadline}
               onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
               min={new Date().toISOString().split('T')[0]}
-              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-purple-500`}
+              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-orange-500`}
               required
             />
           </div>
@@ -899,7 +899,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose }) => {
   });
 
   const cardBg = theme === 'light' ? 'bg-white' : 'glass-dark';
-  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300' : 'bg-white/5 text-white border-purple-500/30';
+  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300' : 'bg-white/5 text-white border-orange-500/30';
   const labelClass = theme === 'light' ? 'text-gray-700' : 'text-cyber-blue/80';
   const textPrimary = theme === 'light' ? 'text-gray-900' : 'text-cyber-blue';
 
@@ -944,7 +944,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose }) => {
           <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
             task.type === 'case' 
               ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
-              : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+              : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
           }`}>
             {task.type === 'case' ? 'Case Task' : 'Custom Task'}
           </span>
@@ -996,7 +996,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose }) => {
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Enter task title"
-              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-purple-500`}
+              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-orange-500`}
               required
             />
           </div>
@@ -1011,7 +1011,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose }) => {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Enter task description"
               rows={4}
-              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-purple-500 resize-none`}
+              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-orange-500 resize-none`}
             />
           </div>
 
@@ -1044,7 +1044,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose }) => {
             <select
               value={formData.assignedTo}
               onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
-              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-purple-500`}
+              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-orange-500`}
               required
             >
               <option value="">Select user...</option>
@@ -1065,7 +1065,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose }) => {
               type="date"
               value={formData.deadline}
               onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-purple-500`}
+              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-orange-500`}
               required
             />
           </div>
