@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, CheckCircle, Trash2, Edit, RotateCcw } from 'lucide-react';
+import { Plus, CheckCircle, Trash2, Edit, RotateCcw, User } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
-import { Task } from '../types';
+import { getAllUsers } from '../lib/userManagement';
+import { Task, User as UserType } from '../types';
 
 type TaskFilter = 'all' | 'my-tasks' | 'pending' | 'completed';
 type TaskTypeFilter = 'all' | 'case' | 'custom';
@@ -18,8 +19,21 @@ const TasksPage: React.FC = () => {
   const { user, isAdmin } = useAuth();
   const [filter, setFilter] = useState<TaskFilter>('my-tasks');
   const [typeFilter, setTypeFilter] = useState<TaskTypeFilter>('all');
+  const [userFilter, setUserFilter] = useState<string>('all');
+  const [users, setUsers] = useState<UserType[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+  // Fetch all users for the filter dropdown
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const result = await getAllUsers();
+      if (result.success && result.users) {
+        setUsers(result.users);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   // Read filter from URL on mount and when URL changes
   useEffect(() => {
@@ -33,17 +47,22 @@ const TasksPage: React.FC = () => {
   const filteredTasks = useMemo(() => {
     let filtered = tasks;
 
-    // Apply status filter
-    switch (filter) {
-      case 'my-tasks':
-        filtered = filtered.filter((t) => t.assignedTo === user?.id);
-        break;
-      case 'pending':
-        filtered = filtered.filter((t) => t.status === 'pending');
-        break;
-      case 'completed':
-        filtered = filtered.filter((t) => t.status === 'completed');
-        break;
+    // Apply user filter first (if selected)
+    if (userFilter !== 'all') {
+      filtered = filtered.filter((t) => t.assignedTo === userFilter);
+    } else {
+      // Apply status filter only if no specific user is selected
+      switch (filter) {
+        case 'my-tasks':
+          filtered = filtered.filter((t) => t.assignedTo === user?.id);
+          break;
+        case 'pending':
+          filtered = filtered.filter((t) => t.status === 'pending');
+          break;
+        case 'completed':
+          filtered = filtered.filter((t) => t.status === 'completed');
+          break;
+      }
     }
 
     // Apply type filter
@@ -52,7 +71,7 @@ const TasksPage: React.FC = () => {
     }
 
     return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [tasks, filter, typeFilter, user?.id]);
+  }, [tasks, filter, typeFilter, userFilter, user?.id]);
 
   const stats = useMemo(() => {
     const myTasks = tasks.filter((t) => t.assignedTo === user?.id);
@@ -165,9 +184,12 @@ const TasksPage: React.FC = () => {
           {(['my-tasks', 'all', 'pending', 'completed'] as TaskFilter[]).map((f) => (
             <button
               key={f}
-              onClick={() => setFilter(f)}
+              onClick={() => {
+                setFilter(f);
+                setUserFilter('all'); // Reset user filter when changing status filter
+              }}
               className={`px-4 py-2 rounded-xl font-medium font-cyber transition-all duration-300 text-sm ${
-                filter === f
+                filter === f && userFilter === 'all'
                   ? 'bg-gradient-cyber text-white shadow-cyber border border-cyber-blue/50'
                   : theme === 'light'
                     ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -177,6 +199,29 @@ const TasksPage: React.FC = () => {
               {f === 'my-tasks' ? 'My Tasks' : f.charAt(0).toUpperCase() + f.slice(1)}
             </button>
           ))}
+        </div>
+        
+        {/* User Filter Dropdown */}
+        <div className="flex items-center gap-2">
+          <User size={18} className={textSecondary} />
+          <select
+            value={userFilter}
+            onChange={(e) => setUserFilter(e.target.value)}
+            className={`px-4 py-2 rounded-xl font-medium transition-all duration-300 text-sm ${
+              userFilter !== 'all'
+                ? 'bg-gradient-cyber text-white shadow-cyber border border-cyber-blue/50'
+                : theme === 'light'
+                  ? 'bg-gray-100 text-gray-600 border border-gray-200'
+                  : 'bg-cyber-blue/10 text-cyber-blue/60 border border-cyber-blue/20'
+            }`}
+          >
+            <option value="all">Filter by User</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name} ({u.role})
+              </option>
+            ))}
+          </select>
         </div>
         <div className="flex gap-2 flex-wrap">
           {(['all', 'case', 'custom'] as TaskTypeFilter[]).map((t) => (
