@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Moon, Sun, Trash2 } from 'lucide-react';
+import { Moon, Sun, Trash2, BookOpen, Archive } from 'lucide-react';
 import MainLayout from '../components/MainLayout';
 import { useTheme } from '../contexts/ThemeContext';
 import { useData } from '../contexts/DataContext';
 
 const SettingsPage: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
-  const { courts, caseTypes, addCourt, deleteCourt, addCaseType, deleteCaseType } = useData();
+  const { 
+    courts, caseTypes, addCourt, deleteCourt, addCaseType, deleteCaseType,
+    libraryLocations, storageLocations, addLibraryLocation, deleteLibraryLocation,
+    addStorageLocation, deleteStorageLocation
+  } = useData();
   const [courtName, setCourtName] = useState('');
   const [caseTypeName, setCaseTypeName] = useState('');
+  const [libraryLocationName, setLibraryLocationName] = useState('');
+  const [storageLocationName, setStorageLocationName] = useState('');
 
   const handleAddCourt = () => {
     if (courtName.trim()) {
@@ -22,6 +28,20 @@ const SettingsPage: React.FC = () => {
     if (caseTypeName.trim()) {
       addCaseType(caseTypeName);
       setCaseTypeName('');
+    }
+  };
+
+  const handleAddLibraryLocation = async () => {
+    if (libraryLocationName.trim()) {
+      await addLibraryLocation(libraryLocationName);
+      setLibraryLocationName('');
+    }
+  };
+
+  const handleAddStorageLocation = async () => {
+    if (storageLocationName.trim()) {
+      await addStorageLocation(storageLocationName);
+      setStorageLocationName('');
     }
   };
 
@@ -115,7 +135,7 @@ const SettingsPage: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className={`${cardBg} p-6 rounded-2xl border`}
+        className={`${cardBg} p-6 rounded-2xl mb-6 border`}
       >
         <h2 className={`text-xl font-bold mb-4 ${textPrimary}`}>Case Type Management</h2>
         <p className={`text-sm mb-4 ${textSecondary}`}>Add and manage case types for categorization</p>
@@ -154,6 +174,134 @@ const SettingsPage: React.FC = () => {
                     onClick={() => deleteCaseType(ct.id)}
                     className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
                     title="Delete Case Type"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Library Location Management */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className={`${cardBg} p-6 rounded-2xl mb-6 border`}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg">
+            <BookOpen size={20} className="text-white" />
+          </div>
+          <div>
+            <h2 className={`text-xl font-bold ${textPrimary}`}>Library Location Management</h2>
+            <p className={`text-sm ${textSecondary}`}>Add and manage library storage locations</p>
+          </div>
+        </div>
+        
+        {/* Add Library Location Form */}
+        <div className="mb-6">
+          <label className={`block text-sm font-semibold mb-2 ${textSecondary}`}>Add New Library Location</label>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <textarea
+              value={libraryLocationName}
+              onChange={(e) => setLibraryLocationName(e.target.value)}
+              placeholder="Enter library location (e.g., Shelf A-1, Cabinet B-2)"
+              rows={2}
+              className={`flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:border-amber-500 transition-colors resize-none ${inputBgClass}`}
+            />
+            <button
+              onClick={handleAddLibraryLocation}
+              className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-300 font-medium font-cyber border border-amber-500/30 self-start"
+            >
+              Add Location
+            </button>
+          </div>
+        </div>
+
+        {/* Library Locations List */}
+        <div>
+          <label className={`block text-sm font-semibold mb-2 ${textSecondary}`}>Existing Library Locations ({libraryLocations.length})</label>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {libraryLocations.length === 0 ? (
+              <p className={`text-center py-6 ${textSecondary}`}>No library locations added yet</p>
+            ) : (
+              libraryLocations.map((loc) => (
+                <div key={loc.id} className={`flex items-center justify-between ${itemBgClass} p-4 rounded-xl hover:shadow-md transition-all`}>
+                  <div className="flex items-center gap-3">
+                    <BookOpen size={18} className="text-amber-500" />
+                    <span className={`${textPrimary} font-medium`}>{loc.name}</span>
+                  </div>
+                  <button
+                    onClick={() => deleteLibraryLocation(loc.id)}
+                    className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
+                    title="Delete Library Location"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Storage Location Management */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className={`${cardBg} p-6 rounded-2xl border`}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg">
+            <Archive size={20} className="text-white" />
+          </div>
+          <div>
+            <h2 className={`text-xl font-bold ${textPrimary}`}>Storage Location Management</h2>
+            <p className={`text-sm ${textSecondary}`}>Add and manage file storage locations</p>
+          </div>
+        </div>
+        
+        {/* Add Storage Location Form */}
+        <div className="mb-6">
+          <label className={`block text-sm font-semibold mb-2 ${textSecondary}`}>Add New Storage Location</label>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <textarea
+              value={storageLocationName}
+              onChange={(e) => setStorageLocationName(e.target.value)}
+              placeholder="Enter storage location (e.g., Room 1 - Rack A, Basement Storage)"
+              rows={2}
+              className={`flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:border-indigo-500 transition-colors resize-none ${inputBgClass}`}
+            />
+            <button
+              onClick={handleAddStorageLocation}
+              className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-300 font-medium font-cyber border border-indigo-500/30 self-start"
+            >
+              Add Location
+            </button>
+          </div>
+        </div>
+
+        {/* Storage Locations List */}
+        <div>
+          <label className={`block text-sm font-semibold mb-2 ${textSecondary}`}>Existing Storage Locations ({storageLocations.length})</label>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {storageLocations.length === 0 ? (
+              <p className={`text-center py-6 ${textSecondary}`}>No storage locations added yet</p>
+            ) : (
+              storageLocations.map((loc) => (
+                <div key={loc.id} className={`flex items-center justify-between ${itemBgClass} p-4 rounded-xl hover:shadow-md transition-all`}>
+                  <div className="flex items-center gap-3">
+                    <Archive size={18} className="text-indigo-500" />
+                    <span className={`${textPrimary} font-medium`}>{loc.name}</span>
+                  </div>
+                  <button
+                    onClick={() => deleteStorageLocation(loc.id)}
+                    className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
+                    title="Delete Storage Location"
                   >
                     <Trash2 size={18} />
                   </button>

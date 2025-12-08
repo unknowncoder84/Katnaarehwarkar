@@ -339,6 +339,58 @@ export const db = {
     }
   },
 
+  // Library Locations
+  libraryLocations: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('library_locations')
+        .select('*')
+        .order('name', { ascending: true })
+      return { data, error }
+    },
+    create: async (name: string, createdBy: string) => {
+      const { data, error } = await supabase
+        .from('library_locations')
+        .insert([{ name, created_by: createdBy }])
+        .select()
+        .single()
+      return { data, error }
+    },
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('library_locations')
+        .delete()
+        .eq('id', id)
+      return { error }
+    }
+  },
+
+  // Storage Locations
+  storageLocations: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('storage_locations')
+        .select('*')
+        .order('name', { ascending: true })
+      return { data, error }
+    },
+    create: async (name: string, createdBy: string) => {
+      const { data, error } = await supabase
+        .from('storage_locations')
+        .insert([{ name, created_by: createdBy }])
+        .select()
+        .single()
+      return { data, error }
+    },
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('storage_locations')
+        .delete()
+        .eq('id', id)
+      return { error }
+    }
+  },
+
   // Sofa Items
   sofaItems: {
     getAll: async () => {
@@ -397,6 +449,246 @@ export const db = {
         .select()
         .single()
       return { data, error }
+    }
+  },
+
+  // Tasks
+  tasks: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .order('created_at', { ascending: false })
+      return { data, error }
+    },
+    getByUser: async (userId: string) => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('assigned_to', userId)
+        .order('deadline', { ascending: true })
+      return { data, error }
+    },
+    getPending: async () => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('status', 'pending')
+        .order('deadline', { ascending: true })
+      return { data, error }
+    },
+    create: async (taskData: any) => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert([taskData])
+        .select()
+        .single()
+      return { data, error }
+    },
+    update: async (id: string, taskData: any) => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .update(taskData)
+        .eq('id', id)
+        .select()
+        .single()
+      return { data, error }
+    },
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', id)
+      return { error }
+    },
+    complete: async (id: string) => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .update({ status: 'completed', completed_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single()
+      return { data, error }
+    }
+  },
+
+  // Attendance
+  attendance: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('attendance')
+        .select('*')
+        .order('date', { ascending: false })
+      return { data, error }
+    },
+    getByUser: async (userId: string) => {
+      const { data, error } = await supabase
+        .from('attendance')
+        .select('*')
+        .eq('user_id', userId)
+        .order('date', { ascending: false })
+      return { data, error }
+    },
+    getByDate: async (date: string) => {
+      const { data, error } = await supabase
+        .from('attendance')
+        .select('*')
+        .eq('date', date)
+      return { data, error }
+    },
+    create: async (attendanceData: any) => {
+      const { data, error } = await supabase
+        .from('attendance')
+        .insert([attendanceData])
+        .select()
+        .single()
+      return { data, error }
+    },
+    update: async (id: string, attendanceData: any) => {
+      const { data, error } = await supabase
+        .from('attendance')
+        .update(attendanceData)
+        .eq('id', id)
+        .select()
+        .single()
+      return { data, error }
+    },
+    upsert: async (attendanceData: any) => {
+      const { data, error } = await supabase
+        .from('attendance')
+        .upsert([attendanceData], { onConflict: 'user_id,date' })
+        .select()
+        .single()
+      return { data, error }
+    }
+  },
+
+  // Expenses
+  expenses: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('expenses')
+        .select('*')
+        .order('created_at', { ascending: false })
+      return { data, error }
+    },
+    getByMonth: async (month: string) => {
+      const { data, error } = await supabase
+        .from('expenses')
+        .select('*')
+        .eq('month', month)
+        .order('created_at', { ascending: false })
+      return { data, error }
+    },
+    create: async (expenseData: any) => {
+      const { data, error } = await supabase
+        .from('expenses')
+        .insert([expenseData])
+        .select()
+        .single()
+      return { data, error }
+    },
+    update: async (id: string, expenseData: any) => {
+      const { data, error } = await supabase
+        .from('expenses')
+        .update(expenseData)
+        .eq('id', id)
+        .select()
+        .single()
+      return { data, error }
+    },
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('expenses')
+        .delete()
+        .eq('id', id)
+      return { error }
+    }
+  },
+
+  // Library Items
+  libraryItems: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('library_items')
+        .select('*')
+        .order('added_at', { ascending: false })
+      return { data, error }
+    },
+    getByLocation: async (locationId: string) => {
+      const { data, error } = await supabase
+        .from('library_items')
+        .select('*')
+        .eq('location_id', locationId)
+        .order('added_at', { ascending: false })
+      return { data, error }
+    },
+    create: async (itemData: any) => {
+      const { data, error } = await supabase
+        .from('library_items')
+        .insert([itemData])
+        .select()
+        .single()
+      return { data, error }
+    },
+    update: async (id: string, itemData: any) => {
+      const { data, error } = await supabase
+        .from('library_items')
+        .update(itemData)
+        .eq('id', id)
+        .select()
+        .single()
+      return { data, error }
+    },
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('library_items')
+        .delete()
+        .eq('id', id)
+      return { error }
+    }
+  },
+
+  // Storage Items
+  storageItems: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('storage_items')
+        .select('*')
+        .order('added_at', { ascending: false })
+      return { data, error }
+    },
+    getByLocation: async (locationId: string) => {
+      const { data, error } = await supabase
+        .from('storage_items')
+        .select('*')
+        .eq('location_id', locationId)
+        .order('added_at', { ascending: false })
+      return { data, error }
+    },
+    create: async (itemData: any) => {
+      const { data, error } = await supabase
+        .from('storage_items')
+        .insert([itemData])
+        .select()
+        .single()
+      return { data, error }
+    },
+    update: async (id: string, itemData: any) => {
+      const { data, error } = await supabase
+        .from('storage_items')
+        .update(itemData)
+        .eq('id', id)
+        .select()
+        .single()
+      return { data, error }
+    },
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('storage_items')
+        .delete()
+        .eq('id', id)
+      return { error }
     }
   },
 
@@ -514,6 +806,36 @@ export const realtime = {
       .channel('notifications-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'notifications' },
+        callback
+      )
+      .subscribe()
+  },
+
+  subscribeToTasks: (callback: (payload: any) => void) => {
+    return supabase
+      .channel('tasks-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'tasks' },
+        callback
+      )
+      .subscribe()
+  },
+
+  subscribeToLibraryLocations: (callback: (payload: any) => void) => {
+    return supabase
+      .channel('library-locations-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'library_locations' },
+        callback
+      )
+      .subscribe()
+  },
+
+  subscribeToStorageLocations: (callback: (payload: any) => void) => {
+    return supabase
+      .channel('storage-locations-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'storage_locations' },
         callback
       )
       .subscribe()

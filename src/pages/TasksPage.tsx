@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, CheckCircle, Trash2 } from 'lucide-react';
+import { Plus, CheckCircle, Trash2, Edit, RotateCcw } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -11,12 +12,23 @@ type TaskFilter = 'all' | 'my-tasks' | 'pending' | 'completed';
 type TaskTypeFilter = 'all' | 'case' | 'custom';
 
 const TasksPage: React.FC = () => {
-  const { tasks, completeTask, deleteTask } = useData();
+  const [searchParams] = useSearchParams();
+  const { tasks, completeTask, deleteTask, updateTask } = useData();
   const { theme } = useTheme();
   const { user, isAdmin } = useAuth();
   const [filter, setFilter] = useState<TaskFilter>('my-tasks');
   const [typeFilter, setTypeFilter] = useState<TaskTypeFilter>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+  // Read filter from URL on mount and when URL changes
+  useEffect(() => {
+    const urlFilter = searchParams.get('filter');
+    if (urlFilter === 'pending' || urlFilter === 'completed' || urlFilter === 'all' || urlFilter === 'my-tasks') {
+      setFilter(urlFilter as TaskFilter);
+      console.log('🔍 TasksPage: Filter applied from URL:', urlFilter);
+    }
+  }, [searchParams]);
 
   const filteredTasks = useMemo(() => {
     let filtered = tasks;
@@ -66,6 +78,16 @@ const TasksPage: React.FC = () => {
     }
   };
 
+  const handleEdit = (task: Task) => {
+    setEditingTask(task);
+  };
+
+  const handleReopenTask = (taskId: string) => {
+    if (window.confirm('Are you sure you want to reopen this task?')) {
+      updateTask(taskId, { status: 'pending', completedAt: undefined });
+    }
+  };
+
   return (
     <MainLayout>
       {/* Header */}
@@ -77,10 +99,13 @@ const TasksPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className={`text-2xl md:text-3xl font-bold font-cyber ${textPrimary}`}>
-              Task Management
+              Task Management <span className="text-cyber-blue text-glow">({filteredTasks.length})</span>
             </h1>
             <p className={`mt-1 ${textSecondary} font-court`}>
-              Manage and track your tasks
+              {filter === 'pending' ? 'Showing pending tasks' : 
+               filter === 'completed' ? 'Showing completed tasks' :
+               filter === 'my-tasks' ? 'Showing your assigned tasks' :
+               'Showing all tasks'}
             </p>
           </div>
           {isAdmin && (
@@ -228,13 +253,31 @@ const TasksPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  {task.status === 'pending' && task.assignedTo === user?.id && (
+                  {task.status === 'pending' && (task.assignedTo === user?.id || isAdmin) && (
                     <button
                       onClick={() => handleComplete(task.id)}
                       className="p-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-all border border-green-500/30"
                       title="Mark as Complete"
                     >
                       <CheckCircle size={20} />
+                    </button>
+                  )}
+                  {isAdmin && task.status === 'completed' && (
+                    <button
+                      onClick={() => handleReopenTask(task.id)}
+                      className="p-2 rounded-lg bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 transition-all border border-amber-500/30"
+                      title="Reopen Task"
+                    >
+                      <RotateCcw size={20} />
+                    </button>
+                  )}
+                  {isAdmin && (
+                    <button
+                      onClick={() => handleEdit(task)}
+                      className="p-2 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-all border border-blue-500/30"
+                      title="Edit Task"
+                    >
+                      <Edit size={20} />
                     </button>
                   )}
                   {isAdmin && (
@@ -255,6 +298,14 @@ const TasksPage: React.FC = () => {
 
       {/* Create Task Modal */}
       {showCreateModal && <CreateTaskModal onClose={() => setShowCreateModal(false)} />}
+      
+      {/* Edit Task Modal */}
+      {editingTask && (
+        <EditTaskModal 
+          task={editingTask} 
+          onClose={() => setEditingTask(null)} 
+        />
+      )}
     </MainLayout>
   );
 };
@@ -534,6 +585,224 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ onClose }) => {
               className="flex-1 bg-gradient-cyber text-white font-semibold py-3 rounded-lg hover:shadow-cyber transition-all duration-300 border border-cyber-blue/30"
             >
               Create Task
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className={`flex-1 font-semibold py-3 rounded-lg transition-all duration-300 ${
+                theme === 'light'
+                  ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                  : 'bg-cyber-blue/10 text-cyber-blue hover:bg-cyber-blue/20 border border-cyber-blue/30'
+              }`}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  );
+};
+
+// Edit Task Modal Component
+interface EditTaskModalProps {
+  task: Task;
+  onClose: () => void;
+}
+
+const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose }) => {
+  const { updateTask, cases } = useData();
+  const { theme } = useTheme();
+  const { users } = useAuth();
+  const [formData, setFormData] = useState({
+    title: task.title,
+    description: task.description,
+    assignedTo: task.assignedTo,
+    caseId: task.caseId || '',
+    caseName: task.caseName || '',
+    deadline: new Date(task.deadline).toISOString().split('T')[0],
+    status: task.status,
+  });
+
+  const cardBg = theme === 'light' ? 'bg-white' : 'glass-dark';
+  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300' : 'bg-white/5 text-white border-purple-500/30';
+  const labelClass = theme === 'light' ? 'text-gray-700' : 'text-cyber-blue/80';
+  const textPrimary = theme === 'light' ? 'text-gray-900' : 'text-cyber-blue';
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.title || !formData.assignedTo || !formData.deadline) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    const assignedUser = users.find((u) => u.id === formData.assignedTo);
+    const selectedCase = formData.caseId ? cases.find((c) => c.id === formData.caseId) : null;
+
+    await updateTask(task.id, {
+      title: formData.title,
+      description: formData.description,
+      assignedTo: formData.assignedTo,
+      assignedToName: assignedUser?.name || task.assignedToName,
+      caseId: formData.caseId || undefined,
+      caseName: selectedCase?.clientName || formData.caseName,
+      deadline: new Date(formData.deadline),
+      status: formData.status as 'pending' | 'completed',
+    });
+    
+    onClose();
+  };
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        onClick={(e) => e.stopPropagation()}
+        className={`${cardBg} p-6 rounded-2xl border ${theme === 'light' ? 'border-gray-200' : 'border-cyber-blue/20'} max-w-2xl w-full max-h-[90vh] overflow-y-auto`}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 className={`text-2xl font-bold ${textPrimary}`}>Edit Task</h2>
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+            task.type === 'case' 
+              ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
+              : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+          }`}>
+            {task.type === 'case' ? 'Case Task' : 'Custom Task'}
+          </span>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Task Status */}
+          <div>
+            <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>
+              Status
+            </label>
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, status: 'pending' })}
+                className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all ${
+                  formData.status === 'pending'
+                    ? 'bg-yellow-500 text-white shadow-lg'
+                    : theme === 'light'
+                      ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30'
+                }`}
+              >
+                Pending
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, status: 'completed' })}
+                className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all ${
+                  formData.status === 'completed'
+                    ? 'bg-green-500 text-white shadow-lg'
+                    : theme === 'light'
+                      ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30'
+                }`}
+              >
+                Completed
+              </button>
+            </div>
+          </div>
+
+          {/* Task Title */}
+          <div>
+            <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>
+              Task Title *
+            </label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="Enter task title"
+              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-purple-500`}
+              required
+            />
+          </div>
+
+          {/* Task Description */}
+          <div>
+            <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>
+              Description
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Enter task description"
+              rows={4}
+              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-purple-500 resize-none`}
+            />
+          </div>
+
+          {/* Case Selection (only for case tasks) */}
+          {task.type === 'case' && (
+            <div>
+              <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>
+                Case
+              </label>
+              <select
+                value={formData.caseId}
+                onChange={(e) => setFormData({ ...formData, caseId: e.target.value })}
+                className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-blue-500`}
+              >
+                <option value="">Select a case...</option>
+                {cases.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.clientName} - {c.fileNo} ({c.caseType})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Assign To */}
+          <div>
+            <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>
+              Assign To *
+            </label>
+            <select
+              value={formData.assignedTo}
+              onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-purple-500`}
+              required
+            >
+              <option value="">Select user...</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.role})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Deadline */}
+          <div>
+            <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>
+              Deadline *
+            </label>
+            <input
+              type="date"
+              value={formData.deadline}
+              onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-purple-500`}
+              required
+            />
+          </div>
+
+          {/* Form Actions */}
+          <div className="flex gap-4 pt-4">
+            <button
+              type="submit"
+              className="flex-1 bg-gradient-cyber text-white font-semibold py-3 rounded-lg hover:shadow-cyber transition-all duration-300 border border-cyber-blue/30"
+            >
+              Save Changes
             </button>
             <button
               type="button"

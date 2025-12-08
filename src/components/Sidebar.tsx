@@ -32,7 +32,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
   const { logout, isAdmin } = useAuth();
   const { theme } = useTheme();
   const [isOfficeCasesOpen, setIsOfficeCasesOpen] = useState(false);
-  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
@@ -42,6 +41,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     { icon: Users, label: 'Appointments', path: '/appointments' },
     { icon: DollarSign, label: 'Payment', path: '/finance' },
     { icon: TrendingDown, label: 'Expenses', path: '/expenses' },
+    { icon: BookOpen, label: 'Library', path: '/library' },
+    { icon: Archive, label: 'Storage', path: '/storage' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 
@@ -53,13 +54,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     { icon: Plus, label: 'Create Case', path: '/cases/create' },
     { icon: List, label: 'List Cases', path: '/cases' },
     { icon: UserCheck, label: 'List Clients', path: '/clients' },
-  ];
-
-
-
-  const librarySubmenu = [
-    { icon: BookOpen, label: 'Library', path: '/library/books' },
-    { icon: Archive, label: 'Storage', path: '/library/storage' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -177,36 +171,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
             )}
           </div>
 
-          {/* Library Management */}
-          <p className={`text-xs font-semibold uppercase ${secondaryTextClass} px-3 py-2 mt-6 tracking-wider`}>Library Management</p>
-          <div>
-            <button
-              onClick={() => setIsLibraryOpen(!isLibraryOpen)}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
-                isLibraryOpen ? (theme === 'light' ? 'bg-amber-100 text-amber-700' : 'bg-amber-500/20 text-amber-400') : `${textClass} ${hoverClass}`
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <BookOpen size={20} />
-                <span className="font-medium">Library Management</span>
-              </div>
-              {isLibraryOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-            </button>
-            {isLibraryOpen && (
-              <div className="ml-4 mt-2 space-y-1 border-l-2 border-amber-500/30 pl-4">
-                {librarySubmenu.map((subItem) => {
-                  const SubIcon = subItem.icon;
-                  const active = isActive(subItem.path);
-                  return (
-                    <Link key={subItem.path + subItem.label} to={subItem.path} className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm ${active ? (theme === 'light' ? 'bg-amber-100 text-amber-700' : 'bg-amber-500/20 text-amber-400') : `${textClass} ${hoverClass}`}`}>
-                      <SubIcon size={16} />
-                      <span className="font-medium">{subItem.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
         </nav>
 
         {/* Logout */}

@@ -11,6 +11,39 @@ import { Case } from '../types';
 
 type CaseView = 'my-cases' | 'all-cases' | 'office-cases';
 
+// Helper function to get readable filter label
+const getFilterLabel = (filter: string): string => {
+  const labels: Record<string, string> = {
+    'ir-favor': 'IR Favor',
+    'ir-against': 'IR Against',
+    'circulated': 'Circulated',
+    'non-circulated': 'Non Circulated',
+    'consultation': 'Consultation Stage',
+    'drafting': 'Drafting Stage',
+    'filing': 'Filing Stage',
+    'circulation': 'Circulation Stage',
+    'notice': 'Notice Stage',
+    'pre-admission': 'Pre Admission Stage',
+    'admitted': 'Admitted Stage',
+    'final-hearing': 'Final Hearing Stage',
+    'reserved': 'Reserved for Judgement',
+    'disposed': 'Disposed',
+    'pending': 'Pending Status',
+    'active': 'Active Status',
+    'closed': 'Closed Status',
+  };
+  return labels[filter] || filter.replace(/-/g, ' ').toUpperCase();
+};
+
+// Helper function to get filter badge style
+const getFilterBadgeStyle = (filter: string): string => {
+  if (filter === 'ir-favor') return 'bg-green-500/20 text-green-400 border-green-500/30';
+  if (filter === 'ir-against') return 'bg-red-500/20 text-red-400 border-red-500/30';
+  if (filter === 'circulated') return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+  if (filter === 'non-circulated') return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+  return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+};
+
 const CasesPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -21,11 +54,14 @@ const CasesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
 
-  // Read filter from URL on mount
+  // Read filter from URL on mount and when URL changes
   useEffect(() => {
     const filter = searchParams.get('filter');
     if (filter) {
       setStatusFilter(filter);
+      console.log('🔍 CasesPage: Filter applied from URL:', filter);
+    } else {
+      setStatusFilter('');
     }
   }, [searchParams]);
 
@@ -72,6 +108,11 @@ const CasesPage: React.FC = () => {
             return c.circulationStatus === 'circulated';
           case 'non-circulated':
             return c.circulationStatus === 'non-circulated';
+          // Interim Relief filters
+          case 'ir-favor':
+            return c.interimRelief === 'favor';
+          case 'ir-against':
+            return c.interimRelief === 'against';
           default:
             return true;
         }
@@ -122,13 +163,16 @@ const CasesPage: React.FC = () => {
               Case Management <span className="text-cyber-blue text-glow">({filteredCases.length})</span>
             </h1>
             <p className={`mt-1 ${textSecondary} font-court`}>
-              Showing results for {activeTab === 'my-cases' ? 'My Cases' : activeTab === 'all-cases' ? 'All Cases' : 'Office Cases'}
+              {statusFilter 
+                ? `Showing ${getFilterLabel(statusFilter)} cases` 
+                : `Showing results for ${activeTab === 'my-cases' ? 'My Cases' : activeTab === 'all-cases' ? 'All Cases' : 'Office Cases'}`
+              }
             </p>
           </div>
           {statusFilter && (
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1.5 bg-purple-500/20 text-purple-400 rounded-lg text-sm font-semibold border border-purple-500/30">
-                Filter: {statusFilter.replace('-', ' ').toUpperCase()}
+              <span className={`px-3 py-1.5 rounded-lg text-sm font-semibold border ${getFilterBadgeStyle(statusFilter)}`}>
+                {getFilterLabel(statusFilter)}
               </span>
               <button
                 onClick={() => {
@@ -137,10 +181,45 @@ const CasesPage: React.FC = () => {
                 }}
                 className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg text-sm font-semibold hover:bg-red-500/30 transition-colors border border-red-500/30"
               >
-                Clear
+                Clear Filter
               </button>
             </div>
           )}
+        </div>
+      </motion.div>
+
+      {/* Quick Filter Buttons */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+        className="mb-4"
+      >
+        <p className={`text-xs font-semibold uppercase mb-2 ${textSecondary}`}>Quick Filters</p>
+        <div className="flex gap-2 flex-wrap">
+          {[
+            { label: 'IR Favor', filter: 'ir-favor', color: 'from-green-500 to-emerald-500', borderColor: 'border-green-500/30' },
+            { label: 'IR Against', filter: 'ir-against', color: 'from-red-500 to-pink-500', borderColor: 'border-red-500/30' },
+            { label: 'Circulated', filter: 'circulated', color: 'from-blue-500 to-cyan-500', borderColor: 'border-blue-500/30' },
+            { label: 'Non Circulated', filter: 'non-circulated', color: 'from-yellow-500 to-orange-500', borderColor: 'border-yellow-500/30' },
+          ].map((item) => (
+            <button
+              key={item.filter}
+              onClick={() => {
+                setStatusFilter(item.filter);
+                navigate(`/cases?filter=${item.filter}`);
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                statusFilter === item.filter
+                  ? `bg-gradient-to-r ${item.color} text-white shadow-lg`
+                  : theme === 'light'
+                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : `bg-white/10 text-gray-300 hover:bg-white/20 border ${item.borderColor}`
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       </motion.div>
 

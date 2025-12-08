@@ -10,15 +10,20 @@ import {
   AlertTriangle,
   Crown,
   User as UserIcon,
+  CheckSquare,
+  Clock,
+  Bell,
 } from 'lucide-react';
 import MainLayout from '../components/MainLayout';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useData } from '../contexts/DataContext';
 import { User, CreateUserData, UserRole } from '../types';
 
 const AdminPage: React.FC = () => {
   const { theme } = useTheme();
   const { users, user: currentUser, createUser, updateUserRole, toggleUserStatus, deleteUser } = useAuth();
+  const { tasks } = useData();
   
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -138,7 +143,7 @@ const AdminPage: React.FC = () => {
         </AnimatePresence>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -187,7 +192,105 @@ const AdminPage: React.FC = () => {
               </div>
             </div>
           </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className={`${cardBg} p-6 rounded-2xl border`}
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
+                <CheckSquare className="text-white" size={24} />
+              </div>
+              <div>
+                <p className={`text-sm ${textSecondary}`}>Pending Tasks</p>
+                <p className={`text-3xl font-bold ${textPrimary}`}>{tasks.filter(t => t.status === 'pending').length}</p>
+              </div>
+            </div>
+          </motion.div>
         </div>
+
+        {/* Tasks Assigned Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className={`${cardBg} rounded-2xl border overflow-hidden`}
+        >
+          <div className="p-6 border-b border-white/10 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
+                <CheckSquare className="text-white" size={20} />
+              </div>
+              <h2 className={`text-xl font-bold ${textPrimary}`}>Tasks Assigned by Admin</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`px-3 py-1 rounded-full text-sm ${textSecondary} bg-purple-500/10`}>
+                {tasks.filter(t => t.status === 'pending').length} Pending
+              </span>
+              <span className={`px-3 py-1 rounded-full text-sm ${textSecondary} bg-green-500/10`}>
+                {tasks.filter(t => t.status === 'completed').length} Completed
+              </span>
+            </div>
+          </div>
+          <div className="p-6">
+            {tasks.length === 0 ? (
+              <div className={`text-center py-8 ${textSecondary}`}>
+                <CheckSquare size={48} className="mx-auto mb-4 opacity-30" />
+                <p>No tasks assigned yet</p>
+                <p className="text-sm mt-2">Tasks assigned from Case Details will appear here</p>
+              </div>
+            ) : (
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {tasks.map((task) => (
+                  <motion.div
+                    key={task.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className={`p-4 rounded-xl ${theme === 'light' ? 'bg-gray-50 border border-gray-200' : 'bg-white/5 border border-white/10'}`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className={`font-semibold ${textPrimary}`}>{task.title}</h4>
+                          {task.status === 'completed' ? (
+                            <span className="text-xs bg-green-500/20 text-green-500 px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <UserCheck size={12} /> Completed
+                            </span>
+                          ) : (
+                            <span className="text-xs bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <Clock size={12} /> Pending
+                            </span>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                          <p className={textSecondary}>
+                            <span className="font-medium">Assigned to:</span> {task.assignedToName}
+                          </p>
+                          <p className={textSecondary}>
+                            <span className="font-medium">Case:</span> {task.caseName || 'General'}
+                          </p>
+                          <p className={textSecondary}>
+                            <span className="font-medium">Deadline:</span> {new Date(task.deadline).toLocaleDateString()}
+                          </p>
+                          <p className={textSecondary}>
+                            <span className="font-medium">Assigned by:</span> {task.assignedByName}
+                          </p>
+                        </div>
+                        {task.description && (
+                          <p className={`mt-2 text-sm ${textSecondary}`}>{task.description}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2" title="Notification sent to user">
+                        <Bell size={16} className="text-purple-400" />
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
+        </motion.div>
 
         {/* Users Table */}
         <motion.div

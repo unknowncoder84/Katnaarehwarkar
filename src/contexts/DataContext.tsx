@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Case, Counsel, Appointment, Transaction, Court, CaseType, Book, SofaItem, Task, Attendance, AttendanceStatus, Expense, DataContextType } from '../types';
+import { Case, Counsel, Appointment, Transaction, Court, CaseType, Book, SofaItem, Task, Attendance, AttendanceStatus, Expense, DataContextType, LibraryLocation, StorageLocation } from '../types';
 import { db } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -55,6 +55,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ]);
   const [books, setBooks] = useState<Book[]>([]);
   const [sofaItems, setSofaItems] = useState<SofaItem[]>([]);
+  const [libraryLocations, setLibraryLocations] = useState<LibraryLocation[]>([]);
+  const [storageLocations, setStorageLocations] = useState<StorageLocation[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -73,6 +75,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         caseTypesRes,
         booksRes,
         sofaItemsRes,
+        libraryLocationsRes,
+        storageLocationsRes,
+        tasksRes,
+        expensesRes,
       ] = await Promise.all([
         db.cases.getAll(),
         db.counsel.getAll(),
@@ -82,6 +88,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         db.caseTypes.getAll(),
         db.books.getAll(),
         db.sofaItems.getAll(),
+        db.libraryLocations.getAll(),
+        db.storageLocations.getAll(),
+        db.tasks.getAll(),
+        db.expenses.getAll(),
       ]);
 
       if (casesRes.data) setCases(toCamelCase(casesRes.data));
@@ -93,6 +103,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (caseTypesRes.data && caseTypesRes.data.length > 0) setCaseTypes(toCamelCase(caseTypesRes.data));
       if (booksRes.data) setBooks(toCamelCase(booksRes.data));
       if (sofaItemsRes.data) setSofaItems(toCamelCase(sofaItemsRes.data));
+      if (libraryLocationsRes.data) setLibraryLocations(toCamelCase(libraryLocationsRes.data));
+      if (storageLocationsRes.data) setStorageLocations(toCamelCase(storageLocationsRes.data));
+      if (tasksRes.data) setTasks(toCamelCase(tasksRes.data));
+      if (expensesRes.data) setExpenses(toCamelCase(expensesRes.data));
+      
+      console.log('✅ All data fetched from database');
     } catch (error) {
       console.error('Error fetching data:', error);
       // Keep the default courts and caseTypes on error
@@ -305,6 +321,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setTasks([]);
       setAttendance([]);
       setExpenses([]);
+      setLibraryLocations([]);
+      setStorageLocations([]);
     }
   }, [user]);
 
@@ -638,6 +656,104 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSofaItems((prev) => prev.filter((item) => item.id !== id));
   };
 
+  // Library Location Management
+  const addLibraryLocation = async (name: string): Promise<{ success: boolean; error?: string }> => {
+    if (!name || name.trim().length === 0) {
+      return { success: false, error: 'Library location name cannot be empty' };
+    }
+
+    // Create local location immediately for instant feedback
+    const tempLocation = {
+      id: `lib-loc-${Date.now()}`,
+      name: name.trim(),
+      createdBy: user?.id || '',
+      createdAt: new Date(),
+    };
+    setLibraryLocations((prev) => [...prev, tempLocation]);
+
+    // Try to save to database in background
+    try {
+      const { data, error } = await db.libraryLocations.create(name.trim(), user?.id || '');
+      if (error) {
+        console.warn('Database error (keeping local location):', error);
+        return { success: true }; // Still return success since local state is updated
+      }
+      if (data) {
+        // Replace temp location with database version
+        setLibraryLocations((prev) => prev.map(loc => 
+          loc.id === tempLocation.id ? toCamelCase(data) : loc
+        ));
+      }
+    } catch (err) {
+      console.warn('Database unavailable (keeping local location):', err);
+    }
+    return { success: true };
+  };
+
+  const deleteLibraryLocation = async (id: string) => {
+    // Delete from local state immediately
+    setLibraryLocations((prev) => prev.filter((loc) => loc.id !== id));
+    
+    // Try to delete from database in background
+    try {
+      const { error } = await db.libraryLocations.delete(id);
+      if (error) {
+        console.warn('Database error (location already removed from UI):', error);
+      }
+    } catch (err) {
+      console.warn('Database unavailable (location already removed from UI):', err);
+    }
+  };
+
+  // Storage Location Management
+  const addStorageLocation = async (name: string): Promise<{ success: boolean; error?: string }> => {
+    if (!name || name.trim().length === 0) {
+      return { success: false, error: 'Storage location name cannot be empty' };
+    }
+
+    // Create local location immediately for instant feedback
+    const tempLocation = {
+      id: `stor-loc-${Date.now()}`,
+      name: name.trim(),
+      createdBy: user?.id || '',
+      createdAt: new Date(),
+    };
+    setStorageLocations((prev) => [...prev, tempLocation]);
+
+    // Try to save to database in background
+    try {
+      const { data, error } = await db.storageLocations.create(name.trim(), user?.id || '');
+      if (error) {
+        console.warn('Database error (keeping local location):', error);
+        return { success: true }; // Still return success since local state is updated
+      }
+      if (data) {
+        // Replace temp location with database version
+        setStorageLocations((prev) => prev.map(loc => 
+          loc.id === tempLocation.id ? toCamelCase(data) : loc
+        ));
+      }
+    } catch (err) {
+      console.warn('Database unavailable (keeping local location):', err);
+    }
+    return { success: true };
+  };
+
+  const deleteStorageLocation = async (id: string) => {
+    // Delete from local state immediately
+    setStorageLocations((prev) => prev.filter((loc) => loc.id !== id));
+    
+    // Try to delete from database in background
+    try {
+      const { error } = await db.storageLocations.delete(id);
+      if (error) {
+        console.warn('Database error (location already removed from UI):', error);
+      }
+    } catch (err) {
+      console.warn('Database unavailable (location already removed from UI):', err);
+    }
+  };
+
   const getDisposedCases = useCallback((): Case[] => {
     return cases.filter((c) => c.status === 'closed');
   }, [cases]);
@@ -646,36 +762,82 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
     console.log('🔵 addTask called with data:', taskData);
     
-    const newTask: Task = {
+    // Create temp task for immediate UI feedback
+    const tempTask: Task = {
       ...taskData,
       id: `task-${Date.now()}`,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
     
-    console.log('🟢 Task added:', newTask);
-    setTasks((prev) => [newTask, ...prev]);
+    setTasks((prev) => [tempTask, ...prev]);
+    console.log('🟢 Task added locally:', tempTask);
+    
+    // Try to save to database
+    try {
+      const snakeCaseData = toSnakeCase(taskData);
+      const { data, error } = await db.tasks.create(snakeCaseData);
+      if (error) {
+        console.warn('🟠 Database error (keeping local task):', error);
+        return;
+      }
+      if (data) {
+        console.log('🟢 Task saved to database');
+        setTasks((prev) => prev.map(t => t.id === tempTask.id ? toCamelCase(data) : t));
+      }
+    } catch (err) {
+      console.warn('🟠 Database unavailable (keeping local task):', err);
+    }
   };
 
   const updateTask = async (id: string, taskData: Partial<Task>) => {
     console.log('🔵 updateTask called for ID:', id);
     
+    // Update locally first
     setTasks((prev) => prev.map((t) => {
       if (t.id === id) {
         return { ...t, ...taskData, updatedAt: new Date() };
       }
       return t;
     }));
+    
+    // Try to update in database
+    try {
+      const snakeCaseData = toSnakeCase(taskData);
+      const { error } = await db.tasks.update(id, snakeCaseData);
+      if (error) {
+        console.warn('🟠 Database error (keeping local update):', error);
+      } else {
+        console.log('🟢 Task updated in database');
+      }
+    } catch (err) {
+      console.warn('🟠 Database unavailable (keeping local update):', err);
+    }
   };
 
   const deleteTask = async (id: string) => {
     console.log('🔵 deleteTask called for ID:', id);
+    
+    // Delete locally first
     setTasks((prev) => prev.filter((t) => t.id !== id));
+    
+    // Try to delete from database
+    try {
+      const { error } = await db.tasks.delete(id);
+      if (error) {
+        console.warn('🟠 Database error (task already removed from UI):', error);
+      } else {
+        console.log('🟢 Task deleted from database');
+      }
+    } catch (err) {
+      console.warn('🟠 Database unavailable (task already removed from UI):', err);
+    }
   };
 
   const completeTask = async (id: string) => {
     console.log('🔵 completeTask called for ID:', id);
     
+    // Update locally first
     setTasks((prev) => prev.map((t) => {
       if (t.id === id) {
         return { 
@@ -687,6 +849,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return t;
     }));
+    
+    // Try to update in database
+    try {
+      const { error } = await db.tasks.complete(id);
+      if (error) {
+        console.warn('🟠 Database error (keeping local update):', error);
+      } else {
+        console.log('🟢 Task completed in database');
+      }
+    } catch (err) {
+      console.warn('🟠 Database unavailable (keeping local update):', err);
+    }
   };
 
   const getPendingTasksCount = (userId?: string): number => {
@@ -793,6 +967,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     caseTypes,
     books,
     sofaItems,
+    libraryLocations,
+    storageLocations,
     tasks,
     attendance,
     expenses,
@@ -815,6 +991,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     addSofaItem,
     removeSofaItem,
     getDisposedCases,
+    addLibraryLocation,
+    deleteLibraryLocation,
+    addStorageLocation,
+    deleteStorageLocation,
     addTask,
     updateTask,
     deleteTask,

@@ -21,28 +21,88 @@ import Calendar from '../components/Calendar';
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { cases } = useData();
+  const { cases, tasks } = useData();
   const { theme } = useTheme();
 
-  // Calculate statistics
+  // Calculate pending tasks count - only pending status tasks
+  const pendingTasksCount = useMemo(() => {
+    return tasks.filter((t) => t.status === 'pending').length;
+  }, [tasks]);
+
+  // Calculate statistics dynamically from actual case data
   const stats = useMemo(() => {
     const myCases = cases.length;
-    const pendingTasks = cases.filter((c) => c.status === 'pending').length;
     const irFavor = cases.filter((c) => c.interimRelief === 'favor').length;
     const irAgainst = cases.filter((c) => c.interimRelief === 'against').length;
     const nonCirculated = cases.filter((c) => c.circulationStatus === 'non-circulated').length;
     const circulated = cases.filter((c) => c.circulationStatus === 'circulated').length;
 
-    return { myCases, pendingTasks, irFavor, irAgainst, nonCirculated, circulated };
-  }, [cases]);
+    console.log('📊 Dashboard Stats Updated:', { myCases, pendingTasks: pendingTasksCount, irFavor, irAgainst, nonCirculated, circulated });
+    return { myCases, irFavor, irAgainst, nonCirculated, circulated };
+  }, [cases, pendingTasksCount]);
 
+  // Dynamic stat cards - each card shows real-time count and navigates to filtered view
   const statCards = [
-    { title: 'My Cases', count: stats.myCases, gradient: 'from-cyber-blue to-neon-blue', icon: Briefcase, glow: 'shadow-cyber' },
-    { title: 'Pending Tasks', count: stats.pendingTasks, gradient: 'from-cyber-pink to-cyber-purple', icon: Clock, glow: 'shadow-cyber-pink' },
-    { title: 'IR Favor', count: stats.irFavor, gradient: 'from-cyber-green to-emerald-500', icon: ThumbsUp, glow: 'shadow-neon-sm' },
-    { title: 'IR Against', count: stats.irAgainst, gradient: 'from-neon-pink to-cyber-pink', icon: ThumbsDown, glow: 'shadow-cyber-pink' },
-    { title: 'Non Circulated', count: stats.nonCirculated, gradient: 'from-cyber-yellow to-cyber-orange', icon: FileText, glow: 'shadow-court' },
-    { title: 'Circulated', count: stats.circulated, gradient: 'from-cyber-blue to-cyber-pink', icon: CheckCircle, glow: 'shadow-justice' },
+    { 
+      title: 'My Cases', 
+      count: stats.myCases, 
+      gradient: 'from-cyber-blue to-neon-blue', 
+      icon: Briefcase, 
+      glow: 'shadow-cyber', 
+      path: '/cases', 
+      description: 'View all your cases',
+      filterType: 'all'
+    },
+    { 
+      title: 'Pending Tasks', 
+      count: pendingTasksCount, 
+      gradient: 'from-cyber-pink to-cyber-purple', 
+      icon: Clock, 
+      glow: 'shadow-cyber-pink', 
+      path: '/tasks?filter=pending', 
+      description: 'View pending tasks',
+      filterType: 'pending'
+    },
+    { 
+      title: 'IR Favor', 
+      count: stats.irFavor, 
+      gradient: 'from-cyber-green to-emerald-500', 
+      icon: ThumbsUp, 
+      glow: 'shadow-neon-sm', 
+      path: '/cases?filter=ir-favor', 
+      description: 'Cases with IR in favor',
+      filterType: 'ir-favor'
+    },
+    { 
+      title: 'IR Against', 
+      count: stats.irAgainst, 
+      gradient: 'from-neon-pink to-cyber-pink', 
+      icon: ThumbsDown, 
+      glow: 'shadow-cyber-pink', 
+      path: '/cases?filter=ir-against', 
+      description: 'Cases with IR against',
+      filterType: 'ir-against'
+    },
+    { 
+      title: 'Non Circulated', 
+      count: stats.nonCirculated, 
+      gradient: 'from-cyber-yellow to-cyber-orange', 
+      icon: FileText, 
+      glow: 'shadow-court', 
+      path: '/cases?filter=non-circulated', 
+      description: 'Non-circulated cases',
+      filterType: 'non-circulated'
+    },
+    { 
+      title: 'Circulated', 
+      count: stats.circulated, 
+      gradient: 'from-cyber-blue to-cyber-pink', 
+      icon: CheckCircle, 
+      glow: 'shadow-justice', 
+      path: '/cases?filter=circulated', 
+      description: 'Circulated cases',
+      filterType: 'circulated'
+    },
   ];
 
   const cardBg = theme === 'light' ? 'bg-white/95 backdrop-blur-2xl border-gray-200 shadow-md' : 'glass-dark border-cyber-blue/20';
@@ -88,7 +148,7 @@ const DashboardPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1, duration: 0.5 }}
               whileHover={{ scale: 1.02, y: -4 }}
-              onClick={() => navigate('/cases')}
+              onClick={() => navigate(stat.path)}
               className={`relative overflow-hidden p-4 md:p-6 rounded-xl md:rounded-2xl shadow-xl cursor-pointer group border ${cardClass}`}
             >
               {/* Background Pattern - only show in dark mode */}
@@ -103,9 +163,9 @@ const DashboardPage: React.FC = () => {
                 <div className="flex-1 min-w-0">
                   <p className={`text-xs md:text-sm font-cyber font-medium uppercase tracking-wider ${subtextColorClass} truncate`}>{stat.title}</p>
                   <p className={`text-2xl sm:text-3xl md:text-5xl font-bold font-cyber mt-1 md:mt-2 ${countColorClass} ${theme === 'dark' ? 'text-glow' : ''}`}>{stat.count}</p>
-                  <div className={`hidden sm:flex items-center gap-1 mt-2 text-sm font-court ${subtextColorClass}`}>
+                  <div className={`hidden sm:flex items-center gap-1 mt-2 text-sm font-court ${subtextColorClass} group-hover:translate-x-1 transition-transform`}>
                     <TrendingUp size={14} />
-                    <span>View details</span>
+                    <span>Click to view →</span>
                   </div>
                 </div>
                 <div className={`p-2 md:p-3 rounded-xl group-hover:scale-110 transition-transform ${iconBgClass}`}>
@@ -151,10 +211,26 @@ const DashboardPage: React.FC = () => {
                   <tr 
                     key={idx} 
                     onClick={() => navigate(`/cases?filter=${row.filter}`)}
-                    className={`${theme === 'light' ? 'hover:bg-purple-50/80' : 'hover:bg-white/5'} transition-colors cursor-pointer`}
+                    className={`${theme === 'light' ? 'hover:bg-purple-50/80' : 'hover:bg-white/5'} transition-colors cursor-pointer group`}
                   >
-                    <td className={`py-3 px-4 uppercase text-sm font-semibold tracking-wide ${theme === 'light' ? 'text-gray-700' : 'text-cyber-blue/60'}`}>{row.label}</td>
-                    <td className={`py-3 px-4 text-right font-bold text-lg ${theme === 'light' ? 'text-gray-900' : 'text-cyber-blue'}`}>{row.value}</td>
+                    <td className={`py-3 px-4 uppercase text-sm font-semibold tracking-wide ${theme === 'light' ? 'text-gray-700' : 'text-cyber-blue/60'}`}>
+                      <span className="flex items-center gap-2">
+                        {row.label}
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-purple-500">→</span>
+                      </span>
+                    </td>
+                    <td className={`py-3 px-4 text-right font-bold text-lg ${theme === 'light' ? 'text-gray-900' : 'text-cyber-blue'}`}>
+                      {row.value > 0 ? (
+                        <span className="inline-flex items-center gap-2">
+                          {row.value}
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${row.value > 0 ? 'bg-green-500/20 text-green-500' : ''}`}>
+                            {row.value > 0 && 'active'}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">{row.value}</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
                 <tr 

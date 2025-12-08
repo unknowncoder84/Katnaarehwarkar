@@ -180,9 +180,9 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              {/* Library Management Routes */}
+              {/* Library and Storage Routes */}
               <Route
-                path="/library/books"
+                path="/library"
                 element={
                   <ProtectedRoute>
                     <LibraryPage />
@@ -190,7 +190,7 @@ function App() {
                 }
               />
               <Route
-                path="/library/storage"
+                path="/storage"
                 element={
                   <ProtectedRoute>
                     <StoragePage />

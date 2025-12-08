@@ -80,6 +80,20 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         });
       });
     
+    // Recently assigned tasks (last 24 hours) - for task assignment notifications
+    tasks
+      .filter(t => new Date(t.createdAt) > oneDayAgo && t.assignedTo === user?.id)
+      .forEach(t => {
+        notifs.push({
+          id: `assigned-${t.id}`,
+          type: 'task',
+          title: '🔔 New Task Assigned to You',
+          description: `${t.title} by ${t.assignedByName || 'Admin'} - Due: ${new Date(t.deadline).toLocaleDateString()}`,
+          time: new Date(t.createdAt),
+          icon: '✅'
+        });
+      });
+    
     // Upcoming appointments (next 3 days)
     appointments
       .filter(a => new Date(a.date) >= now && new Date(a.date) <= threeDaysFromNow)

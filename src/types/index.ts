@@ -130,11 +130,26 @@ export interface CaseType {
   createdAt: Date;
 }
 
+// Library and Storage Location Types
+export interface LibraryLocation {
+  id: string;
+  name: string;
+  createdBy: string;
+  createdAt: Date;
+}
+
+export interface StorageLocation {
+  id: string;
+  name: string;
+  createdBy: string;
+  createdAt: Date;
+}
+
 // Library Management Types
 export interface Book {
   id: string;
   name: string;
-  location: 'L1';
+  location: string; // Now references LibraryLocation name
   addedAt: Date;
   addedBy: string;
 }
@@ -218,6 +233,8 @@ export interface DataContextType {
   caseTypes: CaseType[];
   books: Book[];
   sofaItems: SofaItem[];
+  libraryLocations: LibraryLocation[];
+  storageLocations: StorageLocation[];
   tasks: Task[];
   attendance: Attendance[];
   expenses: Expense[];
@@ -241,6 +258,11 @@ export interface DataContextType {
   addSofaItem: (caseId: string, compartment: 'C1' | 'C2') => { success: boolean; error?: string } | Promise<{ success: boolean; error?: string }>;
   removeSofaItem: (id: string) => void | Promise<void>;
   getDisposedCases: () => Case[];
+  // Library and Storage Location Management
+  addLibraryLocation: (name: string) => Promise<{ success: boolean; error?: string }>;
+  deleteLibraryLocation: (id: string) => Promise<void>;
+  addStorageLocation: (name: string) => Promise<{ success: boolean; error?: string }>;
+  deleteStorageLocation: (id: string) => Promise<void>;
   // Task Management
   addTask: (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void | Promise<void>;
   updateTask: (id: string, taskData: Partial<Task>) => void | Promise<void>;
