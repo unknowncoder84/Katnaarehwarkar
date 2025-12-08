@@ -427,13 +427,21 @@ const CaseDetailsPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div>
                 <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>FILE TITLE</label>
-                <input
-                  type="text"
-                  placeholder="Ex - Court Order"
+                <select
                   value={newFile.title}
                   onChange={(e) => setNewFile({ ...newFile, title: e.target.value })}
                   className={`w-full px-4 py-3 rounded-lg border ${inputBgClass}`}
-                />
+                >
+                  <option value="">Select Document Type</option>
+                  <option value="Case Proceedings">Case Proceedings</option>
+                  <option value="Praecipe">Praecipe</option>
+                  <option value="Acknowledgments">Acknowledgments</option>
+                  <option value="Service">Service</option>
+                  <option value="Intimation Notice">Intimation Notice</option>
+                  <option value="Communications">Communications</option>
+                  <option value="Court Orders">Court Orders</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
               <div>
                 <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>FILE</label>
