@@ -95,10 +95,15 @@ const LoginPage: React.FC = () => {
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="Enter your username"
-                      className="w-full pl-12 pr-4 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:bg-white/15 transition-all font-medium"
+                      className="w-full pl-12 pr-4 py-3.5 bg-[#2a2a3e] border border-purple-500/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:bg-[#323248] transition-all font-semibold text-base"
                       required
                       autoComplete="username"
-                      style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}
+                      style={{ 
+                        color: '#ffffff !important', 
+                        WebkitTextFillColor: '#ffffff',
+                        opacity: 1,
+                        textShadow: '0 0 1px rgba(255,255,255,0.5)'
+                      }}
                     />
                   </div>
                 </div>
@@ -119,10 +124,15 @@ const LoginPage: React.FC = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
-                      className="w-full pl-12 pr-4 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:bg-white/15 transition-all font-medium"
+                      className="w-full pl-12 pr-4 py-3.5 bg-[#2a2a3e] border border-purple-500/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:bg-[#323248] transition-all font-semibold text-base"
                       required
                       autoComplete="current-password"
-                      style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}
+                      style={{ 
+                        color: '#ffffff !important', 
+                        WebkitTextFillColor: '#ffffff',
+                        opacity: 1,
+                        textShadow: '0 0 1px rgba(255,255,255,0.5)'
+                      }}
                     />
                   </div>
                 </div>
