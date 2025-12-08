@@ -365,6 +365,20 @@ const CaseDetailsPage: React.FC = () => {
                 </div>
                 <p><span className="font-medium">On Behalf Of -</span> {caseData.onBehalfOf || 'PETITIONER'}</p>
                 <div className="flex items-center gap-2">
+                  <span className="font-medium">Case Stage -</span>
+                  <select className={`px-3 py-1 rounded border ${inputBgClass} flex-1`} defaultValue="">
+                    <option value="">Select Stage</option>
+                    <option value="Filing">Filing</option>
+                    <option value="Pleadings">Pleadings</option>
+                    <option value="Evidence">Evidence</option>
+                    <option value="Arguments">Arguments</option>
+                    <option value="Reserved for Judgment">Reserved for Judgment</option>
+                    <option value="Judgment">Judgment</option>
+                    <option value="Appeal">Appeal</option>
+                    <option value="Execution">Execution</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
                   <span className="font-medium">Case Type -</span>
                   <select className={`px-3 py-1 rounded border ${inputBgClass}`} defaultValue={caseData.caseType}>
                     <option value="">Select Case Type</option>
