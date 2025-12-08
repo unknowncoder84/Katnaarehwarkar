@@ -53,7 +53,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
   const officeCasesSubmenu = [
     { icon: Plus, label: 'Create Case', path: '/cases/create' },
     { icon: List, label: 'List Cases', path: '/cases' },
-    { icon: UserCheck, label: 'List Clients', path: '/clients' },
     { icon: Scale, label: 'Counsel Cases', path: '/counsel-cases' },
   ];
 
@@ -66,7 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
   const textClass = theme === 'light' ? 'text-gray-800' : 'text-gray-300';
   const secondaryTextClass = theme === 'light' ? 'text-gray-500' : 'text-gray-500';
   const hoverClass = theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5';
-  const activeBgClass = 'bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 text-white shadow-lg shadow-purple-500/30';
+  const activeBgClass = 'bg-gradient-to-r from-purple-500 via-orange-500 to-purple-500 text-white shadow-lg shadow-orange-500/30';
 
   return (
     <>
@@ -87,8 +86,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur-lg opacity-50" />
-                <div className="relative w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-glow">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-orange-500 rounded-2xl blur-lg opacity-50" />
+                <div className="relative w-12 h-12 bg-gradient-to-r from-purple-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-glow">
                   <Scale className="text-white" size={24} />
                 </div>
               </div>

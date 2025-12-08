@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, CheckCircle, Trash2, Edit, RotateCcw, User } from 'lucide-react';
+import { Plus, CheckCircle, Trash2, Edit, RotateCcw, User, Calendar, List, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
 import { useData } from '../contexts/DataContext';
@@ -11,6 +11,7 @@ import { Task, User as UserType } from '../types';
 
 type TaskFilter = 'all' | 'my-tasks' | 'pending' | 'completed';
 type TaskTypeFilter = 'all' | 'case' | 'custom';
+type ViewMode = 'list' | 'calendar';
 
 const TasksPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -23,6 +24,8 @@ const TasksPage: React.FC = () => {
   const [users, setUsers] = useState<UserType[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [calendarDate, setCalendarDate] = useState(new Date());
 
   // Fetch all users for the filter dropdown
   useEffect(() => {
@@ -127,15 +130,46 @@ const TasksPage: React.FC = () => {
                'Showing all tasks'}
             </p>
           </div>
-          {isAdmin && (
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="bg-gradient-cyber text-white px-6 py-3 rounded-xl font-semibold font-cyber hover:shadow-cyber transition-all duration-300 border border-cyber-blue/30 flex items-center gap-2"
-            >
-              <Plus size={20} />
-              Create Task
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {/* View Toggle */}
+            <div className="flex rounded-xl overflow-hidden border border-orange-500/30">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-4 py-2 flex items-center gap-2 transition-all ${
+                  viewMode === 'list'
+                    ? 'bg-gradient-to-r from-purple-500 to-orange-500 text-white'
+                    : theme === 'light'
+                      ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                }`}
+              >
+                <List size={18} />
+                List
+              </button>
+              <button
+                onClick={() => setViewMode('calendar')}
+                className={`px-4 py-2 flex items-center gap-2 transition-all ${
+                  viewMode === 'calendar'
+                    ? 'bg-gradient-to-r from-purple-500 to-orange-500 text-white'
+                    : theme === 'light'
+                      ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                }`}
+              >
+                <Calendar size={18} />
+                Calendar
+              </button>
+            </div>
+            {isAdmin && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-gradient-to-r from-purple-500 to-orange-500 text-white px-6 py-3 rounded-xl font-semibold font-cyber hover:shadow-lg hover:shadow-orange-500/30 transition-all duration-300 border border-orange-500/30 flex items-center gap-2"
+              >
+                <Plus size={20} />
+                Create Task
+              </button>
+            )}
+          </div>
         </div>
       </motion.div>
 
@@ -242,7 +276,22 @@ const TasksPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Calendar View */}
+      {viewMode === 'calendar' && (
+        <TaskCalendarView
+          tasks={filteredTasks}
+          calendarDate={calendarDate}
+          setCalendarDate={setCalendarDate}
+          theme={theme}
+          cardBg={cardBg}
+          textPrimary={textPrimary}
+          textSecondary={textSecondary}
+          onTaskClick={(task) => setEditingTask(task)}
+        />
+      )}
+
       {/* Task List */}
+      {viewMode === 'list' && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -340,6 +389,7 @@ const TasksPage: React.FC = () => {
           ))
         )}
       </motion.div>
+      )}
 
       {/* Create Task Modal */}
       {showCreateModal && <CreateTaskModal onClose={() => setShowCreateModal(false)} />}
@@ -352,6 +402,185 @@ const TasksPage: React.FC = () => {
         />
       )}
     </MainLayout>
+  );
+};
+
+// Task Calendar View Component
+interface TaskCalendarViewProps {
+  tasks: Task[];
+  calendarDate: Date;
+  setCalendarDate: (date: Date) => void;
+  theme: string;
+  cardBg: string;
+  textPrimary: string;
+  textSecondary: string;
+  onTaskClick: (task: Task) => void;
+}
+
+const TaskCalendarView: React.FC<TaskCalendarViewProps> = ({
+  tasks,
+  calendarDate,
+  setCalendarDate,
+  theme,
+  cardBg,
+  textPrimary,
+  textSecondary,
+  onTaskClick,
+}) => {
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDay = firstDay.getDay();
+    return { daysInMonth, startingDay };
+  };
+
+  const { daysInMonth, startingDay } = getDaysInMonth(calendarDate);
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  const getTasksForDay = (day: number) => {
+    const targetDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day);
+    return tasks.filter((task) => {
+      const taskDeadline = new Date(task.deadline);
+      return (
+        taskDeadline.getDate() === targetDate.getDate() &&
+        taskDeadline.getMonth() === targetDate.getMonth() &&
+        taskDeadline.getFullYear() === targetDate.getFullYear()
+      );
+    });
+  };
+
+  const prevMonth = () => {
+    setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1));
+  };
+
+  const nextMonth = () => {
+    setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1));
+  };
+
+  const today = new Date();
+  const isToday = (day: number) => {
+    return (
+      day === today.getDate() &&
+      calendarDate.getMonth() === today.getMonth() &&
+      calendarDate.getFullYear() === today.getFullYear()
+    );
+  };
+
+  const isPastDeadline = (day: number) => {
+    const targetDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day);
+    return targetDate < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`${cardBg} p-6 rounded-2xl border mb-6`}
+    >
+      {/* Calendar Header */}
+      <div className="flex items-center justify-between mb-6">
+        <button
+          onClick={prevMonth}
+          className={`p-2 rounded-lg transition-all ${
+            theme === 'light' ? 'hover:bg-gray-100' : 'hover:bg-white/10'
+          }`}
+        >
+          <ChevronLeft size={24} className={textPrimary} />
+        </button>
+        <h2 className={`text-xl font-bold ${textPrimary}`}>
+          {monthNames[calendarDate.getMonth()]} {calendarDate.getFullYear()}
+        </h2>
+        <button
+          onClick={nextMonth}
+          className={`p-2 rounded-lg transition-all ${
+            theme === 'light' ? 'hover:bg-gray-100' : 'hover:bg-white/10'
+          }`}
+        >
+          <ChevronRight size={24} className={textPrimary} />
+        </button>
+      </div>
+
+      {/* Day Names */}
+      <div className="grid grid-cols-7 gap-2 mb-2">
+        {dayNames.map((day) => (
+          <div key={day} className={`text-center text-sm font-semibold py-2 ${textSecondary}`}>
+            {day}
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar Grid */}
+      <div className="grid grid-cols-7 gap-2">
+        {/* Empty cells for days before the first day of month */}
+        {Array.from({ length: startingDay }).map((_, index) => (
+          <div key={`empty-${index}`} className="min-h-[100px]" />
+        ))}
+
+        {/* Days of the month */}
+        {Array.from({ length: daysInMonth }).map((_, index) => {
+          const day = index + 1;
+          const dayTasks = getTasksForDay(day);
+          const isPast = isPastDeadline(day);
+
+          return (
+            <div
+              key={day}
+              className={`min-h-[100px] p-2 rounded-xl border transition-all ${
+                isToday(day)
+                  ? 'border-orange-500 bg-orange-500/10'
+                  : theme === 'light'
+                    ? 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                    : 'border-white/10 hover:border-purple-500/50 hover:bg-purple-500/10'
+              }`}
+            >
+              <div className={`text-sm font-semibold mb-1 ${
+                isToday(day) ? 'text-orange-500' : textPrimary
+              }`}>
+                {day}
+              </div>
+              <div className="space-y-1 overflow-y-auto max-h-[70px]">
+                {dayTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    onClick={() => onTaskClick(task)}
+                    className={`text-xs p-1.5 rounded cursor-pointer truncate transition-all ${
+                      task.status === 'completed'
+                        ? 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30'
+                        : isPast
+                          ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
+                          : 'bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30'
+                    }`}
+                    title={`${task.title} - ${task.assignedToName}`}
+                  >
+                    {task.title}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-6 mt-4 pt-4 border-t border-white/10">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded bg-orange-500/50 border border-orange-500" />
+          <span className={`text-sm ${textSecondary}`}>Pending</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded bg-green-500/50 border border-green-500" />
+          <span className={`text-sm ${textSecondary}`}>Completed</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded bg-red-500/50 border border-red-500" />
+          <span className={`text-sm ${textSecondary}`}>Overdue</span>
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
