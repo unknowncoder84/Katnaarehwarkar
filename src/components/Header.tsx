@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, Moon, Sun, Bell, Search, Scale, X } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
@@ -16,6 +16,130 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const { cases, counsel, appointments, tasks, expenses, books, sofaItems } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [showResults, setShowResults] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notificationRef = useRef<HTMLDivElement>(null);
+  
+  // Close notifications when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+    
+    if (showNotifications) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotifications]);
+
+  // Generate notifications from recent activity
+  const notifications = useMemo(() => {
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+    
+    const notifs: Array<{
+      id: string;
+      type: 'case' | 'task' | 'appointment' | 'expense' | 'book' | 'sofa';
+      title: string;
+      description: string;
+      time: Date;
+      icon: string;
+    }> = [];
+    
+    // Recent cases (last 3 days)
+    cases
+      .filter(c => new Date(c.createdAt) > threeDaysAgo)
+      .forEach(c => {
+        notifs.push({
+          id: c.id,
+          type: 'case',
+          title: 'New Case Added',
+          description: `${c.clientName} - ${c.fileNo}`,
+          time: new Date(c.createdAt),
+          icon: '⚖️'
+        });
+      });
+    
+    // Upcoming tasks (next 3 days)
+    const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+    tasks
+      .filter(t => t.status === 'pending' && new Date(t.deadline) <= threeDaysFromNow)
+      .forEach(t => {
+        notifs.push({
+          id: t.id,
+          type: 'task',
+          title: 'Task Due Soon',
+          description: `${t.title} - Due: ${new Date(t.deadline).toLocaleDateString()}`,
+          time: new Date(t.deadline),
+          icon: '📋'
+        });
+      });
+    
+    // Upcoming appointments (next 3 days)
+    appointments
+      .filter(a => new Date(a.date) >= now && new Date(a.date) <= threeDaysFromNow)
+      .forEach(a => {
+        notifs.push({
+          id: a.id,
+          type: 'appointment',
+          title: 'Upcoming Appointment',
+          description: `${a.client} - ${new Date(a.date).toLocaleDateString()} at ${a.time}`,
+          time: new Date(a.date),
+          icon: '📅'
+        });
+      });
+    
+    // Recent expenses (last 24 hours)
+    expenses
+      .filter(e => new Date(e.createdAt) > oneDayAgo)
+      .forEach(e => {
+        notifs.push({
+          id: e.id,
+          type: 'expense',
+          title: 'New Expense Added',
+          description: `₹${e.amount.toLocaleString()} - ${e.description}`,
+          time: new Date(e.createdAt),
+          icon: '💰'
+        });
+      });
+    
+    // Recent books (last 3 days)
+    books
+      .filter(b => new Date(b.addedAt) > threeDaysAgo)
+      .forEach(b => {
+        notifs.push({
+          id: b.id,
+          type: 'book',
+          title: 'New Book Added',
+          description: `${b.name} added to library`,
+          time: new Date(b.addedAt),
+          icon: '📚'
+        });
+      });
+    
+    // Recent sofa items (last 3 days)
+    sofaItems
+      .filter(s => new Date(s.addedAt) > threeDaysAgo)
+      .forEach(s => {
+        const caseItem = cases.find(c => c.id === s.caseId);
+        notifs.push({
+          id: s.id,
+          type: 'sofa',
+          title: 'Case Added to Storage',
+          description: `${caseItem?.clientName || 'Case'} - Compartment ${s.compartment}`,
+          time: new Date(s.addedAt),
+          icon: '🗄️'
+        });
+      });
+    
+    // Sort by time (most recent first)
+    return notifs.sort((a, b) => b.time.getTime() - a.time.getTime()).slice(0, 10);
+  }, [cases, tasks, appointments, expenses, books, sofaItems]);
 
   const searchResults = useMemo(() => {
     if (!searchTerm.trim()) return { 
@@ -313,10 +437,96 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       {/* Right - Actions */}
       <div className="flex items-center gap-3">
         {/* Notifications */}
-        <button className={`relative p-2.5 rounded-xl transition-all duration-300 ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} group`}>
-          <Bell size={20} className={`${textClass} group-hover:text-purple-500 transition-colors`} />
-          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-gradient-cyber rounded-full ring-2 ring-white dark:ring-dark-void animate-cyber-pulse" />
-        </button>
+        <div className="relative" ref={notificationRef}>
+          <button 
+            onClick={() => setShowNotifications(!showNotifications)}
+            className={`relative p-2.5 rounded-xl transition-all duration-300 ${theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-white/5'} group`}
+          >
+            <Bell size={20} className={`${textClass} group-hover:text-purple-500 transition-colors`} />
+            {notifications.length > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-gradient-cyber rounded-full ring-2 ring-white dark:ring-dark-void animate-cyber-pulse" />
+            )}
+          </button>
+          
+          {/* Notifications Dropdown */}
+          {showNotifications && (
+            <div className={`absolute top-full right-0 mt-2 w-80 md:w-96 ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-[#1a1a2e] border-purple-500/30'} border rounded-xl shadow-xl z-50 overflow-hidden max-h-96 overflow-y-auto`}>
+              <div className={`px-4 py-3 border-b ${theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-purple-500/30 bg-white/5'}`}>
+                <h3 className={`font-semibold ${textClass}`}>Notifications</h3>
+                <p className={`text-xs ${secondaryText}`}>{notifications.length} recent updates</p>
+              </div>
+              
+              {notifications.length === 0 ? (
+                <div className="px-4 py-8 text-center">
+                  <Bell size={32} className={`mx-auto mb-2 ${secondaryText}`} />
+                  <p className={`text-sm ${secondaryText}`}>No new notifications</p>
+                  <p className={`text-xs ${secondaryText} mt-1`}>You're all caught up!</p>
+                </div>
+              ) : (
+                <div>
+                  {notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      className={`px-4 py-3 border-b ${theme === 'light' ? 'border-gray-100 hover:bg-purple-50' : 'border-white/5 hover:bg-white/5'} transition-colors cursor-pointer`}
+                      onClick={() => {
+                        setShowNotifications(false);
+                        // Navigate based on type
+                        switch (notif.type) {
+                          case 'case':
+                            navigate(`/cases/${notif.id}`);
+                            break;
+                          case 'task':
+                            navigate('/tasks');
+                            break;
+                          case 'appointment':
+                            navigate('/appointments');
+                            break;
+                          case 'expense':
+                            navigate('/expenses');
+                            break;
+                          case 'book':
+                            navigate('/library/books');
+                            break;
+                          case 'sofa':
+                            navigate('/library/sofa');
+                            break;
+                        }
+                      }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">{notif.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-medium ${textClass}`}>{notif.title}</p>
+                          <p className={`text-xs ${secondaryText} truncate`}>{notif.description}</p>
+                          <p className={`text-xs ${secondaryText} mt-1`}>
+                            {(() => {
+                              const diff = Date.now() - notif.time.getTime();
+                              const hours = Math.floor(diff / (1000 * 60 * 60));
+                              const days = Math.floor(hours / 24);
+                              
+                              if (days > 0) return `${days}d ago`;
+                              if (hours > 0) return `${hours}h ago`;
+                              return 'Just now';
+                            })()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              <div className={`px-4 py-3 text-center border-t ${theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-purple-500/30 bg-white/5'}`}>
+                <button
+                  onClick={() => setShowNotifications(false)}
+                  className={`text-xs font-medium ${theme === 'light' ? 'text-purple-600 hover:text-purple-700' : 'text-purple-400 hover:text-purple-300'} transition-colors`}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Theme Toggle */}
         <button

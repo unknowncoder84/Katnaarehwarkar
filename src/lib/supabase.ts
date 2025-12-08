@@ -404,6 +404,86 @@ export const db = {
   getDashboardStats: async () => {
     const { data, error } = await supabase.rpc('get_dashboard_stats')
     return { data, error }
+  },
+
+  // Notifications
+  notifications: {
+    getAll: async (userId?: string) => {
+      let query = supabase
+        .from('notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      
+      if (userId) {
+        query = query.or(`user_id.eq.${userId},user_id.is.null`);
+      }
+      
+      return await query;
+    },
+
+    getUnread: async (userId?: string) => {
+      let query = supabase
+        .from('notifications')
+        .select('*')
+        .eq('is_read', false)
+        .order('created_at', { ascending: false });
+      
+      if (userId) {
+        query = query.or(`user_id.eq.${userId},user_id.is.null`);
+      }
+      
+      return await query;
+    },
+
+    create: async (notification: {
+      user_id?: string;
+      type: string;
+      title: string;
+      description: string;
+      icon?: string;
+      related_id?: string;
+      created_by?: string;
+      created_by_name?: string;
+    }) => {
+      return await supabase.from('notifications').insert(notification).select().single();
+    },
+
+    createForAll: async (notification: {
+      type: string;
+      title: string;
+      description: string;
+      icon?: string;
+      related_id?: string;
+      created_by?: string;
+      created_by_name?: string;
+    }) => {
+      return await supabase.rpc('create_notification_for_all', {
+        p_type: notification.type,
+        p_title: notification.title,
+        p_description: notification.description,
+        p_icon: notification.icon || '🔔',
+        p_related_id: notification.related_id,
+        p_created_by: notification.created_by,
+        p_created_by_name: notification.created_by_name
+      });
+    },
+
+    markAsRead: async (notificationId: string) => {
+      return await supabase.rpc('mark_notification_read', {
+        p_notification_id: notificationId
+      });
+    },
+
+    markAllAsRead: async (userId: string) => {
+      return await supabase.rpc('mark_all_notifications_read', {
+        p_user_id: userId
+      });
+    },
+
+    delete: async (id: string) => {
+      return await supabase.from('notifications').delete().eq('id', id);
+    }
   }
 }
 
@@ -424,6 +504,16 @@ export const realtime = {
       .channel('appointments-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'appointments' },
+        callback
+      )
+      .subscribe()
+  },
+
+  subscribeToNotifications: (callback: (payload: any) => void) => {
+    return supabase
+      .channel('notifications-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'notifications' },
         callback
       )
       .subscribe()
