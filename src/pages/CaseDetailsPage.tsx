@@ -70,6 +70,7 @@ const CaseDetailsPage: React.FC = () => {
   // Interim Relief state
   const [interimRelief, setInterimRelief] = useState('NA');
   const [interimDate, setInterimDate] = useState('');
+  const [grantedDate, setGrantedDate] = useState('');
   const [isInterimLoading, setIsInterimLoading] = useState(false);
   const [interimNotification, setInterimNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   
@@ -130,6 +131,9 @@ const CaseDetailsPage: React.FC = () => {
       }
       if (caseData.interimDate) {
         setInterimDate(new Date(caseData.interimDate).toISOString().split('T')[0]);
+      }
+      if (caseData.grantedDate) {
+        setGrantedDate(new Date(caseData.grantedDate).toISOString().split('T')[0]);
       }
       
       // Set circulation values
@@ -334,13 +338,18 @@ const CaseDetailsPage: React.FC = () => {
       await updateCase(id, {
         interimRelief: interimRelief,
         interimDate: interimDate ? new Date(interimDate) : undefined,
+        grantedDate: grantedDate ? new Date(grantedDate) : undefined,
       });
       
       // Add to timeline
+      const dateInfo = [];
+      if (interimDate) dateInfo.push(`Date: ${new Date(interimDate).toLocaleDateString()}`);
+      if (grantedDate) dateInfo.push(`Granted: ${new Date(grantedDate).toLocaleDateString()}`);
+      
       setTimeline([{
         id: Date.now().toString(),
         title: `Interim Relief Updated to ${interimRelief}`,
-        description: interimDate ? `Date: ${new Date(interimDate).toLocaleDateString()}` : '',
+        description: dateInfo.join(', '),
         date: new Date()
       }, ...timeline]);
       
@@ -741,7 +750,7 @@ const CaseDetailsPage: React.FC = () => {
                 {interimNotification.message}
               </motion.div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
               <div>
                 <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>INTERIM RELIEF</label>
                 <select
@@ -760,6 +769,15 @@ const CaseDetailsPage: React.FC = () => {
                   type="date"
                   value={interimDate}
                   onChange={(e) => setInterimDate(e.target.value)}
+                  className={`w-full px-4 py-3 rounded-lg border ${inputBgClass}`}
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>GRANTED DATE</label>
+                <input
+                  type="date"
+                  value={grantedDate}
+                  onChange={(e) => setGrantedDate(e.target.value)}
                   className={`w-full px-4 py-3 rounded-lg border ${inputBgClass}`}
                 />
               </div>

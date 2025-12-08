@@ -61,6 +61,7 @@ export interface Case {
   circulationDate?: Date;
   interimRelief: string;
   interimDate?: Date;
+  grantedDate?: Date;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
