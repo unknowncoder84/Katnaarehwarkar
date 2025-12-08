@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Edit, Home, FileText, Shield, RefreshCw, CreditCard, CheckSquare, Clock, Trash2, ExternalLink, Download } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -7,6 +7,8 @@ import RichTextEditor from '../components/RichTextEditor';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import { getAllUsers } from '../lib/userManagement';
+import { User } from '../types';
 
 type TabType = 'basic' | 'files' | 'interim' | 'circulation' | 'payments' | 'tasks' | 'timeline';
 
@@ -53,6 +55,10 @@ const CaseDetailsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('basic');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
+  // Users state
+  const [users, setUsers] = useState<User[]>([]);
+  const [assignedUserId, setAssignedUserId] = useState<string>('');
+  
   // Files state
   const [files, setFiles] = useState<CaseFile[]>([]);
   const [newFile, setNewFile] = useState({ title: '', file: '', url: '' });
@@ -85,6 +91,17 @@ const CaseDetailsPage: React.FC = () => {
     { id: '2', title: 'Reserved for order', description: '', date: new Date('2021-06-24') }
   ]);
   const [newTimelineEvent, setNewTimelineEvent] = useState({ title: '', description: '' });
+
+  // Fetch all users on component mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const result = await getAllUsers();
+      if (result.success && result.users) {
+        setUsers(result.users);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   // Get case data
   const caseData = useMemo(() => {
@@ -321,7 +338,21 @@ const CaseDetailsPage: React.FC = () => {
               <h3 className="text-lg font-bold mb-4 text-orange-600">Basic Details</h3>
               <div className="space-y-3">
                 <p><span className="font-medium">Client -</span> <span className="text-cyan-500">{caseData.clientName} | {caseData.clientMobile}</span></p>
-                <p><span className="font-medium">Assigned To -</span> <span className="text-cyan-500">Not Assigned</span> <ExternalLink size={14} className="inline ml-1" /></p>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">Assigned To -</span>
+                  <select 
+                    value={assignedUserId} 
+                    onChange={(e) => setAssignedUserId(e.target.value)}
+                    className={`px-3 py-1 rounded border ${inputBgClass} flex-1`}
+                  >
+                    <option value="">Not Assigned</option>
+                    {users.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name} ({user.role})
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <p><span className="font-medium">Name of Parties -</span> {caseData.partiesName}</p>
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Case Status -</span>
