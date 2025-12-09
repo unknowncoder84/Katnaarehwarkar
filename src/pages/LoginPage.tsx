@@ -40,8 +40,8 @@ const LoginPage: React.FC = () => {
         {/* Dark Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#0f0f1a]/95 via-[#1a1a2e]/90 to-[#0f0f1a]/95" />
         <div className="absolute inset-0 bg-mesh opacity-40" />
-        <div className="absolute top-1/4 left-1/4 w-64 md:w-96 h-64 md:h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 md:w-96 h-64 md:h-96 bg-pink-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/4 left-1/4 w-64 md:w-96 h-64 md:h-96 bg-orange-500/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-64 md:w-96 h-64 md:h-96 bg-amber-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-cyan-500/10 rounded-full blur-3xl" />
       </div>
 
@@ -54,7 +54,7 @@ const LoginPage: React.FC = () => {
       >
         <div className="relative">
           {/* Gradient Border Effect */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 rounded-3xl blur-lg opacity-50 animate-pulse" />
+          <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 rounded-3xl blur-lg opacity-50 animate-pulse" />
           
           <div className="relative glass-dark p-8 md:p-10 rounded-3xl border border-white/10">
             {/* Logo */}
@@ -64,7 +64,7 @@ const LoginPage: React.FC = () => {
               transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
               className="flex justify-center mb-6"
             >
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-glow">
+              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center shadow-glow">
                 <Sparkles className="text-white" size={32} />
               </div>
             </motion.div>
@@ -75,7 +75,7 @@ const LoginPage: React.FC = () => {
               transition={{ delay: 0.3 }}
               className="text-center mb-8"
             >
-              <h1 className="text-3xl font-bold text-white mb-2">Katneshwarkar Office</h1>
+              <h1 className="text-3xl font-bold text-white mb-2">Katneshwarkar's Office</h1>
               <p className="text-gray-400">Legal Case Management Dashboard</p>
             </motion.div>
 
@@ -87,15 +87,15 @@ const LoginPage: React.FC = () => {
               >
                 <label className="block text-sm font-medium text-gray-300 mb-2">Username</label>
                 <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity" />
                   <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-400" size={20} />
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-orange-400" size={20} />
                     <input
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="Enter your username"
-                      className="w-full pl-12 pr-4 py-3.5 bg-[#2a2a3e] border border-purple-500/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:bg-[#323248] transition-all font-semibold text-base"
+                      className="w-full pl-12 pr-4 py-3.5 bg-[#2a2a3e] border border-orange-500/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:bg-[#323248] transition-all font-semibold text-base"
                       required
                       autoComplete="username"
                       style={{ 
@@ -116,15 +116,15 @@ const LoginPage: React.FC = () => {
               >
                 <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
                 <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity" />
                   <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-400" size={20} />
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-orange-400" size={20} />
                     <input
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
-                      className="w-full pl-12 pr-4 py-3.5 bg-[#2a2a3e] border border-purple-500/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:bg-[#323248] transition-all font-semibold text-base"
+                      className="w-full pl-12 pr-4 py-3.5 bg-[#2a2a3e] border border-orange-500/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:bg-[#323248] transition-all font-semibold text-base"
                       required
                       autoComplete="current-password"
                       style={{ 
@@ -156,7 +156,7 @@ const LoginPage: React.FC = () => {
                 whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 bg-size-200 bg-pos-0 hover:bg-pos-100 text-white font-semibold py-4 rounded-xl shadow-glow hover:shadow-[0_15px_50px_rgba(139,92,246,0.5)] transition-all duration-500 disabled:opacity-50 flex items-center justify-center gap-2 group"
+                className="w-full bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 bg-size-200 bg-pos-0 hover:bg-pos-100 text-white font-semibold py-4 rounded-xl shadow-glow hover:shadow-[0_15px_50px_rgba(139,92,246,0.5)] transition-all duration-500 disabled:opacity-50 flex items-center justify-center gap-2 group"
               >
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -173,7 +173,7 @@ const LoginPage: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.7 }}
-              className="mt-8 p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-white/5"
+              className="mt-8 p-4 bg-gradient-to-r from-orange-500/10 to-amber-500/10 rounded-xl border border-white/5"
             >
               <p className="text-gray-300 text-sm text-center font-medium mb-2">Need Access?</p>
               <p className="text-gray-400 text-xs text-center">

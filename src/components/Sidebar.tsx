@@ -92,7 +92,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                 </div>
               </div>
               <div>
-                <h1 className={`text-lg font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Katneshwarkar</h1>
+                <h1 className={`text-lg font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Katneshwarkar's</h1>
                 <p className={`text-xs ${secondaryTextClass}`}>Legal Management</p>
               </div>
             </div>
