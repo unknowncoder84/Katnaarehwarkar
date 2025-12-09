@@ -4,6 +4,7 @@ import { Menu, Moon, Sun, Bell, Search, Scale, X } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
+import { formatIndianDate } from '../utils/dateFormat';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -74,7 +75,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           id: t.id,
           type: 'task',
           title: 'Task Due Soon',
-          description: `${t.title} - Due: ${new Date(t.deadline).toLocaleDateString()}`,
+          description: `${t.title} - Due: ${formatIndianDate(t.deadline)}`,
           time: new Date(t.deadline),
           icon: '📋'
         });
@@ -88,7 +89,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           id: `assigned-${t.id}`,
           type: 'task',
           title: '🔔 New Task Assigned to You',
-          description: `${t.title} by ${t.assignedByName || 'Admin'} - Due: ${new Date(t.deadline).toLocaleDateString()}`,
+          description: `${t.title} by ${t.assignedByName || 'Admin'} - Due: ${formatIndianDate(t.deadline)}`,
           time: new Date(t.createdAt),
           icon: '✅'
         });
@@ -102,7 +103,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           id: a.id,
           type: 'appointment',
           title: 'Upcoming Appointment',
-          description: `${a.client} - ${new Date(a.date).toLocaleDateString()} at ${a.time}`,
+          description: `${a.client} - ${formatIndianDate(a.date)} at ${a.time}`,
           time: new Date(a.date),
           icon: '📅'
         });
@@ -369,7 +370,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                         className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{a.client}</p>
-                        <p className={`text-xs ${secondaryText}`}>{new Date(a.date).toLocaleDateString()} | {a.time}</p>
+                        <p className={`text-xs ${secondaryText}`}>{formatIndianDate(a.date)} | {a.time}</p>
                       </button>
                     ))}
                   </div>
@@ -386,7 +387,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                         className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{t.title}</p>
-                        <p className={`text-xs ${secondaryText}`}>Assigned to: {t.assignedToName} | Due: {new Date(t.deadline).toLocaleDateString()}</p>
+                        <p className={`text-xs ${secondaryText}`}>Assigned to: {t.assignedToName} | Due: {formatIndianDate(t.deadline)}</p>
                       </button>
                     ))}
                   </div>
@@ -420,7 +421,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                         className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{b.name}</p>
-                        <p className={`text-xs ${secondaryText}`}>Added: {new Date(b.addedAt).toLocaleDateString()}</p>
+                        <p className={`text-xs ${secondaryText}`}>Added: {formatIndianDate(b.addedAt)}</p>
                       </button>
                     ))}
                   </div>
@@ -437,7 +438,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                         className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{s.caseName}</p>
-                        <p className={`text-xs ${secondaryText}`}>Compartment: {s.compartment} | Added: {new Date(s.addedAt).toLocaleDateString()}</p>
+                        <p className={`text-xs ${secondaryText}`}>Compartment: {s.compartment} | Added: {formatIndianDate(s.addedAt)}</p>
                       </button>
                     ))}
                   </div>

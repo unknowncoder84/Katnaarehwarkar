@@ -8,6 +8,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { getAllUsers } from '../lib/userManagement';
 import { Task, User as UserType } from '../types';
+import { formatIndianDate } from '../utils/dateFormat';
 
 type TaskFilter = 'all' | 'my-tasks' | 'pending' | 'completed';
 type TaskTypeFilter = 'all' | 'case' | 'custom';
@@ -337,7 +338,7 @@ const TasksPage: React.FC = () => {
                       <span className="font-semibold">Assigned by:</span> {task.assignedByName}
                     </p>
                     <p className={textSecondary}>
-                      <span className="font-semibold">Deadline:</span> {new Date(task.deadline).toLocaleDateString()}
+                      <span className="font-semibold">Deadline:</span> {formatIndianDate(task.deadline)}
                     </p>
                     {task.caseName && (
                       <p className={textSecondary}>

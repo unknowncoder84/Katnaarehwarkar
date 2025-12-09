@@ -9,6 +9,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { getAllUsers } from '../lib/userManagement';
 import { User } from '../types';
+import { formatIndianDate } from '../utils/dateFormat';
 
 type TabType = 'basic' | 'files' | 'interim' | 'circulation' | 'payments' | 'tasks' | 'timeline';
 
@@ -343,8 +344,8 @@ const CaseDetailsPage: React.FC = () => {
       
       // Add to timeline
       const dateInfo = [];
-      if (interimDate) dateInfo.push(`Date: ${new Date(interimDate).toLocaleDateString()}`);
-      if (grantedDate) dateInfo.push(`Granted: ${new Date(grantedDate).toLocaleDateString()}`);
+      if (interimDate) dateInfo.push(`Date: ${formatIndianDate(interimDate)}`);
+      if (grantedDate) dateInfo.push(`Granted: ${formatIndianDate(grantedDate)}`);
       
       setTimeline([{
         id: Date.now().toString(),
@@ -379,7 +380,7 @@ const CaseDetailsPage: React.FC = () => {
       setTimeline([{
         id: Date.now().toString(),
         title: `Circulation Status Updated to ${circulationStatus}`,
-        description: circulationDate ? `Circulation Date: ${new Date(circulationDate).toLocaleDateString()}${nextDate ? `, Next Date: ${new Date(nextDate).toLocaleDateString()}` : ''}` : '',
+        description: circulationDate ? `Circulation Date: ${formatIndianDate(circulationDate)}${nextDate ? `, Next Date: ${formatIndianDate(nextDate)}` : ''}` : '',
         date: new Date()
       }, ...timeline]);
       
@@ -598,7 +599,7 @@ const CaseDetailsPage: React.FC = () => {
                 <p><span className="font-medium">Office File Number -</span> {caseData.fileNo}</p>
                 <p><span className="font-medium">Stamp Number -</span> {caseData.stampNo || '-'}</p>
                 <p><span className="font-medium">Registration Number -</span> {caseData.regNo}</p>
-                <p><span className="font-medium">Created On -</span> {new Date(caseData.createdAt).toLocaleDateString()}</p>
+                <p><span className="font-medium">Created On -</span> {formatIndianDate(caseData.createdAt)}</p>
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Filing Date -</span>
                   <input type="date" className={`px-3 py-1 rounded border ${inputBgClass}`} defaultValue={new Date(caseData.filingDate).toISOString().split('T')[0]} />
@@ -696,7 +697,7 @@ const CaseDetailsPage: React.FC = () => {
                           {file.title}
                         </button>
                       </td>
-                      <td className="py-3 px-4">{new Date(file.dateAttached).toLocaleDateString()}</td>
+                      <td className="py-3 px-4">{formatIndianDate(file.dateAttached)}</td>
                       <td className="py-3 px-4">{file.attachedBy}</td>
                       <td className="py-3 px-4">
                         <div className="flex gap-2">
@@ -998,7 +999,7 @@ const CaseDetailsPage: React.FC = () => {
                   {payments.map((payment, index) => (
                     <tr key={payment.id} className={`border-b ${borderClass} ${theme === 'light' ? 'hover:bg-gray-50' : 'hover:bg-white/5'}`}>
                       <td className="py-3 px-4">{index + 1}</td>
-                      <td className="py-3 px-4">{new Date(payment.date).toLocaleDateString()}</td>
+                      <td className="py-3 px-4">{formatIndianDate(payment.date)}</td>
                       <td className="py-3 px-4 font-semibold text-emerald-500">₹{payment.amount.toLocaleString()}</td>
                       <td className="py-3 px-4">
                         {payment.tds > 0 ? (
@@ -1171,7 +1172,7 @@ const CaseDetailsPage: React.FC = () => {
                             <span className="font-medium">Assigned to:</span> {task.user}
                           </p>
                           <p className={labelClass}>
-                            <span className="font-medium">Deadline:</span> {new Date(task.deadline).toLocaleDateString()}
+                            <span className="font-medium">Deadline:</span> {formatIndianDate(task.deadline)}
                           </p>
                           {task.assignedBy && (
                             <p className={labelClass}>
@@ -1309,7 +1310,7 @@ const CaseDetailsPage: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <span className={`font-cyber text-sm ${theme === 'light' ? 'text-pink-600' : 'text-cyber-pink'}`}>
-                        {new Date(event.date).toLocaleDateString()}
+                        {formatIndianDate(event.date)}
                       </span>
                       <button
                         onClick={() => handleEditTimelineEvent(event)}

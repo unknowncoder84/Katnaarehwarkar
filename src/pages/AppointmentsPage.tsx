@@ -5,6 +5,7 @@ import MainLayout from '../components/MainLayout';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { Appointment } from '../types';
+import { formatIndianDate } from '../utils/dateFormat';
 
 const AppointmentsPage: React.FC = () => {
   const { appointments, addAppointment, updateAppointment, deleteAppointment, cases } = useData();
@@ -224,7 +225,7 @@ const AppointmentsPage: React.FC = () => {
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2">
                           <Calendar size={16} className="text-cyber-pink" />
-                          {new Date(apt.date).toLocaleDateString()}
+                          {formatIndianDate(apt.date)}
                         </div>
                       </td>
                       <td className="py-4 px-4">

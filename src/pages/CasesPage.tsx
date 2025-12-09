@@ -8,6 +8,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { exportToCSV, exportToExcel, exportToPDF } from '../utils/exportData';
 import { Case } from '../types';
+import { formatIndianDate } from '../utils/dateFormat';
 
 type CaseView = 'my-cases' | 'all-cases' | 'office-cases';
 
@@ -107,7 +108,8 @@ const CasesPage: React.FC = () => {
           case 'circulated':
             return c.circulationStatus === 'circulated';
           case 'non-circulated':
-            return c.circulationStatus === 'non-circulated';
+            // Non-circulated matters that don't have any date (no next date, no circulation date)
+            return c.circulationStatus === 'non-circulated' && !c.nextDate && !c.circulationDate;
           // Interim Relief filters
           case 'ir-favor':
             return c.interimRelief === 'favor';
@@ -309,7 +311,7 @@ const CasesPage: React.FC = () => {
               <div className={`grid grid-cols-2 gap-2 text-sm mb-3 ${theme === 'light' ? 'text-gray-800' : 'text-gray-300'}`}>
                 <div>
                   <span className={theme === 'light' ? 'text-gray-600 font-medium' : 'text-gray-400'}>Next Date:</span>
-                  <p className="font-semibold">{new Date(caseItem.nextDate).toLocaleDateString()}</p>
+                  <p className="font-semibold">{formatIndianDate(caseItem.nextDate)}</p>
                 </div>
                 <div>
                   <span className={theme === 'light' ? 'text-gray-600 font-medium' : 'text-gray-400'}>Case Type:</span>
@@ -383,7 +385,7 @@ const CasesPage: React.FC = () => {
                     <td className="py-4 px-4 lg:px-6 font-medium text-sm">{caseItem.clientName}</td>
                     <td className="py-4 px-4 lg:px-6 text-sm">{caseItem.fileNo}</td>
                     <td className="py-4 px-4 lg:px-6 text-sm">
-                      {new Date(caseItem.nextDate).toLocaleDateString()}
+                      {formatIndianDate(caseItem.nextDate)}
                     </td>
                     <td className="py-4 px-4 lg:px-6 text-sm hidden lg:table-cell">{caseItem.regNo}</td>
                     <td className="py-4 px-4 lg:px-6">

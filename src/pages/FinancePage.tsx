@@ -12,12 +12,6 @@ const FinancePage: React.FC = () => {
   const { transactions, cases } = useData();
   const { theme } = useTheme();
 
-  const totalReceivable = useMemo(() => {
-    return transactions
-      .filter((t) => t.status === 'pending')
-      .reduce((sum, t) => sum + t.amount, 0);
-  }, [transactions]);
-
   const totalReceived = useMemo(() => {
     return transactions
       .filter((t) => t.status === 'received')
@@ -28,20 +22,7 @@ const FinancePage: React.FC = () => {
     <MainLayout>
       <h1 className={`text-4xl font-bold font-cyber mb-8 ${theme === 'light' ? 'text-gray-900' : 'holographic-text'}`}>Finance & Payments</h1>
 
-      {/* Hero Banner */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-cyber rounded-xl p-8 mb-8 text-white border border-cyber-blue/30 shadow-cyber animate-cyber-pulse"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-lg opacity-90 font-court">Receivable client fees from juniors</p>
-            <p className="text-5xl font-bold font-cyber mt-2 text-glow">₹{totalReceivable.toLocaleString()}</p>
-          </div>
-          <DollarSign size={64} className="opacity-30 animate-float-cyber" />
-        </div>
-      </motion.div>
+
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

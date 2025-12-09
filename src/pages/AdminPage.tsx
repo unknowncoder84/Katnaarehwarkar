@@ -18,6 +18,7 @@ import MainLayout from '../components/MainLayout';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
+import { formatIndianDate } from '../utils/dateFormat';
 import { User, CreateUserData, UserRole } from '../types';
 
 const AdminPage: React.FC = () => {
@@ -271,7 +272,7 @@ const AdminPage: React.FC = () => {
                             <span className="font-medium">Case:</span> {task.caseName || 'General'}
                           </p>
                           <p className={textSecondary}>
-                            <span className="font-medium">Deadline:</span> {new Date(task.deadline).toLocaleDateString()}
+                            <span className="font-medium">Deadline:</span> {formatIndianDate(task.deadline)}
                           </p>
                           <p className={textSecondary}>
                             <span className="font-medium">Assigned by:</span> {task.assignedByName}
