@@ -24,6 +24,7 @@ const CounselCasesPage: React.FC = () => {
   // Form state for new case
   const [formData, setFormData] = useState({
     counsellor: '',
+    customCounsellor: '',
     partiesName: '',
     district: '',
     caseType: '',
@@ -37,6 +38,7 @@ const CounselCasesPage: React.FC = () => {
     opponentLawyer: '',
     additionalDetails: '',
   });
+  const [useCustomCounsellor, setUseCustomCounsellor] = useState(false);
 
   // Filter cases for counsel
   const counselCases = useMemo(() => {
@@ -62,13 +64,15 @@ const CounselCasesPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.counsellor || !formData.partiesName || !formData.officeFileNo) {
+    const counsellorName = useCustomCounsellor ? formData.customCounsellor : formData.counsellor;
+    
+    if (!counsellorName || !formData.partiesName || !formData.officeFileNo) {
       showNotification('error', 'Please fill in all required fields');
       return;
     }
     
     const newCase = {
-      clientName: formData.counsellor,
+      clientName: counsellorName,
       clientEmail: '',
       clientMobile: '',
       fileNo: formData.officeFileNo,
@@ -97,6 +101,7 @@ const CounselCasesPage: React.FC = () => {
     setShowAddModal(false);
     setFormData({
       counsellor: '',
+      customCounsellor: '',
       partiesName: '',
       district: '',
       caseType: '',
@@ -110,6 +115,7 @@ const CounselCasesPage: React.FC = () => {
       opponentLawyer: '',
       additionalDetails: '',
     });
+    setUseCustomCounsellor(false);
   };
 
   const getStatusColor = (status: string) => {
@@ -323,17 +329,40 @@ const CounselCasesPage: React.FC = () => {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormSelect
-                    label="SELECT COUNSELLOR *"
-                    name="counsellor"
-                    value={formData.counsellor}
-                    onChange={(e) => setFormData({ ...formData, counsellor: e.target.value })}
-                    options={[
-                      { value: '', label: 'Select Counsellor' },
-                      ...counsel.map(c => ({ value: c.name, label: c.name }))
-                    ]}
-                    required
-                  />
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <label className={`text-sm font-medium ${textPrimary}`}>SELECT COUNSELLOR *</label>
+                      <button
+                        type="button"
+                        onClick={() => setUseCustomCounsellor(!useCustomCounsellor)}
+                        className={`text-xs px-2 py-1 rounded ${useCustomCounsellor ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                      >
+                        {useCustomCounsellor ? 'Use Dropdown' : 'Type Custom'}
+                      </button>
+                    </div>
+                    {useCustomCounsellor ? (
+                      <input
+                        type="text"
+                        placeholder="Enter counsellor name"
+                        value={formData.customCounsellor}
+                        onChange={(e) => setFormData({ ...formData, customCounsellor: e.target.value })}
+                        className={`w-full px-4 py-3 rounded-xl border ${inputBgClass} focus:outline-none focus:border-orange-500 transition-colors`}
+                        required
+                      />
+                    ) : (
+                      <FormSelect
+                        label=""
+                        name="counsellor"
+                        value={formData.counsellor}
+                        onChange={(e) => setFormData({ ...formData, counsellor: e.target.value })}
+                        options={[
+                          { value: '', label: 'Select Counsellor' },
+                          ...counsel.map(c => ({ value: c.name, label: c.name }))
+                        ]}
+                        required
+                      />
+                    )}
+                  </div>
                   <FormInput
                     label="NAME OF PARTIES *"
                     name="partiesName"

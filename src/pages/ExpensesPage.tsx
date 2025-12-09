@@ -92,42 +92,29 @@ const ExpensesPage: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`${cardBg} p-4 rounded-xl border`}
+      {/* Total Button */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-6"
+      >
+        <button
+          className={`${cardBg} p-6 rounded-xl border w-full flex items-center justify-between hover:shadow-lg transition-all duration-300`}
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className={`text-sm ${textSecondary}`}>Total Expenses</p>
-              <p className={`text-2xl font-bold ${textPrimary}`}>₹{stats.total.toLocaleString()}</p>
-            </div>
+          <div className="flex items-center gap-4">
             <div className="p-3 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl">
               <TrendingDown size={28} className="text-white" />
             </div>
+            <div className="text-left">
+              <p className={`text-sm ${textSecondary}`}>Total Expenses for {formatMonthName(selectedMonth)}</p>
+              <p className={`text-3xl font-bold ${textPrimary}`}>₹{stats.total.toLocaleString()}</p>
+            </div>
           </div>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className={`${cardBg} p-4 rounded-xl border`}
-        >
-          <p className={`text-sm ${textSecondary}`}>Expense Count</p>
-          <p className={`text-2xl font-bold ${textPrimary}`}>{stats.count}</p>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className={`${cardBg} p-4 rounded-xl border`}
-        >
-          <p className={`text-sm ${textSecondary}`}>Average Expense</p>
-          <p className={`text-2xl font-bold ${textPrimary}`}>₹{stats.average.toFixed(0)}</p>
-        </motion.div>
-      </div>
+          <div className="px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-semibold">
+            TOTAL
+          </div>
+        </button>
+      </motion.div>
 
       {/* Expenses List */}
       <motion.div
