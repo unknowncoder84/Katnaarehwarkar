@@ -53,8 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
   const officeCasesSubmenu = [
     { icon: Plus, label: 'Create Case', path: '/cases/create' },
     { icon: List, label: 'List Cases', path: '/cases' },
-    { icon: Scale, label: 'Counsel Cases', path: '/counsel-cases' },
-    { icon: Plus, label: 'Create Counsel Case', path: '/counsel-cases/create' },
+    { icon: Scale, label: 'Council Cases', path: '/counsel/cases' },
   ];
 
   const isActive = (path: string) => location.pathname === path;

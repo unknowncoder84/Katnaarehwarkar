@@ -10,6 +10,10 @@ interface HeaderProps {
   onMenuClick: () => void;
 }
 
+// Key for storing viewed notifications in localStorage
+const VIEWED_NOTIFICATIONS_KEY = 'viewedNotifications';
+const NOTIFICATION_EXPIRY_HOURS = 24;
+
 const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
@@ -18,7 +22,43 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [viewedNotifications, setViewedNotifications] = useState<Set<string>>(new Set());
   const notificationRef = useRef<HTMLDivElement>(null);
+  
+  // Load viewed notifications from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(VIEWED_NOTIFICATIONS_KEY);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        // Filter out expired entries (older than 24 hours)
+        const now = Date.now();
+        const validEntries = Object.entries(parsed).filter(([_, timestamp]) => {
+          return now - (timestamp as number) < NOTIFICATION_EXPIRY_HOURS * 60 * 60 * 1000;
+        });
+        const validIds = new Set(validEntries.map(([id]) => id));
+        setViewedNotifications(validIds);
+        // Update localStorage with only valid entries
+        localStorage.setItem(VIEWED_NOTIFICATIONS_KEY, JSON.stringify(Object.fromEntries(validEntries)));
+      } catch {
+        setViewedNotifications(new Set());
+      }
+    }
+  }, []);
+  
+  // Mark notifications as viewed when dropdown is opened
+  const markNotificationsAsViewed = (notificationIds: string[]) => {
+    const stored = localStorage.getItem(VIEWED_NOTIFICATIONS_KEY);
+    const existing = stored ? JSON.parse(stored) : {};
+    const now = Date.now();
+    
+    notificationIds.forEach(id => {
+      existing[id] = now;
+    });
+    
+    localStorage.setItem(VIEWED_NOTIFICATIONS_KEY, JSON.stringify(existing));
+    setViewedNotifications(new Set(Object.keys(existing)));
+  };
   
   // Close notifications when clicking outside
   useEffect(() => {
@@ -37,11 +77,10 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     };
   }, [showNotifications]);
 
-  // Generate notifications from recent activity
+  // Generate notifications from recent activity (only within 24 hours)
   const notifications = useMemo(() => {
     const now = new Date();
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+    const oneDayAgo = new Date(now.getTime() - NOTIFICATION_EXPIRY_HOURS * 60 * 60 * 1000);
     
     const notifs: Array<{
       id: string;
@@ -52,12 +91,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       icon: string;
     }> = [];
     
-    // Recent cases (last 3 days)
+    // Recent cases (last 24 hours only)
     cases
-      .filter(c => new Date(c.createdAt) > threeDaysAgo)
+      .filter(c => new Date(c.createdAt) > oneDayAgo)
       .forEach(c => {
         notifs.push({
-          id: c.id,
+          id: `case-${c.id}`,
           type: 'case',
           title: 'New Case Added',
           description: `${c.clientName} - ${c.fileNo}`,
@@ -66,13 +105,13 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         });
       });
     
-    // Upcoming tasks (next 3 days)
+    // Upcoming tasks (next 3 days) - but only show if created within 24 hours
     const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
     tasks
-      .filter(t => t.status === 'pending' && new Date(t.deadline) <= threeDaysFromNow)
+      .filter(t => t.status === 'pending' && new Date(t.deadline) <= threeDaysFromNow && new Date(t.createdAt) > oneDayAgo)
       .forEach(t => {
         notifs.push({
-          id: t.id,
+          id: `task-due-${t.id}`,
           type: 'task',
           title: 'Task Due Soon',
           description: `${t.title} - Due: ${formatIndianDate(t.deadline)}`,
@@ -95,12 +134,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         });
       });
     
-    // Upcoming appointments (next 3 days)
+    // Upcoming appointments (next 3 days) - but only show if created within 24 hours
     appointments
-      .filter(a => new Date(a.date) >= now && new Date(a.date) <= threeDaysFromNow)
+      .filter(a => new Date(a.date) >= now && new Date(a.date) <= threeDaysFromNow && new Date(a.createdAt) > oneDayAgo)
       .forEach(a => {
         notifs.push({
-          id: a.id,
+          id: `apt-${a.id}`,
           type: 'appointment',
           title: 'Upcoming Appointment',
           description: `${a.client} - ${formatIndianDate(a.date)} at ${a.time}`,
@@ -114,7 +153,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       .filter(e => new Date(e.createdAt) > oneDayAgo)
       .forEach(e => {
         notifs.push({
-          id: e.id,
+          id: `exp-${e.id}`,
           type: 'expense',
           title: 'New Expense Added',
           description: `₹${e.amount.toLocaleString()} - ${e.description}`,
@@ -123,12 +162,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         });
       });
     
-    // Recent books (last 3 days)
+    // Recent books (last 24 hours)
     books
-      .filter(b => new Date(b.addedAt) > threeDaysAgo)
+      .filter(b => new Date(b.addedAt) > oneDayAgo)
       .forEach(b => {
         notifs.push({
-          id: b.id,
+          id: `book-${b.id}`,
           type: 'book',
           title: 'New Book Added',
           description: `${b.name} added to library`,
@@ -137,13 +176,13 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         });
       });
     
-    // Recent sofa items (last 3 days)
+    // Recent sofa items (last 24 hours)
     sofaItems
-      .filter(s => new Date(s.addedAt) > threeDaysAgo)
+      .filter(s => new Date(s.addedAt) > oneDayAgo)
       .forEach(s => {
         const caseItem = cases.find(c => c.id === s.caseId);
         notifs.push({
-          id: s.id,
+          id: `sofa-${s.id}`,
           type: 'sofa',
           title: 'Case Added to Storage',
           description: `${caseItem?.clientName || 'Case'} - Compartment ${s.compartment}`,
@@ -154,7 +193,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     
     // Sort by time (most recent first)
     return notifs.sort((a, b) => b.time.getTime() - a.time.getTime()).slice(0, 10);
-  }, [cases, tasks, appointments, expenses, books, sofaItems]);
+  }, [cases, tasks, appointments, expenses, books, sofaItems, user?.id]);
+  
+  // Count unread notifications (not viewed yet)
+  const unreadCount = useMemo(() => {
+    return notifications.filter(n => !viewedNotifications.has(n.id)).length;
+  }, [notifications, viewedNotifications]);
 
   const searchResults = useMemo(() => {
     if (!searchTerm.trim()) return { 
@@ -454,12 +498,19 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         {/* Notifications */}
         <div className="relative" ref={notificationRef}>
           <button 
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={() => {
+              setShowNotifications(!showNotifications);
+              // Mark all current notifications as viewed when opening
+              if (!showNotifications && notifications.length > 0) {
+                markNotificationsAsViewed(notifications.map(n => n.id));
+              }
+            }}
             className={`relative p-2.5 rounded-xl transition-all duration-300 ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} group`}
           >
             <Bell size={20} className={`${textClass} group-hover:text-orange-500 transition-colors`} />
-            {notifications.length > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-gradient-cyber rounded-full ring-2 ring-white dark:ring-dark-void animate-cyber-pulse" />
+            {/* Red dot only shows when there are unread notifications */}
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-dark-void animate-pulse" />
             )}
           </button>
           
@@ -468,7 +519,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             <div className={`absolute top-full right-0 mt-2 w-80 md:w-96 ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-[#1a1a2e] border-orange-500/30'} border rounded-xl shadow-2xl z-[9999] overflow-hidden max-h-96 overflow-y-auto`}>
               <div className={`px-4 py-3 border-b ${theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-orange-500/30 bg-white/5'}`}>
                 <h3 className={`font-semibold ${textClass}`}>Notifications</h3>
-                <p className={`text-xs ${secondaryText}`}>{notifications.length} recent updates</p>
+                <p className={`text-xs ${secondaryText}`}>
+                  {notifications.length} updates (auto-clears after 24h)
+                </p>
               </div>
               
               {notifications.length === 0 ? (

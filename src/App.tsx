@@ -17,7 +17,6 @@ import ClientsPage from './pages/ClientsPage';
 import CounselPage from './pages/CounselPage';
 import CreateCounsellorPage from './pages/CreateCounsellorPage';
 import CounselCasesPage from './pages/CounselCasesPage';
-import CreateCounselCasePage from './pages/CreateCounselCasePage';
 import AppointmentsPage from './pages/AppointmentsPage';
 import FinancePage from './pages/FinancePage';
 import SettingsPage from './pages/SettingsPage';
@@ -129,14 +128,6 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <CounselCasesPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/counsel/cases/create"
-                element={
-                  <ProtectedRoute>
-                    <CreateCounselCasePage />
                   </ProtectedRoute>
                 }
               />

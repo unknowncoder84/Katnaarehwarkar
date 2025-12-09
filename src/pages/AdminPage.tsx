@@ -211,14 +211,15 @@ const AdminPage: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Tasks Assigned Section */}
+        {/* Tasks Assigned Section - Scrollable */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
           className={`${cardBg} rounded-2xl border overflow-hidden`}
+          style={{ maxHeight: '500px' }}
         >
-          <div className="p-6 border-b border-white/10 flex items-center justify-between">
+          <div className="p-6 border-b border-white/10 flex items-center justify-between sticky top-0 z-10" style={{ backgroundColor: theme === 'light' ? 'rgba(255,255,255,0.95)' : 'rgba(26,26,46,0.95)' }}>
             <div className="flex items-center gap-3">
               <div className="p-2 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg">
                 <CheckSquare className="text-white" size={20} />
@@ -234,7 +235,7 @@ const AdminPage: React.FC = () => {
               </span>
             </div>
           </div>
-          <div className="p-6">
+          <div className="p-6 overflow-y-auto" style={{ maxHeight: '380px' }}>
             {tasks.length === 0 ? (
               <div className={`text-center py-8 ${textSecondary}`}>
                 <CheckSquare size={48} className="mx-auto mb-4 opacity-30" />
@@ -242,7 +243,7 @@ const AdminPage: React.FC = () => {
                 <p className="text-sm mt-2">Tasks assigned from Case Details will appear here</p>
               </div>
             ) : (
-              <div className="space-y-4 max-h-96 overflow-y-auto">
+              <div className="space-y-4">
                 {tasks.map((task) => (
                   <motion.div
                     key={task.id}
