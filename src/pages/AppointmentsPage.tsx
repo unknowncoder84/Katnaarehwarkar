@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Calendar, Clock, User, Trash2, Edit, X } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Calendar, Clock, User, Trash2, Edit, X, CheckCircle } from 'lucide-react';
 import MainLayout from '../components/MainLayout';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { Appointment } from '../types';
+import { Appointment, User as UserType } from '../types';
 import { formatIndianDate } from '../utils/dateFormat';
+import { getAllUsers } from '../lib/userManagement';
 
 const AppointmentsPage: React.FC = () => {
   const { appointments, addAppointment, updateAppointment, deleteAppointment, cases } = useData();
@@ -19,15 +20,32 @@ const AppointmentsPage: React.FC = () => {
     details: '',
   });
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [systemUsers, setSystemUsers] = useState<UserType[]>([]);
 
-  // Get unique users from cases
+  // Fetch users from user management system
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const result = await getAllUsers();
+      if (result.success && result.users) {
+        setSystemUsers(result.users);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  // Get users for dropdown - combine system users with default users
   const users = useMemo(() => {
-    const userSet = new Set<string>();
-    cases.forEach(c => {
-      if (c.createdBy) userSet.add(c.createdBy);
+    const userNames = systemUsers.map(u => u.name);
+    // Add default users if not already in the list
+    const defaultUsers = ['Prashant Reguntewar', 'Admin User'];
+    defaultUsers.forEach(u => {
+      if (!userNames.includes(u)) {
+        userNames.push(u);
+      }
     });
-    return ['Prashant Reguntewar', 'Admin User', ...Array.from(userSet)];
-  }, [cases]);
+    return userNames;
+  }, [systemUsers]);
 
   // Get unique clients from cases
   const clients = useMemo(() => {
@@ -38,17 +56,39 @@ const AppointmentsPage: React.FC = () => {
     return Array.from(clientSet);
   }, [cases]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Show notification helper
+  const showNotification = (type: 'success' | 'error', message: string) => {
+    setNotification({ type, message });
+    setTimeout(() => setNotification(null), 3000);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.date && formData.user) {
-      addAppointment({
-        date: new Date(formData.date),
-        time: formData.time,
-        user: formData.user,
-        client: formData.client,
-        details: formData.details,
-      });
-      setFormData({ date: '', time: '', user: '', client: '', details: '' });
+      try {
+        await addAppointment({
+          date: new Date(formData.date),
+          time: formData.time,
+          user: formData.user,
+          client: formData.client,
+          details: formData.details,
+        });
+        setFormData({ date: '', time: '', user: '', client: '', details: '' });
+        showNotification('success', 'Appointment created successfully!');
+      } catch (error) {
+        showNotification('error', 'Failed to create appointment');
+      }
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this appointment?')) {
+      try {
+        await deleteAppointment(id);
+        showNotification('success', 'Appointment deleted successfully!');
+      } catch (error) {
+        showNotification('error', 'Failed to delete appointment');
+      }
     }
   };
 
@@ -67,6 +107,25 @@ const AppointmentsPage: React.FC = () => {
 
   return (
     <MainLayout>
+      {/* Notification */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`fixed top-4 right-4 z-50 p-4 rounded-xl flex items-center gap-2 ${
+              notification.type === 'success'
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                : 'bg-red-500/20 text-red-400 border border-red-500/30'
+            }`}
+          >
+            <CheckCircle size={20} />
+            {notification.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -252,11 +311,7 @@ const AppointmentsPage: React.FC = () => {
                             <Edit size={18} />
                           </button>
                           <button
-                            onClick={() => {
-                              if (window.confirm('Are you sure you want to delete this appointment?')) {
-                                deleteAppointment(apt.id);
-                              }
-                            }}
+                            onClick={() => handleDelete(apt.id)}
                             className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
                             title="Delete appointment"
                           >
@@ -291,8 +346,13 @@ const AppointmentsPage: React.FC = () => {
           appointment={editingAppointment}
           onClose={() => setEditingAppointment(null)}
           onSave={async (id, data) => {
-            await updateAppointment(id, data);
-            setEditingAppointment(null);
+            try {
+              await updateAppointment(id, data);
+              setEditingAppointment(null);
+              showNotification('success', 'Appointment updated successfully!');
+            } catch (error) {
+              showNotification('error', 'Failed to update appointment');
+            }
           }}
           users={users}
           clients={clients}

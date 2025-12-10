@@ -49,8 +49,6 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
     feesQuoted: '',
     // Opposition
     opponentLawyer: '',
-    // Payment
-    paymentMode: 'cash',
     // Counsel Info
     counselRequired: 'No',
     counselName: '',
@@ -140,7 +138,6 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
         regNo: '',
         feesQuoted: '',
         opponentLawyer: '',
-        paymentMode: 'cash',
         counselRequired: 'No',
         counselName: '',
         counselEmail: '',
@@ -243,9 +240,16 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
             onChange={handleInputChange}
             error={errors.court}
           />
-          <FormInput
+          <FormSelect
             label="On Behalf Of"
             name="onBehalfOf"
+            options={[
+              { value: 'petitioner', label: 'Petitioner' },
+              { value: 'applicant', label: 'Applicant' },
+              { value: 'appellant', label: 'Appellant' },
+              { value: 'respondent', label: 'Respondent' },
+              { value: 'intervenor', label: 'Intervenor' },
+            ]}
             value={formData.onBehalfOf}
             onChange={handleInputChange}
           />
@@ -273,20 +277,7 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
             value={formData.stage}
             onChange={handleInputChange}
           />
-          <FormSelect
-            label="Payment Mode"
-            name="paymentMode"
-            options={[
-              { value: 'cash', label: 'Cash' },
-              { value: 'upi', label: 'UPI' },
-              { value: 'check', label: 'Check' },
-              { value: 'bank-transfer', label: 'Bank Transfer' },
-              { value: 'card', label: 'Card' },
-              { value: 'other', label: 'Other' },
-            ]}
-            value={formData.paymentMode}
-            onChange={handleInputChange}
-          />
+
         </div>
       </div>
 

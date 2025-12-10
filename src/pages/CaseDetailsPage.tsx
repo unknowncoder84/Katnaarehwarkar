@@ -83,12 +83,8 @@ const CaseDetailsPage: React.FC = () => {
   const [circulationNotification, setCirculationNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   
   // Payments state
-  const [payments, setPayments] = useState<CasePayment[]>([
-    { id: '1', amount: 15000, date: new Date('2021-06-24'), receivedBy: 'PR Katneshwarkar', paymentMode: 'cash', referenceId: 'REF-001', tds: 0, isAccepted: true }
-  ]);
+  const [payments, setPayments] = useState<CasePayment[]>([]);
   const [newPayment, setNewPayment] = useState({ amount: '', date: '', paymentMode: '', referenceId: '', tds: '' });
-  const [feesQuoted] = useState(25000);
-  const [feesPaid, setFeesPaid] = useState(15000);
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
   const [paymentNotification, setPaymentNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   
@@ -122,6 +118,12 @@ const CaseDetailsPage: React.FC = () => {
     }
     return cases[0];
   }, [cases, id]);
+
+  // Dynamic fee calculations from case data
+  const feesQuoted = useMemo(() => caseData?.feesQuoted || 0, [caseData]);
+  const feesPaid = useMemo(() => {
+    return payments.filter(p => p.isAccepted).reduce((sum, p) => sum + p.amount, 0);
+  }, [payments]);
 
   // Initialize state from case data
   useEffect(() => {
@@ -243,7 +245,6 @@ const CaseDetailsPage: React.FC = () => {
       };
       
       setPayments(prev => [...prev, paymentData]);
-      setFeesPaid(prev => prev + paymentData.amount);
       setNewPayment({ amount: '', date: '', paymentMode: '', referenceId: '', tds: '' });
       
       setPaymentNotification({ type: 'success', message: `Payment of ₹${paymentData.amount.toLocaleString()} received successfully! Pending admin approval.` });
@@ -380,7 +381,7 @@ const CaseDetailsPage: React.FC = () => {
       setTimeline([{
         id: Date.now().toString(),
         title: `Circulation Status Updated to ${circulationStatus}`,
-        description: circulationDate ? `Circulation Date: ${formatIndianDate(circulationDate)}${nextDate ? `, Next Date: ${formatIndianDate(nextDate)}` : ''}` : '',
+        description: circulationDate ? `Circulation Date: ${formatIndianDate(circulationDate)}${nextDate ? `, Grant Date: ${formatIndianDate(nextDate)}` : ''}` : '',
         date: new Date()
       }, ...timeline]);
       
@@ -534,6 +535,7 @@ const CaseDetailsPage: React.FC = () => {
                   <select className={`px-3 py-1 rounded border ${inputBgClass}`} defaultValue={caseData.status}>
                     <option value="pending">PENDING</option>
                     <option value="active">ACTIVE</option>
+                    <option value="noc">NOC</option>
                     <option value="disposed">DISPOSED</option>
                     <option value="closed">CLOSED</option>
                   </select>
@@ -839,7 +841,7 @@ const CaseDetailsPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>NEXT DATE</label>
+                <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>GRANT DATE</label>
                 <input
                   type="date"
                   value={nextDate}
@@ -968,15 +970,15 @@ const CaseDetailsPage: React.FC = () => {
             <div className={`${theme === 'light' ? 'bg-gray-100' : 'bg-white/5'} rounded-lg mb-6`}>
               <div className={`flex justify-between py-3 px-6 border-b ${borderClass}`}>
                 <span className="font-semibold">Fees Quoted</span>
-                <span>{feesQuoted}</span>
+                <span className={`font-semibold ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'}`}>₹{feesQuoted.toLocaleString()}</span>
               </div>
               <div className={`flex justify-between py-3 px-6 border-b ${borderClass}`}>
                 <span className="font-semibold">Fees Paid</span>
-                <span>{feesPaid}</span>
+                <span className={`font-semibold ${theme === 'light' ? 'text-emerald-600' : 'text-emerald-400'}`}>₹{feesPaid.toLocaleString()}</span>
               </div>
               <div className="flex justify-between py-3 px-6">
                 <span className="font-semibold">Pending Fees</span>
-                <span>{feesQuoted - feesPaid}</span>
+                <span className={`font-semibold ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`}>₹{(feesQuoted - feesPaid).toLocaleString()}</span>
               </div>
             </div>
 
