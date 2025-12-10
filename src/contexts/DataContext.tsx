@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Case, Counsel, Appointment, Transaction, Court, CaseType, Book, SofaItem, Task, Attendance, AttendanceStatus, Expense, DataContextType, LibraryLocation, StorageLocation } from '../types';
-import { db } from '../lib/supabase';
+import { db, supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -116,6 +116,122 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     }
   };
+
+  // Set up real-time subscriptions
+  useEffect(() => {
+    if (!user) return;
+
+    console.log('🔔 Setting up real-time subscriptions...');
+
+    // Subscribe to cases changes
+    const casesChannel = supabase
+      .channel('cases-realtime')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'cases' },
+        (payload) => {
+          console.log('📦 Cases change detected:', payload);
+          fetchAllData(); // Refresh all data when cases change
+        }
+      )
+      .subscribe();
+
+    // Subscribe to appointments changes
+    const appointmentsChannel = supabase
+      .channel('appointments-realtime')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'appointments' },
+        (payload) => {
+          console.log('📅 Appointments change detected:', payload);
+          fetchAllData(); // Refresh all data when appointments change
+        }
+      )
+      .subscribe();
+
+    // Subscribe to counsel changes
+    const counselChannel = supabase
+      .channel('counsel-realtime')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'counsel' },
+        (payload) => {
+          console.log('👨‍⚖️ Counsel change detected:', payload);
+          fetchAllData(); // Refresh all data when counsel change
+        }
+      )
+      .subscribe();
+
+    // Subscribe to transactions changes
+    const transactionsChannel = supabase
+      .channel('transactions-realtime')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'transactions' },
+        (payload) => {
+          console.log('💰 Transactions change detected:', payload);
+          fetchAllData(); // Refresh all data when transactions change
+        }
+      )
+      .subscribe();
+
+    // Subscribe to tasks changes
+    const tasksChannel = supabase
+      .channel('tasks-realtime')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'tasks' },
+        (payload) => {
+          console.log('✅ Tasks change detected:', payload);
+          fetchAllData(); // Refresh all data when tasks change
+        }
+      )
+      .subscribe();
+
+    // Subscribe to expenses changes
+    const expensesChannel = supabase
+      .channel('expenses-realtime')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'expenses' },
+        (payload) => {
+          console.log('💸 Expenses change detected:', payload);
+          fetchAllData(); // Refresh all data when expenses change
+        }
+      )
+      .subscribe();
+
+    // Subscribe to library locations changes
+    const libraryLocationsChannel = supabase
+      .channel('library-locations-realtime')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'library_locations' },
+        (payload) => {
+          console.log('📚 Library locations change detected:', payload);
+          fetchAllData(); // Refresh all data when library locations change
+        }
+      )
+      .subscribe();
+
+    // Subscribe to storage locations changes
+    const storageLocationsChannel = supabase
+      .channel('storage-locations-realtime')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'storage_locations' },
+        (payload) => {
+          console.log('📦 Storage locations change detected:', payload);
+          fetchAllData(); // Refresh all data when storage locations change
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscriptions on unmount
+    return () => {
+      console.log('🔕 Cleaning up real-time subscriptions...');
+      supabase.removeChannel(casesChannel);
+      supabase.removeChannel(appointmentsChannel);
+      supabase.removeChannel(counselChannel);
+      supabase.removeChannel(transactionsChannel);
+      supabase.removeChannel(tasksChannel);
+      supabase.removeChannel(expensesChannel);
+      supabase.removeChannel(libraryLocationsChannel);
+      supabase.removeChannel(storageLocationsChannel);
+    };
+  }, [user]);
 
   // Fetch data when user logs in
   useEffect(() => {
@@ -507,39 +623,145 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Appointment operations
   const addAppointment = async (appointmentData: Omit<Appointment, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const snakeCaseData = toSnakeCase(appointmentData);
-    snakeCaseData.user_id = user?.id;
-    snakeCaseData.user_name = user?.name;
+    console.log('🔵 addAppointment called with data:', appointmentData);
     
-    const { data, error } = await db.appointments.create(snakeCaseData);
-    if (error) {
-      console.error('Error adding appointment:', error);
-      return;
-    }
-    if (data) {
-      setAppointments((prev) => [toCamelCase(data), ...prev]);
+    // Create temporary appointment immediately for instant feedback
+    const tempAppointment: Appointment = {
+      ...appointmentData,
+      id: `temp-${Date.now()}`,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    console.log('🟡 Adding temporary appointment locally:', tempAppointment);
+    setAppointments((prev) => {
+      const newAppointments = [tempAppointment, ...prev];
+      console.log('🟢 Appointments updated. Total appointments:', newAppointments.length);
+      return newAppointments;
+    });
+    
+    // Try to save to database in background with timeout
+    try {
+      const snakeCaseData = toSnakeCase(appointmentData);
+      snakeCaseData.user_id = user?.id;
+      snakeCaseData.user_name = user?.name;
+      
+      console.log('🔵 Attempting to create appointment in database (background)...');
+      
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database timeout')), 2000)
+      );
+      
+      // Race between database call and timeout
+      const result = await Promise.race([
+        db.appointments.create(snakeCaseData),
+        timeoutPromise
+      ]) as any;
+      
+      const { data, error } = result;
+      
+      if (error) {
+        console.warn('🟠 Database error (keeping temp appointment):', error);
+        return;
+      }
+      
+      if (data) {
+        console.log('🟢 Appointment created in database successfully, replacing temp appointment');
+        // Replace temp appointment with real appointment from database
+        setAppointments((prev) => prev.map(a => a.id === tempAppointment.id ? toCamelCase(data) : a));
+      }
+    } catch (err) {
+      console.warn('🟠 Database unavailable (keeping temp appointment):', err);
+      // Keep the temp appointment, database is unavailable
     }
   };
 
   const updateAppointment = async (id: string, appointmentData: Partial<Appointment>) => {
-    const snakeCaseData = toSnakeCase(appointmentData);
-    const { data, error } = await db.appointments.update(id, snakeCaseData);
-    if (error) {
-      console.error('Error updating appointment:', error);
-      return;
-    }
-    if (data) {
-      setAppointments((prev) => prev.map((a) => (a.id === id ? toCamelCase(data) : a)));
+    console.log('🔵 updateAppointment called for ID:', id, 'with data:', appointmentData);
+    
+    // Update appointment immediately in UI
+    setAppointments((prev) => prev.map((a) => {
+      if (a.id === id) {
+        const updated = { ...a, ...appointmentData, updatedAt: new Date() };
+        console.log('🟢 Appointment updated in UI:', updated);
+        return updated;
+      }
+      return a;
+    }));
+    
+    // Try to update in database in background with timeout
+    try {
+      const snakeCaseData = toSnakeCase(appointmentData);
+      
+      console.log('🔵 Attempting to update appointment in database (background)...');
+      
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database timeout')), 2000)
+      );
+      
+      // Race between database call and timeout
+      const result = await Promise.race([
+        db.appointments.update(id, snakeCaseData),
+        timeoutPromise
+      ]) as any;
+      
+      const { data, error } = result;
+      
+      if (error) {
+        console.warn('🟠 Database error (keeping local update):', error);
+        return;
+      }
+      
+      if (data) {
+        console.log('🟢 Appointment updated in database successfully');
+        // Optionally sync with database version
+        setAppointments((prev) => prev.map((a) => (a.id === id ? toCamelCase(data) : a)));
+      }
+    } catch (err) {
+      console.warn('🟠 Database unavailable (keeping local update):', err);
+      // Keep the local update, database is unavailable
     }
   };
 
   const deleteAppointment = async (id: string) => {
-    const { error } = await db.appointments.delete(id);
-    if (error) {
-      console.error('Error deleting appointment:', error);
-      return;
+    console.log('🔵 deleteAppointment called for ID:', id);
+    
+    // Delete appointment immediately from UI
+    setAppointments((prev) => {
+      const filtered = prev.filter((a) => a.id !== id);
+      console.log('🟢 Appointment deleted from UI. Remaining appointments:', filtered.length);
+      return filtered;
+    });
+    
+    // Try to delete from database in background with timeout
+    try {
+      console.log('🔵 Attempting to delete appointment from database (background)...');
+      
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database timeout')), 2000)
+      );
+      
+      // Race between database call and timeout
+      const result = await Promise.race([
+        db.appointments.delete(id),
+        timeoutPromise
+      ]) as any;
+      
+      const { error } = result;
+      
+      if (error) {
+        console.warn('🟠 Database error (appointment already removed from UI):', error);
+        return;
+      }
+      
+      console.log('🟢 Appointment deleted from database successfully');
+    } catch (err) {
+      console.warn('🟠 Database unavailable (appointment already removed from UI):', err);
+      // Appointment is already removed from UI, database is unavailable
     }
-    setAppointments((prev) => prev.filter((a) => a.id !== id));
   };
 
   // Transaction operations
