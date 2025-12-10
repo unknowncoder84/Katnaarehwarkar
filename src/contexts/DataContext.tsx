@@ -65,6 +65,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch all data from Supabase
   const fetchAllData = async () => {
     setLoading(true);
+    console.log('🔵 Fetching all data from Supabase database...');
+    
     try {
       const [
         casesRes,
@@ -94,24 +96,75 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         db.expenses.getAll(),
       ]);
 
-      if (casesRes.data) setCases(toCamelCase(casesRes.data));
-      if (counselRes.data) setCounsel(toCamelCase(counselRes.data));
-      if (appointmentsRes.data) setAppointments(toCamelCase(appointmentsRes.data));
-      if (transactionsRes.data) setTransactions(toCamelCase(transactionsRes.data));
+      // Log any errors from individual queries
+      if (casesRes.error) console.error('❌ Error fetching cases:', casesRes.error);
+      if (counselRes.error) console.error('❌ Error fetching counsel:', counselRes.error);
+      if (appointmentsRes.error) console.error('❌ Error fetching appointments:', appointmentsRes.error);
+      if (transactionsRes.error) console.error('❌ Error fetching transactions:', transactionsRes.error);
+      if (courtsRes.error) console.error('❌ Error fetching courts:', courtsRes.error);
+      if (caseTypesRes.error) console.error('❌ Error fetching case types:', caseTypesRes.error);
+      if (booksRes.error) console.error('❌ Error fetching books:', booksRes.error);
+      if (sofaItemsRes.error) console.error('❌ Error fetching sofa items:', sofaItemsRes.error);
+      if (libraryLocationsRes.error) console.error('❌ Error fetching library locations:', libraryLocationsRes.error);
+      if (storageLocationsRes.error) console.error('❌ Error fetching storage locations:', storageLocationsRes.error);
+      if (tasksRes.error) console.error('❌ Error fetching tasks:', tasksRes.error);
+      if (expensesRes.error) console.error('❌ Error fetching expenses:', expensesRes.error);
+
+      // Update state with fetched data
+      if (casesRes.data) {
+        setCases(toCamelCase(casesRes.data));
+        console.log(`✅ Loaded ${casesRes.data.length} cases from database`);
+      }
+      if (counselRes.data) {
+        setCounsel(toCamelCase(counselRes.data));
+        console.log(`✅ Loaded ${counselRes.data.length} counsel from database`);
+      }
+      if (appointmentsRes.data) {
+        setAppointments(toCamelCase(appointmentsRes.data));
+        console.log(`✅ Loaded ${appointmentsRes.data.length} appointments from database`);
+      }
+      if (transactionsRes.data) {
+        setTransactions(toCamelCase(transactionsRes.data));
+        console.log(`✅ Loaded ${transactionsRes.data.length} transactions from database`);
+      }
       // Only update courts and caseTypes if we get data from the database
-      if (courtsRes.data && courtsRes.data.length > 0) setCourts(toCamelCase(courtsRes.data));
-      if (caseTypesRes.data && caseTypesRes.data.length > 0) setCaseTypes(toCamelCase(caseTypesRes.data));
-      if (booksRes.data) setBooks(toCamelCase(booksRes.data));
-      if (sofaItemsRes.data) setSofaItems(toCamelCase(sofaItemsRes.data));
-      if (libraryLocationsRes.data) setLibraryLocations(toCamelCase(libraryLocationsRes.data));
-      if (storageLocationsRes.data) setStorageLocations(toCamelCase(storageLocationsRes.data));
-      if (tasksRes.data) setTasks(toCamelCase(tasksRes.data));
-      if (expensesRes.data) setExpenses(toCamelCase(expensesRes.data));
+      if (courtsRes.data && courtsRes.data.length > 0) {
+        setCourts(toCamelCase(courtsRes.data));
+        console.log(`✅ Loaded ${courtsRes.data.length} courts from database`);
+      }
+      if (caseTypesRes.data && caseTypesRes.data.length > 0) {
+        setCaseTypes(toCamelCase(caseTypesRes.data));
+        console.log(`✅ Loaded ${caseTypesRes.data.length} case types from database`);
+      }
+      if (booksRes.data) {
+        setBooks(toCamelCase(booksRes.data));
+        console.log(`✅ Loaded ${booksRes.data.length} books from database`);
+      }
+      if (sofaItemsRes.data) {
+        setSofaItems(toCamelCase(sofaItemsRes.data));
+        console.log(`✅ Loaded ${sofaItemsRes.data.length} sofa items from database`);
+      }
+      if (libraryLocationsRes.data) {
+        setLibraryLocations(toCamelCase(libraryLocationsRes.data));
+        console.log(`✅ Loaded ${libraryLocationsRes.data.length} library locations from database`);
+      }
+      if (storageLocationsRes.data) {
+        setStorageLocations(toCamelCase(storageLocationsRes.data));
+        console.log(`✅ Loaded ${storageLocationsRes.data.length} storage locations from database`);
+      }
+      if (tasksRes.data) {
+        setTasks(toCamelCase(tasksRes.data));
+        console.log(`✅ Loaded ${tasksRes.data.length} tasks from database`);
+      }
+      if (expensesRes.data) {
+        setExpenses(toCamelCase(expensesRes.data));
+        console.log(`✅ Loaded ${expensesRes.data.length} expenses from database`);
+      }
       
-      console.log('✅ All data fetched from database');
+      console.log('✅ All data fetched from database successfully!');
     } catch (error) {
-      console.error('Error fetching data:', error);
-      // Keep the default courts and caseTypes on error
+      console.error('❌ Critical error fetching data from database:', error);
+      alert('Failed to load data from database. Please check your internet connection and refresh the page.');
     } finally {
       setLoading(false);
     }
@@ -236,196 +289,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch data when user logs in
   useEffect(() => {
     if (user) {
+      console.log('🔵 User logged in, fetching all data from database...');
       fetchAllData();
-      
-      // Add dummy data for testing if no data exists
-      setTimeout(() => {
-        if (cases.length === 0) {
-          // Add dummy cases
-          const dummyCases: Case[] = [
-            {
-              id: 'case-1',
-              clientName: 'Rajesh Kumar',
-              clientEmail: 'rajesh.kumar@email.com',
-              clientMobile: '+91 98765 43210',
-              fileNo: 'FN-2024-001',
-              stampNo: 'ST-001',
-              regNo: 'REG-2024-001',
-              partiesName: 'Rajesh Kumar vs State of Maharashtra',
-              district: 'Mumbai',
-              caseType: 'Civil',
-              court: 'High Court',
-              onBehalfOf: 'Petitioner',
-              noResp: '2',
-              opponentLawyer: 'Adv. Sharma',
-              additionalDetails: 'Property dispute case regarding ancestral property',
-              feesQuoted: 50000,
-              status: 'active',
-              stage: 'admitted',
-              nextDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
-              filingDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-              circulationStatus: 'circulated',
-              interimRelief: 'favor',
-              createdBy: user.id,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-            {
-              id: 'case-2',
-              clientName: 'Priya Sharma',
-              clientEmail: 'priya.sharma@email.com',
-              clientMobile: '+91 98765 43211',
-              fileNo: 'FN-2024-002',
-              stampNo: 'ST-002',
-              regNo: 'REG-2024-002',
-              partiesName: 'Priya Sharma vs XYZ Corporation',
-              district: 'Pune',
-              caseType: 'Commercial',
-              court: 'District Court',
-              onBehalfOf: 'Petitioner',
-              noResp: '1',
-              opponentLawyer: 'Adv. Mehta',
-              additionalDetails: 'Contract breach case',
-              feesQuoted: 75000,
-              status: 'active',
-              stage: 'final-hearing',
-              nextDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-              filingDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
-              circulationStatus: 'non-circulated',
-              interimRelief: 'none',
-              createdBy: user.id,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-          ];
-          setCases(dummyCases);
-          
-          // Add dummy appointments
-          const dummyAppointments: Appointment[] = [
-            {
-              id: 'apt-1',
-              date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
-              time: '10:00 AM',
-              user: user.id,
-              client: 'Rajesh Kumar',
-              details: 'Initial consultation for property case',
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-            {
-              id: 'apt-2',
-              date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
-              time: '2:00 PM',
-              user: user.id,
-              client: 'Priya Sharma',
-              details: 'Document review meeting',
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-            {
-              id: 'apt-3',
-              date: new Date(), // Today
-              time: '11:30 AM',
-              user: user.id,
-              client: 'Amit Patel',
-              details: 'Case status discussion',
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-          ];
-          setAppointments(dummyAppointments);
-          
-          // Add dummy transactions
-          const dummyTransactions: Transaction[] = [
-            {
-              id: 'txn-1',
-              amount: 25000,
-              status: 'received',
-              paymentMode: 'upi',
-              receivedBy: user.name || 'Admin',
-              confirmedBy: user.name || 'Admin',
-              caseId: 'case-1',
-              createdAt: new Date(),
-            },
-            {
-              id: 'txn-2',
-              amount: 30000,
-              status: 'pending',
-              paymentMode: 'check',
-              receivedBy: user.name || 'Admin',
-              confirmedBy: user.name || 'Admin',
-              caseId: 'case-2',
-              createdAt: new Date(),
-            },
-          ];
-          setTransactions(dummyTransactions);
-          
-          // Add dummy tasks
-          const dummyTasks: Task[] = [
-            {
-              id: 'task-1',
-              type: 'case',
-              title: 'Prepare case documents',
-              description: 'Prepare all necessary documents for the upcoming hearing',
-              assignedTo: user.id,
-              assignedToName: user.name || 'User',
-              assignedBy: user.id,
-              assignedByName: user.name || 'Admin',
-              caseId: 'case-1',
-              caseName: 'Rajesh Kumar',
-              deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-              status: 'pending',
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-            {
-              id: 'task-2',
-              type: 'custom',
-              title: 'Review contract terms',
-              description: 'Review and analyze contract terms for client meeting',
-              assignedTo: user.id,
-              assignedToName: user.name || 'User',
-              assignedBy: user.id,
-              assignedByName: user.name || 'Admin',
-              deadline: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
-              status: 'pending',
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-          ];
-          setTasks(dummyTasks);
-          
-          // Add dummy expenses
-          const currentMonth = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
-          const dummyExpenses: Expense[] = [
-            {
-              id: 'exp-1',
-              amount: 5000,
-              description: 'Office supplies and stationery',
-              addedBy: user.id,
-              addedByName: user.name || 'User',
-              month: currentMonth,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-            {
-              id: 'exp-2',
-              amount: 3500,
-              description: 'Legal research database subscription',
-              addedBy: user.id,
-              addedByName: user.name || 'User',
-              month: currentMonth,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-          ];
-          setExpenses(dummyExpenses);
-          
-          console.log('✅ Dummy data added for testing');
-        }
-      }, 1000);
     } else {
       // Clear data on logout
+      console.log('🔵 User logged out, clearing all data...');
       setCases([]);
       setCounsel([]);
       setAppointments([]);
@@ -443,145 +311,76 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user]);
 
 
-  // Case operations
+  // Case operations - DATABASE FIRST approach for persistence
   const addCase = async (caseData: Omit<Case, 'id' | 'createdAt' | 'updatedAt'>) => {
     console.log('🔵 addCase called with data:', caseData);
     
-    // Create temporary case immediately for instant feedback
-    const tempCase: Case = {
-      ...caseData,
-      id: `temp-${Date.now()}`,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    
-    console.log('🟡 Adding temporary case locally:', tempCase);
-    setCases((prev) => {
-      const newCases = [tempCase, ...prev];
-      console.log('🟢 Cases updated. Total cases:', newCases.length);
-      return newCases;
-    });
-    
-    // Try to save to database in background with timeout
     try {
       const snakeCaseData = toSnakeCase(caseData);
       snakeCaseData.created_by = user?.id;
       
-      console.log('🔵 Attempting to create case in database (background)...');
-      
-      // Create a timeout promise
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Database timeout')), 2000)
-      );
-      
-      // Race between database call and timeout
-      const result = await Promise.race([
-        db.cases.create(snakeCaseData),
-        timeoutPromise
-      ]) as any;
-      
-      const { data, error } = result;
+      console.log('🔵 Creating case in database...');
+      const { data, error } = await db.cases.create(snakeCaseData);
       
       if (error) {
-        console.warn('🟠 Database error (keeping temp case):', error);
+        console.error('❌ Database error creating case:', error);
+        alert('Failed to create case. Please check your connection and try again.');
         return;
       }
       
       if (data) {
-        console.log('🟢 Case created in database successfully, replacing temp case');
-        // Replace temp case with real case from database
-        setCases((prev) => prev.map(c => c.id === tempCase.id ? toCamelCase(data) : c));
+        console.log('✅ Case created in database successfully:', data);
+        setCases((prev) => [toCamelCase(data), ...prev]);
       }
     } catch (err) {
-      console.warn('🟠 Database unavailable (keeping temp case):', err);
-      // Keep the temp case, database is unavailable
+      console.error('❌ Error creating case:', err);
+      alert('Failed to create case. Please check your connection and try again.');
     }
   };
 
   const updateCase = async (id: string, caseData: Partial<Case>) => {
     console.log('🔵 updateCase called for ID:', id, 'with data:', caseData);
     
-    // Update case immediately in UI
-    setCases((prev) => prev.map((c) => {
-      if (c.id === id) {
-        const updated = { ...c, ...caseData, updatedAt: new Date() };
-        console.log('🟢 Case updated in UI:', updated);
-        return updated;
-      }
-      return c;
-    }));
-    
-    // Try to update in database in background with timeout
     try {
       const snakeCaseData = toSnakeCase(caseData);
       
-      console.log('🔵 Attempting to update case in database (background)...');
-      
-      // Create a timeout promise
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Database timeout')), 2000)
-      );
-      
-      // Race between database call and timeout
-      const result = await Promise.race([
-        db.cases.update(id, snakeCaseData),
-        timeoutPromise
-      ]) as any;
-      
-      const { data, error } = result;
+      console.log('🔵 Updating case in database...');
+      const { data, error } = await db.cases.update(id, snakeCaseData);
       
       if (error) {
-        console.warn('🟠 Database error (keeping local update):', error);
+        console.error('❌ Database error updating case:', error);
+        alert('Failed to update case. Please check your connection and try again.');
         return;
       }
       
       if (data) {
-        console.log('🟢 Case updated in database successfully');
-        // Optionally sync with database version
+        console.log('✅ Case updated in database successfully');
         setCases((prev) => prev.map((c) => (c.id === id ? toCamelCase(data) : c)));
       }
     } catch (err) {
-      console.warn('🟠 Database unavailable (keeping local update):', err);
-      // Keep the local update, database is unavailable
+      console.error('❌ Error updating case:', err);
+      alert('Failed to update case. Please check your connection and try again.');
     }
   };
 
   const deleteCase = async (id: string) => {
     console.log('🔵 deleteCase called for ID:', id);
     
-    // Delete case immediately from UI
-    setCases((prev) => {
-      const filtered = prev.filter((c) => c.id !== id);
-      console.log('🟢 Case deleted from UI. Remaining cases:', filtered.length);
-      return filtered;
-    });
-    
-    // Try to delete from database in background with timeout
     try {
-      console.log('🔵 Attempting to delete case from database (background)...');
-      
-      // Create a timeout promise
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Database timeout')), 2000)
-      );
-      
-      // Race between database call and timeout
-      const result = await Promise.race([
-        db.cases.delete(id),
-        timeoutPromise
-      ]) as any;
-      
-      const { error } = result;
+      console.log('🔵 Deleting case from database...');
+      const { error } = await db.cases.delete(id);
       
       if (error) {
-        console.warn('🟠 Database error (case already removed from UI):', error);
+        console.error('❌ Database error deleting case:', error);
+        alert('Failed to delete case. Please check your connection and try again.');
         return;
       }
       
-      console.log('🟢 Case deleted from database successfully');
+      console.log('✅ Case deleted from database successfully');
+      setCases((prev) => prev.filter((c) => c.id !== id));
     } catch (err) {
-      console.warn('🟠 Database unavailable (case already removed from UI):', err);
-      // Case is already removed from UI, database is unavailable
+      console.error('❌ Error deleting case:', err);
+      alert('Failed to delete case. Please check your connection and try again.');
     }
   };
 
@@ -621,159 +420,103 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCounsel((prev) => prev.filter((c) => c.id !== id));
   };
 
-  // Appointment operations
+  // Appointment operations - DATABASE FIRST approach for persistence
   const addAppointment = async (appointmentData: Omit<Appointment, 'id' | 'createdAt' | 'updatedAt'>) => {
     console.log('🔵 addAppointment called with data:', appointmentData);
     
-    // Create temporary appointment immediately for instant feedback
-    const tempAppointment: Appointment = {
-      ...appointmentData,
-      id: `temp-${Date.now()}`,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    
-    console.log('🟡 Adding temporary appointment locally:', tempAppointment);
-    setAppointments((prev) => {
-      const newAppointments = [tempAppointment, ...prev];
-      console.log('🟢 Appointments updated. Total appointments:', newAppointments.length);
-      return newAppointments;
-    });
-    
-    // Try to save to database in background with timeout
     try {
       const snakeCaseData = toSnakeCase(appointmentData);
       snakeCaseData.user_id = user?.id;
       snakeCaseData.user_name = user?.name;
       
-      console.log('🔵 Attempting to create appointment in database (background)...');
-      
-      // Create a timeout promise
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Database timeout')), 2000)
-      );
-      
-      // Race between database call and timeout
-      const result = await Promise.race([
-        db.appointments.create(snakeCaseData),
-        timeoutPromise
-      ]) as any;
-      
-      const { data, error } = result;
+      console.log('🔵 Creating appointment in database...');
+      const { data, error } = await db.appointments.create(snakeCaseData);
       
       if (error) {
-        console.warn('🟠 Database error (keeping temp appointment):', error);
+        console.error('❌ Database error creating appointment:', error);
+        alert('Failed to create appointment. Please check your connection and try again.');
         return;
       }
       
       if (data) {
-        console.log('🟢 Appointment created in database successfully, replacing temp appointment');
-        // Replace temp appointment with real appointment from database
-        setAppointments((prev) => prev.map(a => a.id === tempAppointment.id ? toCamelCase(data) : a));
+        console.log('✅ Appointment created in database successfully:', data);
+        setAppointments((prev) => [toCamelCase(data), ...prev]);
       }
     } catch (err) {
-      console.warn('🟠 Database unavailable (keeping temp appointment):', err);
-      // Keep the temp appointment, database is unavailable
+      console.error('❌ Error creating appointment:', err);
+      alert('Failed to create appointment. Please check your connection and try again.');
     }
   };
 
   const updateAppointment = async (id: string, appointmentData: Partial<Appointment>) => {
     console.log('🔵 updateAppointment called for ID:', id, 'with data:', appointmentData);
     
-    // Update appointment immediately in UI
-    setAppointments((prev) => prev.map((a) => {
-      if (a.id === id) {
-        const updated = { ...a, ...appointmentData, updatedAt: new Date() };
-        console.log('🟢 Appointment updated in UI:', updated);
-        return updated;
-      }
-      return a;
-    }));
-    
-    // Try to update in database in background with timeout
     try {
       const snakeCaseData = toSnakeCase(appointmentData);
       
-      console.log('🔵 Attempting to update appointment in database (background)...');
-      
-      // Create a timeout promise
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Database timeout')), 2000)
-      );
-      
-      // Race between database call and timeout
-      const result = await Promise.race([
-        db.appointments.update(id, snakeCaseData),
-        timeoutPromise
-      ]) as any;
-      
-      const { data, error } = result;
+      console.log('🔵 Updating appointment in database...');
+      const { data, error } = await db.appointments.update(id, snakeCaseData);
       
       if (error) {
-        console.warn('🟠 Database error (keeping local update):', error);
+        console.error('❌ Database error updating appointment:', error);
+        alert('Failed to update appointment. Please check your connection and try again.');
         return;
       }
       
       if (data) {
-        console.log('🟢 Appointment updated in database successfully');
-        // Optionally sync with database version
+        console.log('✅ Appointment updated in database successfully');
         setAppointments((prev) => prev.map((a) => (a.id === id ? toCamelCase(data) : a)));
       }
     } catch (err) {
-      console.warn('🟠 Database unavailable (keeping local update):', err);
-      // Keep the local update, database is unavailable
+      console.error('❌ Error updating appointment:', err);
+      alert('Failed to update appointment. Please check your connection and try again.');
     }
   };
 
   const deleteAppointment = async (id: string) => {
     console.log('🔵 deleteAppointment called for ID:', id);
     
-    // Delete appointment immediately from UI
-    setAppointments((prev) => {
-      const filtered = prev.filter((a) => a.id !== id);
-      console.log('🟢 Appointment deleted from UI. Remaining appointments:', filtered.length);
-      return filtered;
-    });
-    
-    // Try to delete from database in background with timeout
     try {
-      console.log('🔵 Attempting to delete appointment from database (background)...');
-      
-      // Create a timeout promise
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Database timeout')), 2000)
-      );
-      
-      // Race between database call and timeout
-      const result = await Promise.race([
-        db.appointments.delete(id),
-        timeoutPromise
-      ]) as any;
-      
-      const { error } = result;
+      console.log('🔵 Deleting appointment from database...');
+      const { error } = await db.appointments.delete(id);
       
       if (error) {
-        console.warn('🟠 Database error (appointment already removed from UI):', error);
+        console.error('❌ Database error deleting appointment:', error);
+        alert('Failed to delete appointment. Please check your connection and try again.');
         return;
       }
       
-      console.log('🟢 Appointment deleted from database successfully');
+      console.log('✅ Appointment deleted from database successfully');
+      setAppointments((prev) => prev.filter((a) => a.id !== id));
     } catch (err) {
-      console.warn('🟠 Database unavailable (appointment already removed from UI):', err);
-      // Appointment is already removed from UI, database is unavailable
+      console.error('❌ Error deleting appointment:', err);
+      alert('Failed to delete appointment. Please check your connection and try again.');
     }
   };
 
-  // Transaction operations
+  // Transaction operations - DATABASE FIRST approach for persistence
   const addTransaction = async (transactionData: Omit<Transaction, 'id' | 'createdAt'>) => {
-    const snakeCaseData = toSnakeCase(transactionData);
-    const { data, error } = await db.transactions.create(snakeCaseData);
-    if (error) {
-      console.error('Error adding transaction:', error);
-      return;
-    }
-    if (data) {
-      setTransactions((prev) => [toCamelCase(data), ...prev]);
+    console.log('🔵 addTransaction called with data:', transactionData);
+    
+    try {
+      const snakeCaseData = toSnakeCase(transactionData);
+      
+      console.log('🔵 Creating transaction in database...');
+      const { data, error } = await db.transactions.create(snakeCaseData);
+      
+      if (error) {
+        console.error('❌ Database error creating transaction:', error);
+        alert('Failed to create transaction. Please check your connection and try again.');
+        return;
+      }
+      
+      if (data) {
+        console.log('✅ Transaction created in database successfully:', data);
+        setTransactions((prev) => [toCamelCase(data), ...prev]);
+      }
+    } catch (err) {
+      console.error('❌ Error creating transaction:', err);
+      alert('Failed to create transaction. Please check your connection and try again.');
     }
   };
 
@@ -878,101 +621,93 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSofaItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Library Location Management
+  // Library Location Management - DATABASE FIRST approach for persistence
   const addLibraryLocation = async (name: string): Promise<{ success: boolean; error?: string }> => {
     if (!name || name.trim().length === 0) {
       return { success: false, error: 'Library location name cannot be empty' };
     }
 
-    // Create local location immediately for instant feedback
-    const tempLocation = {
-      id: `lib-loc-${Date.now()}`,
-      name: name.trim(),
-      createdBy: user?.id || '',
-      createdAt: new Date(),
-    };
-    setLibraryLocations((prev) => [...prev, tempLocation]);
-
-    // Try to save to database in background
     try {
+      console.log('🔵 Creating library location in database...');
       const { data, error } = await db.libraryLocations.create(name.trim(), user?.id || '');
+      
       if (error) {
-        console.warn('Database error (keeping local location):', error);
-        return { success: true }; // Still return success since local state is updated
+        console.error('❌ Database error creating library location:', error);
+        return { success: false, error: error.message };
       }
+      
       if (data) {
-        // Replace temp location with database version
-        setLibraryLocations((prev) => prev.map(loc => 
-          loc.id === tempLocation.id ? toCamelCase(data) : loc
-        ));
+        console.log('✅ Library location created in database successfully');
+        setLibraryLocations((prev) => [...prev, toCamelCase(data)]);
       }
+      return { success: true };
     } catch (err) {
-      console.warn('Database unavailable (keeping local location):', err);
+      console.error('❌ Error creating library location:', err);
+      return { success: false, error: 'Failed to create library location' };
     }
-    return { success: true };
   };
 
   const deleteLibraryLocation = async (id: string) => {
-    // Delete from local state immediately
-    setLibraryLocations((prev) => prev.filter((loc) => loc.id !== id));
-    
-    // Try to delete from database in background
     try {
+      console.log('🔵 Deleting library location from database...');
       const { error } = await db.libraryLocations.delete(id);
+      
       if (error) {
-        console.warn('Database error (location already removed from UI):', error);
+        console.error('❌ Database error deleting library location:', error);
+        alert('Failed to delete library location. Please check your connection and try again.');
+        return;
       }
+      
+      console.log('✅ Library location deleted from database successfully');
+      setLibraryLocations((prev) => prev.filter((loc) => loc.id !== id));
     } catch (err) {
-      console.warn('Database unavailable (location already removed from UI):', err);
+      console.error('❌ Error deleting library location:', err);
+      alert('Failed to delete library location. Please check your connection and try again.');
     }
   };
 
-  // Storage Location Management
+  // Storage Location Management - DATABASE FIRST approach for persistence
   const addStorageLocation = async (name: string): Promise<{ success: boolean; error?: string }> => {
     if (!name || name.trim().length === 0) {
       return { success: false, error: 'Storage location name cannot be empty' };
     }
 
-    // Create local location immediately for instant feedback
-    const tempLocation = {
-      id: `stor-loc-${Date.now()}`,
-      name: name.trim(),
-      createdBy: user?.id || '',
-      createdAt: new Date(),
-    };
-    setStorageLocations((prev) => [...prev, tempLocation]);
-
-    // Try to save to database in background
     try {
+      console.log('🔵 Creating storage location in database...');
       const { data, error } = await db.storageLocations.create(name.trim(), user?.id || '');
+      
       if (error) {
-        console.warn('Database error (keeping local location):', error);
-        return { success: true }; // Still return success since local state is updated
+        console.error('❌ Database error creating storage location:', error);
+        return { success: false, error: error.message };
       }
+      
       if (data) {
-        // Replace temp location with database version
-        setStorageLocations((prev) => prev.map(loc => 
-          loc.id === tempLocation.id ? toCamelCase(data) : loc
-        ));
+        console.log('✅ Storage location created in database successfully');
+        setStorageLocations((prev) => [...prev, toCamelCase(data)]);
       }
+      return { success: true };
     } catch (err) {
-      console.warn('Database unavailable (keeping local location):', err);
+      console.error('❌ Error creating storage location:', err);
+      return { success: false, error: 'Failed to create storage location' };
     }
-    return { success: true };
   };
 
   const deleteStorageLocation = async (id: string) => {
-    // Delete from local state immediately
-    setStorageLocations((prev) => prev.filter((loc) => loc.id !== id));
-    
-    // Try to delete from database in background
     try {
+      console.log('🔵 Deleting storage location from database...');
       const { error } = await db.storageLocations.delete(id);
+      
       if (error) {
-        console.warn('Database error (location already removed from UI):', error);
+        console.error('❌ Database error deleting storage location:', error);
+        alert('Failed to delete storage location. Please check your connection and try again.');
+        return;
       }
+      
+      console.log('✅ Storage location deleted from database successfully');
+      setStorageLocations((prev) => prev.filter((loc) => loc.id !== id));
     } catch (err) {
-      console.warn('Database unavailable (location already removed from UI):', err);
+      console.error('❌ Error deleting storage location:', err);
+      alert('Failed to delete storage location. Please check your connection and try again.');
     }
   };
 
@@ -980,108 +715,98 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return cases.filter((c) => c.status === 'closed');
   }, [cases]);
 
-  // Task Management Operations
+  // Task Management Operations - DATABASE FIRST approach for persistence
   const addTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
     console.log('🔵 addTask called with data:', taskData);
     
-    // Create temp task for immediate UI feedback
-    const tempTask: Task = {
-      ...taskData,
-      id: `task-${Date.now()}`,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    
-    setTasks((prev) => [tempTask, ...prev]);
-    console.log('🟢 Task added locally:', tempTask);
-    
-    // Try to save to database
     try {
       const snakeCaseData = toSnakeCase(taskData);
+      
+      console.log('🔵 Creating task in database...');
       const { data, error } = await db.tasks.create(snakeCaseData);
+      
       if (error) {
-        console.warn('🟠 Database error (keeping local task):', error);
+        console.error('❌ Database error creating task:', error);
+        alert('Failed to create task. Please check your connection and try again.');
         return;
       }
+      
       if (data) {
-        console.log('🟢 Task saved to database');
-        setTasks((prev) => prev.map(t => t.id === tempTask.id ? toCamelCase(data) : t));
+        console.log('✅ Task created in database successfully:', data);
+        setTasks((prev) => [toCamelCase(data), ...prev]);
       }
     } catch (err) {
-      console.warn('🟠 Database unavailable (keeping local task):', err);
+      console.error('❌ Error creating task:', err);
+      alert('Failed to create task. Please check your connection and try again.');
     }
   };
 
   const updateTask = async (id: string, taskData: Partial<Task>) => {
     console.log('🔵 updateTask called for ID:', id);
     
-    // Update locally first
-    setTasks((prev) => prev.map((t) => {
-      if (t.id === id) {
-        return { ...t, ...taskData, updatedAt: new Date() };
-      }
-      return t;
-    }));
-    
-    // Try to update in database
     try {
       const snakeCaseData = toSnakeCase(taskData);
-      const { error } = await db.tasks.update(id, snakeCaseData);
+      
+      console.log('🔵 Updating task in database...');
+      const { data, error } = await db.tasks.update(id, snakeCaseData);
+      
       if (error) {
-        console.warn('🟠 Database error (keeping local update):', error);
-      } else {
-        console.log('🟢 Task updated in database');
+        console.error('❌ Database error updating task:', error);
+        alert('Failed to update task. Please check your connection and try again.');
+        return;
+      }
+      
+      if (data) {
+        console.log('✅ Task updated in database successfully');
+        setTasks((prev) => prev.map((t) => (t.id === id ? toCamelCase(data) : t)));
       }
     } catch (err) {
-      console.warn('🟠 Database unavailable (keeping local update):', err);
+      console.error('❌ Error updating task:', err);
+      alert('Failed to update task. Please check your connection and try again.');
     }
   };
 
   const deleteTask = async (id: string) => {
     console.log('🔵 deleteTask called for ID:', id);
     
-    // Delete locally first
-    setTasks((prev) => prev.filter((t) => t.id !== id));
-    
-    // Try to delete from database
     try {
+      console.log('🔵 Deleting task from database...');
       const { error } = await db.tasks.delete(id);
+      
       if (error) {
-        console.warn('🟠 Database error (task already removed from UI):', error);
-      } else {
-        console.log('🟢 Task deleted from database');
+        console.error('❌ Database error deleting task:', error);
+        alert('Failed to delete task. Please check your connection and try again.');
+        return;
       }
+      
+      console.log('✅ Task deleted from database successfully');
+      setTasks((prev) => prev.filter((t) => t.id !== id));
     } catch (err) {
-      console.warn('🟠 Database unavailable (task already removed from UI):', err);
+      console.error('❌ Error deleting task:', err);
+      alert('Failed to delete task. Please check your connection and try again.');
     }
   };
 
   const completeTask = async (id: string) => {
     console.log('🔵 completeTask called for ID:', id);
     
-    // Update locally first
-    setTasks((prev) => prev.map((t) => {
-      if (t.id === id) {
-        return { 
-          ...t, 
-          status: 'completed' as const, 
-          completedAt: new Date(),
-          updatedAt: new Date() 
-        };
-      }
-      return t;
-    }));
-    
-    // Try to update in database
     try {
-      const { error } = await db.tasks.complete(id);
+      console.log('🔵 Completing task in database...');
+      const { data, error } = await db.tasks.complete(id);
+      
       if (error) {
-        console.warn('🟠 Database error (keeping local update):', error);
-      } else {
-        console.log('🟢 Task completed in database');
+        console.error('❌ Database error completing task:', error);
+        alert('Failed to complete task. Please check your connection and try again.');
+        return;
+      }
+      
+      if (data) {
+        console.log('✅ Task completed in database successfully');
+        setTasks((prev) => prev.map((t) => (t.id === id ? toCamelCase(data) : t)));
       }
     } catch (err) {
-      console.warn('🟠 Database unavailable (keeping local update):', err);
+      console.error('❌ Error completing task:', err);
+      alert('Failed to complete task. Please check your connection and try again.');
     }
   };
 
@@ -1142,42 +867,106 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return attendance.filter((a) => new Date(a.date).toISOString().split('T')[0] === dateStr);
   };
 
-  // Expense Management Functions
+  // Expense Management Functions - DATABASE FIRST approach for persistence
   const addExpense = async (expenseData: Omit<Expense, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newExpense: Expense = {
-      ...expenseData,
-      id: `expense-${Date.now()}`,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    setExpenses((prev) => [newExpense, ...prev]);
+    console.log('🔵 addExpense called with data:', expenseData);
+    
+    try {
+      const snakeCaseData = toSnakeCase(expenseData);
+      
+      console.log('🔵 Creating expense in database...');
+      const { data, error } = await db.expenses.create(snakeCaseData);
+      
+      if (error) {
+        console.error('❌ Database error creating expense:', error);
+        alert('Failed to create expense. Please check your connection and try again.');
+        return;
+      }
+      
+      if (data) {
+        console.log('✅ Expense created in database successfully:', data);
+        setExpenses((prev) => [toCamelCase(data), ...prev]);
+      }
+    } catch (err) {
+      console.error('❌ Error creating expense:', err);
+      alert('Failed to create expense. Please check your connection and try again.');
+    }
   };
 
   const updateExpense = async (id: string, expenseData: Partial<Expense>) => {
-    setExpenses((prev) => prev.map((e) => {
-      if (e.id === id) {
-        return { ...e, ...expenseData, updatedAt: new Date() };
+    console.log('🔵 updateExpense called for ID:', id);
+    
+    try {
+      const snakeCaseData = toSnakeCase(expenseData);
+      
+      console.log('🔵 Updating expense in database...');
+      const { data, error } = await db.expenses.update(id, snakeCaseData);
+      
+      if (error) {
+        console.error('❌ Database error updating expense:', error);
+        alert('Failed to update expense. Please check your connection and try again.');
+        return;
       }
-      return e;
-    }));
+      
+      if (data) {
+        console.log('✅ Expense updated in database successfully');
+        setExpenses((prev) => prev.map((e) => (e.id === id ? toCamelCase(data) : e)));
+      }
+    } catch (err) {
+      console.error('❌ Error updating expense:', err);
+      alert('Failed to update expense. Please check your connection and try again.');
+    }
   };
 
   const deleteExpense = async (id: string) => {
-    setExpenses((prev) => prev.filter((e) => e.id !== id));
+    console.log('🔵 deleteExpense called for ID:', id);
+    
+    try {
+      console.log('🔵 Deleting expense from database...');
+      const { error } = await db.expenses.delete(id);
+      
+      if (error) {
+        console.error('❌ Database error deleting expense:', error);
+        alert('Failed to delete expense. Please check your connection and try again.');
+        return;
+      }
+      
+      console.log('✅ Expense deleted from database successfully');
+      setExpenses((prev) => prev.filter((e) => e.id !== id));
+    } catch (err) {
+      console.error('❌ Error deleting expense:', err);
+      alert('Failed to delete expense. Please check your connection and try again.');
+    }
   };
 
   const getExpensesByMonth = (month: string): Expense[] => {
     return expenses.filter((e) => e.month === month).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   };
 
-  // Transaction update function
+  // Transaction update function - DATABASE FIRST approach for persistence
   const updateTransaction = async (id: string, transactionData: Partial<Transaction>) => {
-    setTransactions((prev) => prev.map((t) => {
-      if (t.id === id) {
-        return { ...t, ...transactionData };
+    console.log('🔵 updateTransaction called for ID:', id);
+    
+    try {
+      const snakeCaseData = toSnakeCase(transactionData);
+      
+      console.log('🔵 Updating transaction in database...');
+      const { data, error } = await db.transactions.update(id, snakeCaseData);
+      
+      if (error) {
+        console.error('❌ Database error updating transaction:', error);
+        alert('Failed to update transaction. Please check your connection and try again.');
+        return;
       }
-      return t;
-    }));
+      
+      if (data) {
+        console.log('✅ Transaction updated in database successfully');
+        setTransactions((prev) => prev.map((t) => (t.id === id ? toCamelCase(data) : t)));
+      }
+    } catch (err) {
+      console.error('❌ Error updating transaction:', err);
+      alert('Failed to update transaction. Please check your connection and try again.');
+    }
   };
 
   const value: DataContextType = {
