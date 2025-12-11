@@ -216,7 +216,7 @@ const AppointmentsPage: React.FC = () => {
               </select>
             </div>
           </div>
-
+                +++`1`
           {/* Appointment Details */}
           <div className="mb-6">
             <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>
@@ -296,7 +296,7 @@ const AppointmentsPage: React.FC = () => {
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2">
                           <User size={16} className="text-green-400" />
-                          {apt.user}
+                          {apt.userName || apt.user || '-'}
                         </div>
                       </td>
                       <td className="py-4 px-4">{apt.client || '-'}</td>
@@ -384,7 +384,7 @@ const EditAppointmentModal: React.FC<EditAppointmentModalProps> = ({
   const [formData, setFormData] = useState({
     date: new Date(appointment.date).toISOString().split('T')[0],
     time: appointment.time || '',
-    user: appointment.user || '',
+    user: appointment.userName || appointment.user || '',
     client: appointment.client || '',
     details: appointment.details || '',
   });
