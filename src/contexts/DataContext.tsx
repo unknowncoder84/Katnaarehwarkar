@@ -25,6 +25,10 @@ const toSnakeCase = (obj: any): any => {
   if (Array.isArray(obj)) {
     return obj.map(toSnakeCase);
   }
+  // Handle Date objects - convert to ISO string for database
+  if (obj instanceof Date) {
+    return obj.toISOString().split('T')[0]; // Return YYYY-MM-DD format
+  }
   if (obj !== null && typeof obj === 'object') {
     return Object.keys(obj).reduce((acc, key) => {
       const snakeKey = key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);

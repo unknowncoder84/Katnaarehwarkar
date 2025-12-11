@@ -91,6 +91,12 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
     console.log('⏳ Loading started');
 
     try {
+      // Format dates as YYYY-MM-DD strings for database
+      const today = new Date();
+      const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      const todayStr = today.toISOString().split('T')[0];
+      const nextWeekStr = nextWeek.toISOString().split('T')[0];
+
       const newCase: Omit<Case, 'id' | 'createdAt' | 'updatedAt'> = {
         clientName: formData.clientName,
         clientEmail: formData.clientEmail,
@@ -110,8 +116,8 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
         opponentLawyer: formData.opponentLawyer,
         additionalDetails: formData.additionalDetails,
         status: 'pending',
-        nextDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        filingDate: new Date(),
+        nextDate: nextWeekStr,
+        filingDate: todayStr,
         circulationStatus: 'non-circulated',
         interimRelief: 'none',
         createdBy: user?.id || '',

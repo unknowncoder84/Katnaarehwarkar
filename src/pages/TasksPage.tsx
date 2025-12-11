@@ -632,6 +632,9 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ onClose }) => {
     const assignedUser = users.find((u) => u.id === formData.assignedTo);
     const selectedCase = taskType === 'case' && formData.caseId ? cases.find((c) => c.id === formData.caseId) : null;
 
+    // Format deadline as YYYY-MM-DD string for database
+    const deadlineStr = formData.deadline; // Already in YYYY-MM-DD format from date input
+
     const taskData = {
       type: taskType,
       title: formData.title,
@@ -642,7 +645,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ onClose }) => {
       assignedByName: user?.name || 'Unknown',
       caseId: taskType === 'case' && caseInputMode === 'select' ? formData.caseId : undefined,
       caseName: caseInputMode === 'custom' ? formData.customCaseName : selectedCase?.clientName,
-      deadline: new Date(formData.deadline),
+      deadline: deadlineStr,
       status: 'pending' as const,
     };
 
@@ -915,6 +918,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose }) => {
     const assignedUser = users.find((u) => u.id === formData.assignedTo);
     const selectedCase = formData.caseId ? cases.find((c) => c.id === formData.caseId) : null;
 
+    // Use deadline string directly (already in YYYY-MM-DD format)
     await updateTask(task.id, {
       title: formData.title,
       description: formData.description,
@@ -922,7 +926,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ task, onClose }) => {
       assignedToName: assignedUser?.name || task.assignedToName,
       caseId: formData.caseId || undefined,
       caseName: selectedCase?.clientName || formData.caseName,
-      deadline: new Date(formData.deadline),
+      deadline: formData.deadline,
       status: formData.status as 'pending' | 'completed',
     });
     

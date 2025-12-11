@@ -55,13 +55,13 @@ export interface Case {
   feesQuoted: number;
   status: 'pending' | 'active' | 'closed' | 'on-hold';
   stage: CaseStage;
-  nextDate: Date;
-  filingDate: Date;
+  nextDate: Date | string;
+  filingDate: Date | string;
   circulationStatus: string;
-  circulationDate?: Date;
+  circulationDate?: Date | string;
   interimRelief: string;
-  interimDate?: Date;
-  grantedDate?: Date;
+  interimDate?: Date | string;
+  grantedDate?: Date | string;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
@@ -182,7 +182,7 @@ export interface Task {
   assignedByName: string; // User name for display
   caseId?: string; // Only for case tasks
   caseName?: string; // Case client name for display
-  deadline: Date;
+  deadline: Date | string;
   status: TaskStatus;
   completedAt?: Date;
   createdAt: Date;
