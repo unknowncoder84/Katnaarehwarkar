@@ -317,7 +317,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     try {
       const snakeCaseData = toSnakeCase(caseData);
-      snakeCaseData.created_by = user?.id;
+      // NOTE: Don't send created_by to avoid foreign key constraint issues
+      // snakeCaseData.created_by = user?.id;
       
       console.log('🔵 Creating case in database...', snakeCaseData);
       const { data, error } = await db.cases.create(snakeCaseData);
