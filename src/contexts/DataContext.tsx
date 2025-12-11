@@ -439,10 +439,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Create the database object with correct column names
       // user field contains the user NAME (not UUID), so we store it in user_name
+      // NOTE: We don't send user_id to avoid foreign key constraint issues
       const dbData = {
         date: dateStr,
         time: appointmentData.time || '',
-        user_id: user?.id || null, // Current logged-in user's UUID
         user_name: appointmentData.user || user?.name || '', // The selected user's name from dropdown
         client: appointmentData.client || '',
         details: appointmentData.details || '',
