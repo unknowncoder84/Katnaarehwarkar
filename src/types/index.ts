@@ -86,7 +86,9 @@ export interface Appointment {
   id: string;
   date: Date;
   time: string;
-  user: string;
+  user: string; // For frontend form compatibility
+  userName?: string; // From database (user_name column)
+  userId?: string; // From database (user_id column)
   client: string;
   details: string;
   createdAt: Date;

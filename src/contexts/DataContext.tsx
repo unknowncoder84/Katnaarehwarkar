@@ -427,16 +427,32 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('🔵 addAppointment called with data:', appointmentData);
     
     try {
-      const snakeCaseData = toSnakeCase(appointmentData);
-      snakeCaseData.user_id = user?.id;
-      snakeCaseData.user_name = user?.name;
+      // Format date properly - ensure it's a string in YYYY-MM-DD format
+      let dateStr: string;
+      if (appointmentData.date instanceof Date) {
+        dateStr = appointmentData.date.toISOString().split('T')[0];
+      } else if (typeof appointmentData.date === 'string') {
+        dateStr = appointmentData.date;
+      } else {
+        dateStr = new Date().toISOString().split('T')[0];
+      }
+
+      // Create the database object with correct column names
+      // user field contains the user NAME (not UUID), so we store it in user_name
+      const dbData = {
+        date: dateStr,
+        time: appointmentData.time || '',
+        user_id: user?.id || null, // Current logged-in user's UUID
+        user_name: appointmentData.user || user?.name || '', // The selected user's name from dropdown
+        client: appointmentData.client || '',
+        details: appointmentData.details || '',
+      };
       
-      console.log('🔵 Creating appointment in database...', snakeCaseData);
-      const { data, error } = await db.appointments.create(snakeCaseData);
+      console.log('🔵 Creating appointment in database...', dbData);
+      const { data, error } = await db.appointments.create(dbData);
       
       if (error) {
         console.error('❌ Database error creating appointment:', error);
-        // Show the actual error message from Supabase
         const errorMsg = error.message || error.details || JSON.stringify(error);
         alert(`Database Error: ${errorMsg}\n\nPlease run the SQL setup in Supabase SQL Editor first.`);
         return;
@@ -456,10 +472,23 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('🔵 updateAppointment called for ID:', id, 'with data:', appointmentData);
     
     try {
-      const snakeCaseData = toSnakeCase(appointmentData);
+      // Build update data with proper field mapping
+      const dbData: any = {};
       
-      console.log('🔵 Updating appointment in database...');
-      const { data, error } = await db.appointments.update(id, snakeCaseData);
+      if (appointmentData.date !== undefined) {
+        if (appointmentData.date instanceof Date) {
+          dbData.date = appointmentData.date.toISOString().split('T')[0];
+        } else {
+          dbData.date = appointmentData.date;
+        }
+      }
+      if (appointmentData.time !== undefined) dbData.time = appointmentData.time;
+      if (appointmentData.user !== undefined) dbData.user_name = appointmentData.user; // Map user to user_name
+      if (appointmentData.client !== undefined) dbData.client = appointmentData.client;
+      if (appointmentData.details !== undefined) dbData.details = appointmentData.details;
+      
+      console.log('🔵 Updating appointment in database...', dbData);
+      const { data, error } = await db.appointments.update(id, dbData);
       
       if (error) {
         console.error('❌ Database error updating appointment:', error);
