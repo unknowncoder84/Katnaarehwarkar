@@ -319,12 +319,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const snakeCaseData = toSnakeCase(caseData);
       snakeCaseData.created_by = user?.id;
       
-      console.log('🔵 Creating case in database...');
+      console.log('🔵 Creating case in database...', snakeCaseData);
       const { data, error } = await db.cases.create(snakeCaseData);
       
       if (error) {
         console.error('❌ Database error creating case:', error);
-        alert('Failed to create case. Please check your connection and try again.');
+        // Show the actual error message from Supabase
+        const errorMsg = error.message || error.details || JSON.stringify(error);
+        alert(`Database Error: ${errorMsg}\n\nPlease run the SQL setup in Supabase SQL Editor first.`);
         return;
       }
       
@@ -332,9 +334,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('✅ Case created in database successfully:', data);
         setCases((prev) => [toCamelCase(data), ...prev]);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('❌ Error creating case:', err);
-      alert('Failed to create case. Please check your connection and try again.');
+      alert(`Error: ${err.message || 'Unknown error'}\n\nPlease check browser console for details.`);
     }
   };
 
@@ -429,12 +431,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       snakeCaseData.user_id = user?.id;
       snakeCaseData.user_name = user?.name;
       
-      console.log('🔵 Creating appointment in database...');
+      console.log('🔵 Creating appointment in database...', snakeCaseData);
       const { data, error } = await db.appointments.create(snakeCaseData);
       
       if (error) {
         console.error('❌ Database error creating appointment:', error);
-        alert('Failed to create appointment. Please check your connection and try again.');
+        // Show the actual error message from Supabase
+        const errorMsg = error.message || error.details || JSON.stringify(error);
+        alert(`Database Error: ${errorMsg}\n\nPlease run the SQL setup in Supabase SQL Editor first.`);
         return;
       }
       
@@ -442,9 +446,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('✅ Appointment created in database successfully:', data);
         setAppointments((prev) => [toCamelCase(data), ...prev]);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('❌ Error creating appointment:', err);
-      alert('Failed to create appointment. Please check your connection and try again.');
+      alert(`Error: ${err.message || 'Unknown error'}\n\nPlease check browser console for details.`);
     }
   };
 
