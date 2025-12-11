@@ -5,6 +5,7 @@ import FormSelect from './FormSelect';
 import RichTextEditor from './RichTextEditor';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import { Case } from '../types';
 
 interface CreateCaseFormProps {
@@ -15,6 +16,7 @@ interface CreateCaseFormProps {
 const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) => {
   const { addCase, caseTypes, courts } = useData();
   const { theme } = useTheme();
+  const { user } = useAuth();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   
@@ -112,7 +114,7 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
         filingDate: new Date(),
         circulationStatus: 'non-circulated',
         interimRelief: 'none',
-        createdBy: 'current-user',
+        createdBy: user?.id || '',
       };
 
       console.log('📋 New case object created:', newCase);

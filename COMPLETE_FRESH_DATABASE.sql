@@ -155,7 +155,7 @@ CREATE TABLE cases (
     interim_date DATE,
     granted_date DATE,
     -- Metadata
-    created_by UUID,
+    created_by TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -182,7 +182,7 @@ CREATE TABLE counsel (
     address TEXT,
     details TEXT,
     total_cases INTEGER DEFAULT 0,
-    created_by UUID,
+    created_by TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -200,7 +200,7 @@ CREATE TABLE appointments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     date DATE NOT NULL,
     time VARCHAR(10),
-    user_id UUID,
+    user_id TEXT,
     user_name VARCHAR(255),
     client VARCHAR(255),
     details TEXT,
@@ -242,7 +242,7 @@ CREATE INDEX idx_transactions_status ON transactions(status);
 CREATE TABLE library_locations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
-    created_by UUID,
+    created_by TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -256,7 +256,7 @@ CREATE POLICY "library_locations_all" ON library_locations FOR ALL USING (true);
 CREATE TABLE storage_locations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
-    created_by UUID,
+    created_by TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -271,7 +271,7 @@ CREATE TABLE books (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     location VARCHAR(50) DEFAULT 'L1',
-    added_by UUID,
+    added_by TEXT,
     added_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -288,7 +288,7 @@ CREATE TABLE sofa_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     case_id UUID REFERENCES cases(id) ON DELETE CASCADE,
     compartment VARCHAR(5) NOT NULL CHECK (compartment IN ('C1', 'C2')),
-    added_by UUID,
+    added_by TEXT,
     added_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(case_id, compartment)
 );
@@ -309,7 +309,7 @@ CREATE TABLE library_items (
     description TEXT,
     location_id UUID REFERENCES library_locations(id) ON DELETE SET NULL,
     case_id UUID REFERENCES cases(id) ON DELETE SET NULL,
-    added_by UUID,
+    added_by TEXT,
     added_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -326,7 +326,7 @@ CREATE TABLE storage_items (
     description TEXT,
     location_id UUID REFERENCES storage_locations(id) ON DELETE SET NULL,
     case_id UUID REFERENCES cases(id) ON DELETE SET NULL,
-    added_by UUID,
+    added_by TEXT,
     added_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -357,9 +357,9 @@ CREATE TABLE tasks (
     type VARCHAR(20) NOT NULL DEFAULT 'custom' CHECK (type IN ('case', 'custom')),
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    assigned_to UUID,
+    assigned_to TEXT,
     assigned_to_name VARCHAR(255),
-    assigned_by UUID,
+    assigned_by TEXT,
     assigned_by_name VARCHAR(255),
     case_id UUID REFERENCES cases(id) ON DELETE CASCADE,
     case_name VARCHAR(255),
@@ -383,11 +383,11 @@ CREATE INDEX idx_tasks_deadline ON tasks(deadline);
 
 CREATE TABLE attendance (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL,
+    user_id TEXT NOT NULL,
     user_name VARCHAR(255) NOT NULL,
     date DATE NOT NULL,
     status VARCHAR(20) NOT NULL CHECK (status IN ('present', 'absent')),
-    marked_by UUID,
+    marked_by TEXT,
     marked_by_name VARCHAR(255),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
@@ -408,7 +408,7 @@ CREATE TABLE expenses (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     amount DECIMAL(12, 2) NOT NULL,
     description TEXT NOT NULL,
-    added_by UUID,
+    added_by TEXT,
     added_by_name VARCHAR(255),
     month VARCHAR(7) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -432,7 +432,7 @@ CREATE TABLE case_documents (
     dropbox_id TEXT,
     file_type VARCHAR(50),
     file_size BIGINT,
-    uploaded_by UUID,
+    uploaded_by TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -447,14 +447,14 @@ CREATE INDEX idx_case_documents_case_id ON case_documents(case_id);
 
 CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID,
+    user_id TEXT,
     type VARCHAR(50) NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT,
     icon VARCHAR(10) DEFAULT '🔔',
     is_read BOOLEAN DEFAULT FALSE,
-    related_id UUID,
-    created_by UUID,
+    related_id TEXT,
+    created_by TEXT,
     created_by_name VARCHAR(255),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
