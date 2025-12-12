@@ -199,24 +199,29 @@ const AppointmentsPage: React.FC = () => {
               </select>
             </div>
 
-            {/* Select Client */}
+            {/* Select Client - with ability to type new name */}
             <div>
               <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>
-                SELECT CLIENT
+                CLIENT NAME
               </label>
-              <select
+              <input
+                type="text"
+                list="client-list"
                 value={formData.client}
                 onChange={(e) => setFormData({ ...formData, client: e.target.value })}
+                placeholder="Type or select client name..."
                 className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-cyber-blue focus:shadow-cyber transition-colors`}
-              >
-                <option value="">Select Client</option>
+              />
+              <datalist id="client-list">
                 {clients.map((client, index) => (
-                  <option key={index} value={client}>{client}</option>
+                  <option key={index} value={client} />
                 ))}
-              </select>
+              </datalist>
+              <p className={`text-xs mt-1 ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+                Select existing client or type a new name
+              </p>
             </div>
           </div>
-                +++`1`
           {/* Appointment Details */}
           <div className="mb-6">
             <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>

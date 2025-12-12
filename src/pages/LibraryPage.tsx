@@ -22,8 +22,8 @@ interface LibraryItem {
 
 const LibraryPage: React.FC = () => {
   const { theme } = useTheme();
-  const { isAdmin, user } = useAuth();
-  const { libraryLocations } = useData();
+  const { isAdmin } = useAuth();
+  const { libraryLocations, books, addBook, deleteBook } = useData();
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
@@ -31,8 +31,23 @@ const LibraryPage: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
-  // Library items state - starts empty, items are added dynamically
+  // Library items state - now synced with database books
   const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
+  
+  // Sync library items with database books
+  React.useEffect(() => {
+    const items: LibraryItem[] = books.map(book => ({
+      id: book.id,
+      name: book.name,
+      number: book.id.slice(-6).toUpperCase(),
+      location: book.location || 'Default',
+      locationId: '',
+      type: 'Book' as const,
+      addedAt: new Date(book.addedAt),
+      addedBy: book.addedBy || 'Unknown',
+    }));
+    setLibraryItems(items);
+  }, [books]);
   
   // Form fields
   const [itemName, setItemName] = useState('');
@@ -50,33 +65,16 @@ const LibraryPage: React.FC = () => {
     e.preventDefault();
     setError('');
     
-    if (!itemName || !itemNumber || !itemLocationId) {
-      setError('Please fill in all required fields');
+    if (!itemName) {
+      setError('Please enter a name');
       return;
     }
-
-    const selectedLoc = libraryLocations.find(loc => loc.id === itemLocationId);
-    if (!selectedLoc) {
-      setError('Please select a valid location');
-      return;
-    }
-
-    let dropboxPath = '';
-    let dropboxLink = '';
 
     // Upload file to Dropbox if selected
     if (selectedFile && itemType === 'File') {
       setUploading(true);
       try {
-        const result = await dropbox.uploadFile(selectedFile, `library-${Date.now()}`);
-        dropboxPath = result.path;
-        // Try to get shareable link
-        try {
-          const linkResult = await dropbox.getShareableLink(result.path);
-          dropboxLink = linkResult.url;
-        } catch {
-          console.log('Could not get shareable link');
-        }
+        await dropbox.uploadFile(selectedFile, `library-${Date.now()}`);
       } catch (err) {
         console.error('Dropbox upload error:', err);
         setError('File upload failed. Item will be added without file.');
@@ -85,28 +83,25 @@ const LibraryPage: React.FC = () => {
       }
     }
 
-    const newItem: LibraryItem = {
-      id: Date.now().toString(),
-      name: itemName,
-      number: itemNumber,
-      location: selectedLoc.name,
-      locationId: itemLocationId,
-      type: itemType,
-      addedAt: new Date(),
-      addedBy: user?.name || 'Current User',
-      dropboxPath,
-      dropboxLink,
-    };
-
-    setLibraryItems([...libraryItems, newItem]);
-    
-    // Reset form
-    setItemName('');
-    setItemNumber('');
-    setItemLocationId('');
-    setItemType('Book');
-    setSelectedFile(null);
-    setShowAddForm(false);
+    // Save to database using addBook function
+    try {
+      const result = await addBook(itemName);
+      if (!result.success) {
+        setError(result.error || 'Failed to add item');
+        return;
+      }
+      
+      // Reset form
+      setItemName('');
+      setItemNumber('');
+      setItemLocationId('');
+      setItemType('Book');
+      setSelectedFile(null);
+      setShowAddForm(false);
+    } catch (err) {
+      console.error('Error adding item:', err);
+      setError('Failed to add item to library');
+    }
   };
 
   const handleDeleteItem = async (id: string) => {
@@ -121,7 +116,12 @@ const LibraryPage: React.FC = () => {
       }
     }
     
-    setLibraryItems(libraryItems.filter(item => item.id !== id));
+    // Delete from database
+    try {
+      await deleteBook(id);
+    } catch (err) {
+      console.error('Error deleting from database:', err);
+    }
   };
 
   const handleDownload = async (item: LibraryItem) => {

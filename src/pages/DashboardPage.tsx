@@ -42,13 +42,14 @@ const DashboardPage: React.FC = () => {
   }, [cases, pendingTasksCount]);
 
   // Dynamic stat cards - each card shows real-time count and navigates to filtered view
+  // All cards use orange gradient for consistency
   const statCards = [
     { 
       title: 'My Cases', 
       count: stats.myCases, 
-      gradient: 'from-cyber-blue to-neon-blue', 
+      gradient: 'from-orange-500 to-amber-500', 
       icon: Briefcase, 
-      glow: 'shadow-cyber', 
+      glow: 'shadow-orange', 
       path: '/cases', 
       description: 'View all your cases',
       filterType: 'all'
@@ -56,9 +57,9 @@ const DashboardPage: React.FC = () => {
     { 
       title: 'Pending Tasks', 
       count: pendingTasksCount, 
-      gradient: 'from-cyber-pink to-cyber-purple', 
+      gradient: 'from-orange-600 to-orange-400', 
       icon: Clock, 
-      glow: 'shadow-cyber-pink', 
+      glow: 'shadow-orange', 
       path: '/tasks?filter=pending', 
       description: 'View pending tasks',
       filterType: 'pending'
@@ -66,9 +67,9 @@ const DashboardPage: React.FC = () => {
     { 
       title: 'IR Favor', 
       count: stats.irFavor, 
-      gradient: 'from-cyber-green to-emerald-500', 
+      gradient: 'from-amber-500 to-yellow-500', 
       icon: ThumbsUp, 
-      glow: 'shadow-neon-sm', 
+      glow: 'shadow-orange', 
       path: '/cases?filter=ir-favor', 
       description: 'Cases with IR in favor',
       filterType: 'ir-favor'
@@ -76,9 +77,9 @@ const DashboardPage: React.FC = () => {
     { 
       title: 'IR Against', 
       count: stats.irAgainst, 
-      gradient: 'from-neon-pink to-cyber-pink', 
+      gradient: 'from-orange-600 to-red-500', 
       icon: ThumbsDown, 
-      glow: 'shadow-cyber-pink', 
+      glow: 'shadow-orange', 
       path: '/cases?filter=ir-against', 
       description: 'Cases with IR against',
       filterType: 'ir-against'
@@ -86,9 +87,9 @@ const DashboardPage: React.FC = () => {
     { 
       title: 'Non Circulated', 
       count: stats.nonCirculated, 
-      gradient: 'from-cyber-yellow to-cyber-orange', 
+      gradient: 'from-amber-600 to-orange-500', 
       icon: FileText, 
-      glow: 'shadow-court', 
+      glow: 'shadow-orange', 
       path: '/cases?filter=non-circulated', 
       description: 'Non-circulated cases',
       filterType: 'non-circulated'
@@ -96,9 +97,9 @@ const DashboardPage: React.FC = () => {
     { 
       title: 'Circulated', 
       count: stats.circulated, 
-      gradient: 'from-cyber-blue to-cyber-pink', 
+      gradient: 'from-orange-500 to-amber-400', 
       icon: CheckCircle, 
-      glow: 'shadow-justice', 
+      glow: 'shadow-orange', 
       path: '/cases?filter=circulated', 
       description: 'Circulated cases',
       filterType: 'circulated'
@@ -131,15 +132,13 @@ const DashboardPage: React.FC = () => {
       <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 mb-6 md:mb-8">
         {statCards.map((stat, index) => {
           const Icon = stat.icon;
-          // Light mode uses white cards with colored accents, dark mode uses gradient backgrounds
+          // Both modes use orange gradient backgrounds for consistency
           const cardClass = theme === 'light'
-            ? 'bg-white/95 backdrop-blur-xl border-gray-200 hover:border-purple-400 hover:shadow-xl shadow-md'
-            : `bg-gradient-to-br ${stat.gradient} border-cyber-blue/30 hover:border-cyber-blue/60`;
-          const subtextColorClass = theme === 'light' ? 'text-gray-800 font-bold' : 'text-white/80';
-          const countColorClass = theme === 'light' ? 'text-gray-900' : 'text-white';
-          const iconBgClass = theme === 'light' 
-            ? `bg-gradient-to-br ${stat.gradient}` 
-            : 'bg-white/20 border border-white/30';
+            ? `bg-gradient-to-br ${stat.gradient} border-orange-300 hover:border-orange-400 hover:shadow-xl shadow-md`
+            : `bg-gradient-to-br ${stat.gradient} border-orange-500/30 hover:border-orange-500/60`;
+          const subtextColorClass = 'text-white/90 font-bold';
+          const countColorClass = 'text-white';
+          const iconBgClass = 'bg-white/20 border border-white/30';
           
           return (
             <motion.div

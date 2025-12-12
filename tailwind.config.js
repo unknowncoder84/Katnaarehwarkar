@@ -35,7 +35,7 @@ export default {
         'gradient-card': 'linear-gradient(145deg, rgba(30, 30, 50, 0.95) 0%, rgba(20, 20, 35, 0.98) 100%)',
         'gradient-mesh':
           'radial-gradient(at 20% 30%, rgba(139, 92, 246, 0.2) 0px, transparent 50%), radial-gradient(at 80% 10%, rgba(6, 182, 212, 0.15) 0px, transparent 50%), radial-gradient(at 10% 70%, rgba(217, 70, 239, 0.15) 0px, transparent 50%)',
-        'gradient-cyber': 'linear-gradient(135deg, #f97316 0%, #fb923c 50%, #fbbf24 100%)',
+        'gradient-cyber': 'linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fb923c 100%)',
         'gradient-void': 'linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #0f0f1a 100%)',
       },
       backdropBlur: {
@@ -50,9 +50,10 @@ export default {
         card: '0 8px 30px rgba(0, 0, 0, 0.3)',
         'card-hover': '0 20px 60px rgba(139, 92, 246, 0.25)',
         'inner-glow': 'inset 0 0 30px rgba(139, 92, 246, 0.1)',
-        'cyber': '0 0 20px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.2)',
-        'cyber-pink': '0 0 20px rgba(217, 70, 239, 0.4), 0 0 40px rgba(217, 70, 239, 0.2)',
-        'justice': '0 0 30px rgba(139, 92, 246, 0.5), 0 0 60px rgba(217, 70, 239, 0.3)',
+        'cyber': '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(249, 115, 22, 0.2)',
+        'cyber-pink': '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(249, 115, 22, 0.2)',
+        'justice': '0 0 30px rgba(249, 115, 22, 0.5), 0 0 60px rgba(251, 146, 60, 0.3)',
+        'orange': '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(249, 115, 22, 0.2)',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',
