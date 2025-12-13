@@ -15,16 +15,16 @@ const StatCard: React.FC<StatCardProps> = ({ icon: Icon, title, count, color, de
   const { theme } = useTheme();
   
   const colorClasses: Record<string, string> = {
-    purple: 'from-cyber-purple to-cyber-pink',
-    blue: 'from-cyber-blue to-neon-blue',
-    green: 'from-cyber-green to-emerald-500',
-    red: 'from-neon-pink to-cyber-pink',
-    cyan: 'from-cyber-blue to-cyber-green',
-    pink: 'from-cyber-pink to-cyber-purple',
+    purple: 'from-violet-500 to-purple-500',
+    blue: 'from-blue-500 to-blue-600',
+    green: 'from-emerald-500 to-green-500',
+    red: 'from-red-500 to-rose-500',
+    cyan: 'from-cyan-500 to-teal-500',
+    pink: 'from-pink-500 to-rose-500',
   };
 
   const cardBg = theme === 'light' 
-    ? 'bg-white/95 backdrop-blur-xl border-gray-200 hover:border-purple-400 shadow-md hover:shadow-lg' 
+    ? 'bg-white/95 backdrop-blur-xl border-gray-200 hover:border-orange-400 shadow-md hover:shadow-lg' 
     : 'glass-dark border-cyber-blue/20 hover:border-cyber-blue/50';
   const titleClass = theme === 'light' ? 'text-gray-700 font-semibold' : 'text-cyber-blue/60';
   const countClass = theme === 'light' ? 'text-gray-900' : 'text-cyber-blue text-glow';

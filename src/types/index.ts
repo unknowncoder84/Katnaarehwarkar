@@ -154,6 +154,7 @@ export interface StorageLocation {
 export interface Book {
   id: string;
   name: string;
+  number: string; // Reference number entered by user
   location: string; // Now references LibraryLocation name
   addedAt: Date;
   addedBy: string;
@@ -258,7 +259,7 @@ export interface DataContextType {
   addCaseType: (caseTypeName: string) => void | Promise<void>;
   deleteCaseType: (id: string) => void | Promise<void>;
   // Library Management
-  addBook: (name: string) => { success: boolean; error?: string } | Promise<{ success: boolean; error?: string }>;
+  addBook: (name: string, number?: string, location?: string) => { success: boolean; error?: string } | Promise<{ success: boolean; error?: string }>;
   deleteBook: (id: string) => void | Promise<void>;
   addSofaItem: (caseId: string, compartment: 'C1' | 'C2') => { success: boolean; error?: string } | Promise<{ success: boolean; error?: string }>;
   removeSofaItem: (id: string) => void | Promise<void>;

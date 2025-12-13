@@ -45,7 +45,7 @@ const ClientsPage: React.FC = () => {
   const bgClass = theme === 'light' ? 'bg-white text-black' : 'glass-dark text-cyber-blue';
   const borderClass = theme === 'light' ? 'border-gray-300' : 'border-cyber-blue/20';
   const hoverClass = theme === 'light' ? 'hover:bg-gray-100' : 'hover:bg-cyber-blue/10';
-  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300 placeholder-gray-500' : 'bg-white/5 text-white border-purple-500/30 placeholder-gray-400';
+  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300 placeholder-gray-500' : 'bg-white/5 text-white border-orange-500/30 placeholder-gray-400';
   const headerBgClass = theme === 'light' ? 'bg-gray-100' : 'bg-cyber-blue/10';
 
   return (

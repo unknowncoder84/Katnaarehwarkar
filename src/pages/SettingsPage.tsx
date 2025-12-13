@@ -46,7 +46,7 @@ const SettingsPage: React.FC = () => {
   };
 
   const cardBg = theme === 'light' ? 'bg-white/90 backdrop-blur-xl border-gray-200/50' : 'glass-dark border-cyber-blue/20';
-  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300 placeholder-gray-500' : 'bg-white/5 text-white border-purple-500/30 placeholder-gray-400';
+  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300 placeholder-gray-500' : 'bg-white/5 text-white border-orange-500/30 placeholder-gray-400';
   const itemBgClass = theme === 'light' ? 'bg-gray-50' : 'bg-cyber-blue/10';
   const textPrimary = theme === 'light' ? 'text-gray-900' : 'text-cyber-blue';
   const textSecondary = theme === 'light' ? 'text-gray-600' : 'text-cyber-blue/60';
@@ -95,11 +95,11 @@ const SettingsPage: React.FC = () => {
               onChange={(e) => setCourtName(e.target.value)}
               placeholder="Enter court name (e.g., High Court of Mumbai)"
               rows={2}
-              className={`flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:border-purple-500 transition-colors resize-none ${inputBgClass}`}
+              className={`flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:border-orange-500 transition-colors resize-none ${inputBgClass}`}
             />
             <button
               onClick={handleAddCourt}
-              className="bg-gradient-to-r from-cyber-green to-emerald-500 text-white px-6 py-3 rounded-xl hover:shadow-cyber transition-all duration-300 font-medium font-cyber border border-cyber-green/30 self-start"
+              className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-6 py-3 rounded-xl hover:shadow-cyber transition-all duration-300 font-medium font-cyber border border-orange-500/30 self-start"
             >
               Add Court
             </button>
@@ -149,11 +149,11 @@ const SettingsPage: React.FC = () => {
               onChange={(e) => setCaseTypeName(e.target.value)}
               placeholder="Enter case type (e.g., Civil, Criminal, Family Law)"
               rows={2}
-              className={`flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:border-purple-500 transition-colors resize-none ${inputBgClass}`}
+              className={`flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:border-orange-500 transition-colors resize-none ${inputBgClass}`}
             />
             <button
               onClick={handleAddCaseType}
-              className="bg-gradient-to-r from-cyber-blue to-neon-blue text-white px-6 py-3 rounded-xl hover:shadow-cyber transition-all duration-300 font-medium font-cyber border border-cyber-blue/30 self-start"
+              className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-6 py-3 rounded-xl hover:shadow-cyber transition-all duration-300 font-medium font-cyber border border-orange-500/30 self-start"
             >
               Add Type
             </button>
@@ -256,7 +256,7 @@ const SettingsPage: React.FC = () => {
         className={`${cardBg} p-6 rounded-2xl border`}
       >
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg">
+          <div className="p-2 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg">
             <Archive size={20} className="text-white" />
           </div>
           <div>
@@ -278,7 +278,7 @@ const SettingsPage: React.FC = () => {
             />
             <button
               onClick={handleAddStorageLocation}
-              className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-300 font-medium font-cyber border border-indigo-500/30 self-start"
+              className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-300 font-medium font-cyber border border-orange-500/30 self-start"
             >
               Add Location
             </button>

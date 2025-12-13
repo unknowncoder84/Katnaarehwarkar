@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { DollarSign, TrendingUp, Briefcase } from 'lucide-react';
+import { IndianRupee, TrendingUp, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
 import PaymentModeBadge from '../components/PaymentModeBadge';
@@ -83,7 +83,7 @@ const FinancePage: React.FC = () => {
               <p className={`text-2xl font-bold mt-2 ${theme === 'light' ? 'text-gray-900' : 'text-amber-400'}`}>₹{pendingAmount.toLocaleString()}</p>
             </div>
             <div className="p-3 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl">
-              <DollarSign size={28} className="text-white" />
+              <IndianRupee size={28} className="text-white" />
             </div>
           </div>
         </motion.div>
@@ -100,7 +100,7 @@ const FinancePage: React.FC = () => {
               <p className={`text-2xl font-bold mt-2 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>{transactions.length}</p>
             </div>
             <div className="p-3 bg-gradient-cyber rounded-xl border border-cyber-blue/30">
-              <DollarSign size={28} className="text-white" />
+              <IndianRupee size={28} className="text-white" />
             </div>
           </div>
         </motion.div>
@@ -131,7 +131,7 @@ const FinancePage: React.FC = () => {
             </thead>
             <tbody>
               {cases.filter(c => c.feesQuoted > 0).map((c) => (
-                <tr key={c.id} className={`border-b ${theme === 'light' ? 'border-gray-100 hover:bg-purple-50/50' : 'border-white/10 hover:bg-white/5'} transition-colors`}>
+                <tr key={c.id} className={`border-b ${theme === 'light' ? 'border-gray-100 hover:bg-orange-50/50' : 'border-white/10 hover:bg-white/5'} transition-colors`}>
                   <td className={`py-3 px-4 font-medium ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>{c.clientName}</td>
                   <td className={`py-3 px-4 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>{c.fileNo}</td>
                   <td className={`py-3 px-4 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>{c.caseType}</td>
@@ -182,7 +182,7 @@ const FinancePage: React.FC = () => {
               {transactions.map((t) => {
                 const caseData = cases.find((c) => c.id === t.caseId);
                 return (
-                  <tr key={t.id} className={`border-b ${theme === 'light' ? 'border-gray-100 hover:bg-purple-50/50' : 'border-white/10 hover:bg-white/5'} transition-colors`}>
+                  <tr key={t.id} className={`border-b ${theme === 'light' ? 'border-gray-100 hover:bg-orange-50/50' : 'border-white/10 hover:bg-white/5'} transition-colors`}>
                     <td className={`py-4 px-6 font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>₹{t.amount.toLocaleString()}</td>
                     <td className="py-4 px-6">
                       <PaymentModeBadge mode={t.paymentMode} size="md" />

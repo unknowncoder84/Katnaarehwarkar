@@ -48,7 +48,7 @@ const SofaPage: React.FC = () => {
   const textSecondary = theme === 'light' ? 'text-gray-700' : 'text-cyber-blue/60';
   const inputBg = theme === 'light' 
     ? 'bg-white border-gray-300 text-gray-900' 
-    : 'bg-white/5 border-purple-500/30 text-white';
+    : 'bg-white/5 border-orange-500/30 text-white';
 
   const renderCompartment = (compartment: 'C1' | 'C2', items: typeof sofaItems) => (
     <motion.div
@@ -56,7 +56,7 @@ const SofaPage: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       className={`${cardBg} rounded-2xl border overflow-hidden`}
     >
-      <div className={`p-4 border-b ${theme === 'light' ? 'border-gray-200' : 'border-white/10'} ${compartment === 'C1' ? 'bg-gradient-to-r from-blue-500/10 to-cyan-500/10' : 'bg-gradient-to-r from-purple-500/10 to-pink-500/10'}`}>
+      <div className={`p-4 border-b ${theme === 'light' ? 'border-gray-200' : 'border-white/10'} ${compartment === 'C1' ? 'bg-gradient-to-r from-blue-500/10 to-cyan-500/10' : 'bg-gradient-to-r from-orange-500/10 to-amber-500/10'}`}>
         <h2 className={`text-lg font-bold font-cyber ${textPrimary}`}>
           Compartment {compartment} ({items.length} files)
         </h2>
@@ -77,11 +77,11 @@ const SofaPage: React.FC = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className={`p-4 flex items-center justify-between ${theme === 'light' ? 'hover:bg-purple-50/50' : 'hover:bg-white/5'} transition-colors`}
+                className={`p-4 flex items-center justify-between ${theme === 'light' ? 'hover:bg-orange-50/50' : 'hover:bg-white/5'} transition-colors`}
               >
                 <div className="flex items-center gap-4">
-                  <div className={`p-2 rounded-lg ${compartment === 'C1' ? 'bg-blue-500/20' : 'bg-purple-500/20'}`}>
-                    <FileText size={20} className={compartment === 'C1' ? 'text-blue-500' : 'text-purple-500'} />
+                  <div className={`p-2 rounded-lg ${compartment === 'C1' ? 'bg-blue-500/20' : 'bg-orange-500/20'}`}>
+                    <FileText size={20} className={compartment === 'C1' ? 'text-blue-500' : 'text-orange-500'} />
                   </div>
                   <div>
                     <p className={`font-semibold ${textPrimary}`}>
@@ -119,7 +119,7 @@ const SofaPage: React.FC = () => {
         className="mb-4 md:mb-6"
       >
         <div className="flex items-center gap-2 md:gap-3">
-          <div className="p-2 md:p-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg md:rounded-xl">
+          <div className="p-2 md:p-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg md:rounded-xl">
             <Sofa size={20} className="text-white md:w-6 md:h-6" />
           </div>
           <div>
@@ -144,7 +144,7 @@ const SofaPage: React.FC = () => {
             <select
               value={selectedCase}
               onChange={(e) => setSelectedCase(e.target.value)}
-              className={`w-full px-3 md:px-4 py-2.5 md:py-3 rounded-lg md:rounded-xl border ${inputBg} focus:outline-none focus:border-purple-500 transition-all text-sm md:text-base`}
+              className={`w-full px-3 md:px-4 py-2.5 md:py-3 rounded-lg md:rounded-xl border ${inputBg} focus:outline-none focus:border-orange-500 transition-all text-sm md:text-base`}
             >
               <option value="">Select a case...</option>
               {cases.map((c) => (
@@ -156,7 +156,7 @@ const SofaPage: React.FC = () => {
             <select
               value={selectedCompartment}
               onChange={(e) => setSelectedCompartment(e.target.value as 'C1' | 'C2')}
-              className={`w-full px-3 md:px-4 py-2.5 md:py-3 rounded-lg md:rounded-xl border ${inputBg} focus:outline-none focus:border-purple-500 transition-all text-sm md:text-base`}
+              className={`w-full px-3 md:px-4 py-2.5 md:py-3 rounded-lg md:rounded-xl border ${inputBg} focus:outline-none focus:border-orange-500 transition-all text-sm md:text-base`}
             >
               <option value="C1">Compartment C1</option>
               <option value="C2">Compartment C2</option>
@@ -164,7 +164,7 @@ const SofaPage: React.FC = () => {
           </div>
           <button
             type="submit"
-            className="flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl font-semibold font-cyber hover:shadow-lg transition-all text-sm md:text-base w-full sm:w-auto sm:self-start"
+            className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl font-semibold font-cyber hover:shadow-lg transition-all text-sm md:text-base w-full sm:w-auto sm:self-start"
           >
             <Plus size={18} />
             Add to {selectedCompartment}

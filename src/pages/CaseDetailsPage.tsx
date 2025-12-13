@@ -82,6 +82,20 @@ const CaseDetailsPage: React.FC = () => {
   const [isCirculationLoading, setIsCirculationLoading] = useState(false);
   const [circulationNotification, setCirculationNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   
+  // Basic Details editable state
+  const [basicDetailsState, setBasicDetailsState] = useState({
+    status: 'pending',
+    stage: 'consultation',
+    caseType: '',
+    court: '',
+    district: '',
+    filingDate: '',
+    nextDateBasic: '',
+  });
+  const [isBasicDetailsLoading, setIsBasicDetailsLoading] = useState(false);
+  const [basicDetailsNotification, setBasicDetailsNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [hasBasicDetailsChanged, setHasBasicDetailsChanged] = useState(false);
+  
   // Payments state
   const [payments, setPayments] = useState<CasePayment[]>([]);
   const [newPayment, setNewPayment] = useState({ amount: '', date: '', paymentMode: '', referenceId: '', tds: '' });
@@ -149,6 +163,18 @@ const CaseDetailsPage: React.FC = () => {
       if (caseData.nextDate) {
         setNextDate(new Date(caseData.nextDate).toISOString().split('T')[0]);
       }
+      
+      // Set basic details values
+      setBasicDetailsState({
+        status: caseData.status || 'pending',
+        stage: caseData.stage || 'consultation',
+        caseType: caseData.caseType || '',
+        court: caseData.court || '',
+        district: caseData.district || '',
+        filingDate: caseData.filingDate ? new Date(caseData.filingDate).toISOString().split('T')[0] : '',
+        nextDateBasic: caseData.nextDate ? new Date(caseData.nextDate).toISOString().split('T')[0] : '',
+      });
+      setHasBasicDetailsChanged(false);
     }
   }, [caseData]);
 
@@ -331,6 +357,47 @@ const CaseDetailsPage: React.FC = () => {
     }
   };
 
+  // Handle Basic Details field change
+  const handleBasicDetailsChange = (field: string, value: string) => {
+    setBasicDetailsState(prev => ({ ...prev, [field]: value }));
+    setHasBasicDetailsChanged(true);
+  };
+
+  // Handle Save Basic Details
+  const handleSaveBasicDetails = async () => {
+    if (!id) return;
+    
+    setIsBasicDetailsLoading(true);
+    try {
+      await updateCase(id, {
+        status: basicDetailsState.status as any,
+        stage: basicDetailsState.stage as any,
+        caseType: basicDetailsState.caseType,
+        court: basicDetailsState.court,
+        district: basicDetailsState.district,
+        filingDate: basicDetailsState.filingDate || undefined,
+        nextDate: basicDetailsState.nextDateBasic || undefined,
+      });
+      
+      // Add to timeline
+      setTimeline([{
+        id: Date.now().toString(),
+        title: `Case Details Updated`,
+        description: `Stage: ${basicDetailsState.stage}, Status: ${basicDetailsState.status}`,
+        date: new Date()
+      }, ...timeline]);
+      
+      setBasicDetailsNotification({ type: 'success', message: 'Case details saved successfully! Dashboard will reflect the changes.' });
+      setHasBasicDetailsChanged(false);
+      setTimeout(() => setBasicDetailsNotification(null), 4000);
+    } catch (error) {
+      setBasicDetailsNotification({ type: 'error', message: 'Failed to save case details' });
+      setTimeout(() => setBasicDetailsNotification(null), 3000);
+    } finally {
+      setIsBasicDetailsLoading(false);
+    }
+  };
+
   // Handle Update Interim Relief
   const handleUpdateInterimRelief = async () => {
     if (!id) return;
@@ -509,9 +576,30 @@ const CaseDetailsPage: React.FC = () => {
         {/* Basic Details Tab */}
         {activeTab === 'basic' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Notification */}
+            {basicDetailsNotification && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`md:col-span-2 p-4 rounded-xl flex items-center gap-3 ${
+                  basicDetailsNotification.type === 'success' 
+                    ? 'bg-green-500/20 border border-green-500/30 text-green-400' 
+                    : 'bg-red-500/20 border border-red-500/30 text-red-400'
+                }`}
+              >
+                {basicDetailsNotification.type === 'success' ? <CheckCircle size={20} /> : <Bell size={20} />}
+                <span className="font-medium">{basicDetailsNotification.message}</span>
+              </motion.div>
+            )}
+            
             {/* Basic Details Card */}
             <div className={`${cardBgClass} p-6 rounded-xl`}>
-              <h3 className="text-lg font-bold mb-4 text-orange-600">Basic Details</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-orange-600">Basic Details</h3>
+                {hasBasicDetailsChanged && (
+                  <span className="text-xs px-2 py-1 bg-amber-500/20 text-amber-400 rounded-full">Unsaved changes</span>
+                )}
+              </div>
               <div className="space-y-3">
                 <p><span className="font-medium">Client -</span> <span className="text-cyan-500">{caseData.clientName} | {caseData.clientMobile}</span></p>
                 <div className="flex items-center gap-2">
@@ -532,11 +620,14 @@ const CaseDetailsPage: React.FC = () => {
                 <p><span className="font-medium">Name of Parties -</span> {caseData.partiesName}</p>
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Case Status -</span>
-                  <select className={`px-3 py-1 rounded border ${inputBgClass}`} defaultValue={caseData.status}>
+                  <select 
+                    className={`px-3 py-1 rounded border ${inputBgClass}`} 
+                    value={basicDetailsState.status}
+                    onChange={(e) => handleBasicDetailsChange('status', e.target.value)}
+                  >
                     <option value="pending">PENDING</option>
                     <option value="active">ACTIVE</option>
-                    <option value="noc">NOC</option>
-                    <option value="disposed">DISPOSED</option>
+                    <option value="on-hold">ON HOLD</option>
                     <option value="closed">CLOSED</option>
                   </select>
                 </div>
@@ -545,11 +636,8 @@ const CaseDetailsPage: React.FC = () => {
                   <span className="font-medium">Case Stage -</span>
                   <select 
                     className={`px-3 py-1 rounded border ${inputBgClass} flex-1`} 
-                    defaultValue={caseData.stage || ''}
-                    onChange={(e) => {
-                      // Update case stage - this will be saved when user clicks save
-                      console.log('Stage changed to:', e.target.value);
-                    }}
+                    value={basicDetailsState.stage}
+                    onChange={(e) => handleBasicDetailsChange('stage', e.target.value)}
                   >
                     <option value="">Select Stage</option>
                     <option value="consultation">Consultation</option>
@@ -566,7 +654,11 @@ const CaseDetailsPage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Case Type -</span>
-                  <select className={`px-3 py-1 rounded border ${inputBgClass}`} defaultValue={caseData.caseType}>
+                  <select 
+                    className={`px-3 py-1 rounded border ${inputBgClass}`} 
+                    value={basicDetailsState.caseType}
+                    onChange={(e) => handleBasicDetailsChange('caseType', e.target.value)}
+                  >
                     <option value="">Select Case Type</option>
                     {caseTypes.map((ct) => (
                       <option key={ct.id} value={ct.name}>{ct.name}</option>
@@ -575,7 +667,11 @@ const CaseDetailsPage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Court -</span>
-                  <select className={`px-3 py-1 rounded border ${inputBgClass}`} defaultValue={caseData.court}>
+                  <select 
+                    className={`px-3 py-1 rounded border ${inputBgClass}`} 
+                    value={basicDetailsState.court}
+                    onChange={(e) => handleBasicDetailsChange('court', e.target.value)}
+                  >
                     <option value="">Select Court</option>
                     {courts.map((court) => (
                       <option key={court.id} value={court.name}>{court.name}</option>
@@ -584,10 +680,17 @@ const CaseDetailsPage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium">District -</span>
-                  <select className={`px-3 py-1 rounded border ${inputBgClass}`} defaultValue={caseData.district}>
+                  <select 
+                    className={`px-3 py-1 rounded border ${inputBgClass}`} 
+                    value={basicDetailsState.district}
+                    onChange={(e) => handleBasicDetailsChange('district', e.target.value)}
+                  >
                     <option value="">Select</option>
                     <option value="Mumbai">Mumbai</option>
                     <option value="Pune">Pune</option>
+                    <option value="Nagpur">Nagpur</option>
+                    <option value="Nashik">Nashik</option>
+                    <option value="Aurangabad">Aurangabad</option>
                   </select>
                 </div>
               </div>
@@ -604,12 +707,61 @@ const CaseDetailsPage: React.FC = () => {
                 <p><span className="font-medium">Created On -</span> {formatIndianDate(caseData.createdAt)}</p>
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Filing Date -</span>
-                  <input type="date" className={`px-3 py-1 rounded border ${inputBgClass}`} defaultValue={new Date(caseData.filingDate).toISOString().split('T')[0]} />
+                  <input 
+                    type="date" 
+                    className={`px-3 py-1 rounded border ${inputBgClass}`} 
+                    value={basicDetailsState.filingDate}
+                    onChange={(e) => handleBasicDetailsChange('filingDate', e.target.value)}
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Next Date -</span>
-                  <input type="date" className={`px-3 py-1 rounded border ${inputBgClass}`} defaultValue={new Date(caseData.nextDate).toISOString().split('T')[0]} />
+                  <input 
+                    type="date" 
+                    className={`px-3 py-1 rounded border ${inputBgClass}`} 
+                    value={basicDetailsState.nextDateBasic}
+                    onChange={(e) => handleBasicDetailsChange('nextDateBasic', e.target.value)}
+                  />
                 </div>
+              </div>
+            </div>
+            
+            {/* Save Button for Basic Details - More Prominent */}
+            <div className="md:col-span-2">
+              {hasBasicDetailsChanged && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-amber-500/20 border border-amber-500/30 rounded-xl p-4 mb-4 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <Bell size={20} className="text-amber-400" />
+                    <span className="text-amber-400 font-medium">You have unsaved changes. Click Save to update the case and reflect changes on dashboard.</span>
+                  </div>
+                </motion.div>
+              )}
+              <div className="flex justify-end">
+                <button
+                  onClick={handleSaveBasicDetails}
+                  disabled={isBasicDetailsLoading || !hasBasicDetailsChanged}
+                  className={`px-10 py-4 rounded-xl font-bold font-cyber transition-all duration-300 flex items-center gap-3 text-lg ${
+                    hasBasicDetailsChanged
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-lg hover:scale-105 border border-green-500/30 animate-pulse'
+                      : 'bg-gray-500/20 text-gray-400 cursor-not-allowed border border-gray-500/30'
+                  }`}
+                >
+                  {isBasicDetailsLoading ? (
+                    <>
+                      <RefreshCw size={22} className="animate-spin" />
+                      Saving to Database...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={22} />
+                      SAVE ALL CHANGES
+                    </>
+                  )}
+                </button>
               </div>
             </div>
 
@@ -790,7 +942,7 @@ const CaseDetailsPage: React.FC = () => {
                 className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
                   isInterimLoading 
                     ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-purple-600 hover:to-pink-600 hover:shadow-lg hover:shadow-orange-500/30'
+                    : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 hover:shadow-lg hover:shadow-orange-500/30'
                 } text-white border border-orange-500/30`}
               >
                 <Shield size={18} />
@@ -855,7 +1007,7 @@ const CaseDetailsPage: React.FC = () => {
                 className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
                   isCirculationLoading 
                     ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-purple-600 hover:to-pink-600 hover:shadow-lg hover:shadow-orange-500/30'
+                    : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 hover:shadow-lg hover:shadow-orange-500/30'
                 } text-white border border-orange-500/30`}
               >
                 <RefreshCw size={18} />
@@ -1022,10 +1174,10 @@ const CaseDetailsPage: React.FC = () => {
                       <td className="py-3 px-4">
                         <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase flex items-center gap-1 w-fit ${
                           payment.paymentMode === 'cash' ? 'bg-green-500/20 text-green-500 border border-green-500/30' :
-                          payment.paymentMode === 'upi' ? 'bg-purple-500/20 text-purple-500 border border-orange-500/30' :
+                          payment.paymentMode === 'upi' ? 'bg-orange-500/20 text-orange-500 border border-orange-500/30' :
                           payment.paymentMode === 'bank-transfer' ? 'bg-blue-500/20 text-blue-500 border border-blue-500/30' :
                           payment.paymentMode === 'check' ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' :
-                          payment.paymentMode === 'card' ? 'bg-pink-500/20 text-pink-500 border border-pink-500/30' :
+                          payment.paymentMode === 'card' ? 'bg-orange-500/20 text-orange-500 border border-orange-500/30' :
                           payment.paymentMode === 'online' ? 'bg-cyan-500/20 text-cyan-500 border border-cyan-500/30' :
                           'bg-gray-500/20 text-gray-500 border border-gray-500/30'
                         }`}>
@@ -1088,9 +1240,9 @@ const CaseDetailsPage: React.FC = () => {
             )}
             
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <CheckSquare className="text-purple-500" size={24} />
+              <CheckSquare className="text-orange-500" size={24} />
               Assign Task
-              {isAdmin && <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded-full ml-2">Admin Mode</span>}
+              {isAdmin && <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-1 rounded-full ml-2">Admin Mode</span>}
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -1180,7 +1332,7 @@ const CaseDetailsPage: React.FC = () => {
                             <p className={labelClass}>
                               <span className="font-medium">Assigned by:</span> {task.assignedBy}
                               {task.assignedByRole === 'admin' && (
-                                <span className="ml-1 text-xs bg-purple-500/20 text-purple-400 px-1.5 py-0.5 rounded">Admin</span>
+                                <span className="ml-1 text-xs bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded">Admin</span>
                               )}
                             </p>
                           )}
@@ -1311,7 +1463,7 @@ const CaseDetailsPage: React.FC = () => {
                       )}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className={`font-cyber text-sm ${theme === 'light' ? 'text-pink-600' : 'text-cyber-pink'}`}>
+                      <span className={`font-cyber text-sm ${theme === 'light' ? 'text-orange-600' : 'text-orange-500'}`}>
                         {formatIndianDate(event.date)}
                       </span>
                       <button
@@ -1356,6 +1508,43 @@ const CaseDetailsPage: React.FC = () => {
           Designed and Developed by <span className="text-cyan-400">sawantrishi152@gmail.com</span> © 2025
         </p>
       </motion.div>
+
+      {/* Floating Save Bar - Appears when there are unsaved changes */}
+      {hasBasicDetailsChanged && activeTab === 'basic' && (
+        <motion.div
+          initial={{ opacity: 0, y: 100 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 100 }}
+          className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-r from-amber-600 to-orange-600 shadow-2xl border-t-2 border-amber-400"
+        >
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-3 text-white">
+              <Bell size={24} className="animate-bounce" />
+              <div>
+                <p className="font-bold text-lg">Unsaved Changes Detected!</p>
+                <p className="text-sm opacity-90">Click Save to update case stage and reflect on dashboard</p>
+              </div>
+            </div>
+            <button
+              onClick={handleSaveBasicDetails}
+              disabled={isBasicDetailsLoading}
+              className="px-8 py-3 bg-white text-orange-600 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 flex items-center gap-2 shadow-lg"
+            >
+              {isBasicDetailsLoading ? (
+                <>
+                  <RefreshCw size={20} className="animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <CheckCircle size={20} />
+                  SAVE NOW
+                </>
+              )}
+            </button>
+          </div>
+        </motion.div>
+      )}
     </MainLayout>
   );
 };

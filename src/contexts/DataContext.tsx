@@ -602,12 +602,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Library Management - Books
-  const addBook = async (name: string): Promise<{ success: boolean; error?: string }> => {
+  const addBook = async (name: string, number?: string, location?: string): Promise<{ success: boolean; error?: string }> => {
     if (!name || name.trim().length === 0) {
       return { success: false, error: 'Book name cannot be empty' };
     }
 
-    const { data, error } = await db.books.create(name.trim(), user?.id || '');
+    const { data, error } = await db.books.create(name.trim(), user?.id || '', number || '', location || '');
     if (error) {
       return { success: false, error: error.message };
     }

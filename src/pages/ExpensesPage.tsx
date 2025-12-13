@@ -85,7 +85,7 @@ const ExpensesPage: React.FC = () => {
             className={`px-4 py-2 rounded-lg border ${
               theme === 'light'
                 ? 'bg-white text-gray-900 border-gray-300'
-                : 'bg-white/5 text-white border-purple-500/30'
+                : 'bg-white/5 text-white border-orange-500/30'
             }`}
           />
           <span className={`text-lg font-bold ${textPrimary}`}>{formatMonthName(selectedMonth)}</span>
@@ -102,7 +102,7 @@ const ExpensesPage: React.FC = () => {
           className={`${cardBg} p-6 rounded-xl border w-full flex items-center justify-between hover:shadow-lg transition-all duration-300`}
         >
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl">
+            <div className="p-3 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl">
               <TrendingDown size={28} className="text-white" />
             </div>
             <div className="text-left">
@@ -197,7 +197,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose }) => {
   });
 
   const cardBg = theme === 'light' ? 'bg-white' : 'glass-dark';
-  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300' : 'bg-white/5 text-white border-purple-500/30';
+  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300' : 'bg-white/5 text-white border-orange-500/30';
   const labelClass = theme === 'light' ? 'text-gray-700' : 'text-cyber-blue/80';
   const textPrimary = theme === 'light' ? 'text-gray-900' : 'text-cyber-blue';
 
@@ -247,7 +247,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose }) => {
               value={formData.amount}
               onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
               placeholder="Enter amount"
-              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-purple-500`}
+              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-orange-500`}
               required
             />
           </div>
@@ -262,7 +262,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose }) => {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Enter expense description"
               rows={4}
-              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-purple-500 resize-none`}
+              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-orange-500 resize-none`}
               required
             />
           </div>
@@ -276,7 +276,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose }) => {
               type="month"
               value={formData.month}
               onChange={(e) => setFormData({ ...formData, month: e.target.value })}
-              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-purple-500`}
+              className={`w-full px-4 py-3 rounded-lg border ${inputBgClass} focus:outline-none focus:border-orange-500`}
               required
             />
           </div>

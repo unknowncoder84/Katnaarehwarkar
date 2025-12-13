@@ -131,7 +131,7 @@ const CounselCasesPage: React.FC = () => {
   const bgClass = theme === 'light' ? 'bg-white text-black' : 'glass-dark text-cyber-blue';
   const borderClass = theme === 'light' ? 'border-gray-300' : 'border-cyber-blue/20';
   const hoverClass = theme === 'light' ? 'hover:bg-gray-100' : 'hover:bg-cyber-blue/10';
-  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300 placeholder-gray-500' : 'bg-white/5 text-white border-purple-500/30 placeholder-gray-400';
+  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300 placeholder-gray-500' : 'bg-white/5 text-white border-orange-500/30 placeholder-gray-400';
   const headerBgClass = theme === 'light' ? 'bg-gray-100' : 'bg-cyber-blue/10';
   const textPrimary = theme === 'light' ? 'text-gray-900' : 'text-white';
   const textSecondary = theme === 'light' ? 'text-gray-600' : 'text-gray-400';
@@ -196,14 +196,14 @@ const CounselCasesPage: React.FC = () => {
         <div className="flex gap-3">
           <button
             onClick={() => exportToCSV(counselCases, `counsel_cases_${new Date().getTime()}.csv`)}
-            className="bg-gradient-to-r from-cyber-green to-emerald-500 text-white px-4 py-2 rounded font-semibold font-cyber hover:shadow-cyber transition-all duration-300 flex items-center gap-2 border border-cyber-green/30"
+            className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2 rounded font-semibold font-cyber hover:shadow-orange transition-all duration-300 flex items-center gap-2 border border-orange-500/30"
           >
             <Download size={18} />
             CSV
           </button>
           <button
             onClick={() => exportToExcel(counselCases, `counsel_cases_${new Date().getTime()}.xlsx`)}
-            className="bg-gradient-to-r from-cyber-blue to-neon-blue text-white px-4 py-2 rounded font-semibold font-cyber hover:shadow-cyber transition-all duration-300 flex items-center gap-2 border border-cyber-blue/30"
+            className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2 rounded font-semibold font-cyber hover:shadow-orange transition-all duration-300 flex items-center gap-2 border border-orange-500/30"
           >
             <Download size={18} />
             EXCEL

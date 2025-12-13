@@ -60,7 +60,7 @@ body.light-mode .glass-dark {
 
 /* Animated Gradient Text */
 .gradient-text {
-  background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 35%, #06b6d4 70%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #f97316 0%, #fb923c 35%, #fbbf24 70%, #f97316 100%);
   background-size: 200% 200%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -76,7 +76,7 @@ body.light-mode .glass-dark {
 /* Modern Card with Glow */
 .card-modern {
   background: linear-gradient(145deg, rgba(30, 30, 50, 0.95) 0%, rgba(20, 20, 35, 0.98) 100%);
-  border: 1px solid rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(249, 115, 22, 0.15);
   border-radius: 24px;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -85,7 +85,7 @@ body.light-mode .glass-dark {
 
 body.light-mode .card-modern {
   background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(249, 115, 22, 0.2);
 }
 
 .card-modern::before {
@@ -95,19 +95,19 @@ body.light-mode .card-modern {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(249, 115, 22, 0.5), transparent);
   opacity: 0;
   transition: opacity 0.4s ease;
 }
 
 .card-modern:hover {
-  border-color: rgba(139, 92, 246, 0.4);
-  box-shadow: 0 20px 60px rgba(139, 92, 246, 0.2), 0 0 40px rgba(139, 92, 246, 0.1);
+  border-color: rgba(249, 115, 22, 0.4);
+  box-shadow: 0 20px 60px rgba(249, 115, 22, 0.2), 0 0 40px rgba(249, 115, 22, 0.1);
   transform: translateY(-4px);
 }
 
 body.light-mode .card-modern:hover {
-  box-shadow: 0 20px 60px rgba(139, 92, 246, 0.15), 0 0 40px rgba(139, 92, 246, 0.08);
+  box-shadow: 0 20px 60px rgba(249, 115, 22, 0.15), 0 0 40px rgba(249, 115, 22, 0.08);
 }
 
 .card-modern:hover::before {
@@ -118,10 +118,10 @@ body.light-mode .card-modern:hover {
 /* Neon Glow Effects - Enhanced */
 .neon-glow {
   box-shadow: 
-    0 0 20px rgba(139, 92, 246, 0.4),
-    0 0 40px rgba(139, 92, 246, 0.2),
-    0 0 60px rgba(139, 92, 246, 0.1),
-    inset 0 0 30px rgba(139, 92, 246, 0.05);
+    0 0 20px rgba(249, 115, 22, 0.4),
+    0 0 40px rgba(249, 115, 22, 0.2),
+    0 0 60px rgba(249, 115, 22, 0.1),
+    inset 0 0 30px rgba(249, 115, 22, 0.05);
 }
 
 .neon-border {
@@ -132,7 +132,7 @@ body.light-mode .card-modern:hover {
   content: '';
   position: absolute;
   inset: -2px;
-  background: linear-gradient(135deg, #8b5cf6, #d946ef, #06b6d4, #8b5cf6);
+  background: linear-gradient(135deg, #f97316, #fb923c, #fbbf24, #f97316);
   background-size: 300% 300%;
   border-radius: inherit;
   z-index: -1;
@@ -153,7 +153,7 @@ body.light-mode .card-modern:hover {
 
 /* Button Styles - Ultra Modern */
 .btn-primary {
-  background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
+  background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
   color: white;
   font-weight: 600;
   padding: 0.875rem 1.75rem;
@@ -177,7 +177,7 @@ body.light-mode .card-modern:hover {
 }
 
 .btn-primary:hover {
-  box-shadow: 0 10px 40px rgba(139, 92, 246, 0.5), 0 0 20px rgba(217, 70, 239, 0.3);
+  box-shadow: 0 10px 40px rgba(249, 115, 22, 0.5), 0 0 20px rgba(251, 146, 60, 0.3);
   transform: translateY(-3px) scale(1.02);
 }
 
@@ -186,20 +186,20 @@ body.light-mode .card-modern:hover {
 }
 
 .btn-secondary {
-  background: rgba(139, 92, 246, 0.1);
-  color: #a78bfa;
+  background: rgba(249, 115, 22, 0.1);
+  color: #fb923c;
   font-weight: 600;
   padding: 0.875rem 1.75rem;
   border-radius: 16px;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(249, 115, 22, 0.3);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
 }
 
 .btn-secondary:hover {
-  background: rgba(139, 92, 246, 0.2);
-  border-color: #8b5cf6;
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+  background: rgba(249, 115, 22, 0.2);
+  border-color: #f97316;
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.2);
 }
 
 /* Floating Animation */
@@ -214,8 +214,8 @@ body.light-mode .card-modern:hover {
 
 /* Pulse Glow Animation */
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
-  50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.6), 0 0 60px rgba(217, 70, 239, 0.3); }
+  0%, 100% { box-shadow: 0 0 20px rgba(249, 115, 22, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(249, 115, 22, 0.6), 0 0 60px rgba(251, 146, 60, 0.3); }
 }
 
 .animate-pulse-glow {
@@ -229,40 +229,40 @@ body.light-mode .card-modern:hover {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(139, 92, 246, 0.05);
+  background: rgba(249, 115, 22, 0.05);
   border-radius: 10px;
 }
 
 body.light-mode ::-webkit-scrollbar-track {
-  background: rgba(139, 92, 246, 0.08);
+  background: rgba(249, 115, 22, 0.08);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #8b5cf6 0%, #d946ef 100%);
+  background: linear-gradient(180deg, #f97316 0%, #fb923c 100%);
   border-radius: 10px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #7c3aed 0%, #c026d3 100%);
+  background: linear-gradient(180deg, #ea580c 0%, #f97316 100%);
 }
 
 body.light-mode ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #a78bfa 0%, #e879f9 100%);
+  background: linear-gradient(180deg, #fb923c 0%, #fbbf24 100%);
 }
 
 /* Input Focus Styles - Enhanced */
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: #8b5cf6 !important;
-  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15), 0 0 20px rgba(139, 92, 246, 0.1);
+  border-color: #f97316 !important;
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15), 0 0 20px rgba(249, 115, 22, 0.1);
 }
 
 body.light-mode input:focus, 
 body.light-mode select:focus, 
 body.light-mode textarea:focus {
-  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1), 0 0 15px rgba(139, 92, 246, 0.08);
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1), 0 0 15px rgba(249, 115, 22, 0.08);
 }
 
 /* Placeholder Text Visibility - Dark Mode */
@@ -295,7 +295,7 @@ body.light-mode select option {
 }
 
 .table-modern th {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(217, 70, 239, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(251, 146, 60, 0.1) 100%);
   font-weight: 700;
   text-transform: uppercase;
   font-size: 0.7rem;
@@ -303,16 +303,16 @@ body.light-mode select option {
 }
 
 body.light-mode .table-modern th {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(217, 70, 239, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(251, 146, 60, 0.05) 100%);
   color: #374151;
 }
 
 .table-modern tr:hover td {
-  background: rgba(139, 92, 246, 0.08);
+  background: rgba(249, 115, 22, 0.08);
 }
 
 body.light-mode .table-modern tr:hover td {
-  background: rgba(139, 92, 246, 0.05);
+  background: rgba(249, 115, 22, 0.05);
 }
 
 /* Status Badge Styles - Enhanced */
@@ -373,11 +373,11 @@ body.light-mode .badge-info {
 /* Animated Background Mesh - Enhanced */
 .bg-mesh {
   background-image: 
-    radial-gradient(at 20% 30%, rgba(139, 92, 246, 0.2) 0px, transparent 50%),
-    radial-gradient(at 80% 10%, rgba(6, 182, 212, 0.15) 0px, transparent 50%),
-    radial-gradient(at 10% 70%, rgba(217, 70, 239, 0.15) 0px, transparent 50%),
-    radial-gradient(at 90% 80%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
-    radial-gradient(at 50% 50%, rgba(59, 130, 246, 0.08) 0px, transparent 70%);
+    radial-gradient(at 20% 30%, rgba(249, 115, 22, 0.2) 0px, transparent 50%),
+    radial-gradient(at 80% 10%, rgba(251, 146, 60, 0.15) 0px, transparent 50%),
+    radial-gradient(at 10% 70%, rgba(251, 191, 36, 0.15) 0px, transparent 50%),
+    radial-gradient(at 90% 80%, rgba(249, 115, 22, 0.12) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(234, 88, 12, 0.08) 0px, transparent 70%);
   animation: mesh-move 20s ease-in-out infinite;
 }
 
@@ -409,12 +409,12 @@ body.light-mode .badge-info {
 
 /* Selection Color */
 ::selection {
-  background: rgba(139, 92, 246, 0.4);
+  background: rgba(249, 115, 22, 0.4);
   color: white;
 }
 
 body.light-mode ::selection {
-  background: rgba(139, 92, 246, 0.3);
+  background: rgba(249, 115, 22, 0.3);
   color: #1e293b;
 }
 
@@ -425,7 +425,7 @@ body.light-mode .text-glow {
 
 /* Light Mode Holographic Text */
 body.light-mode .holographic-text {
-  background: linear-gradient(135deg, #7c3aed 0%, #c026d3 50%, #0891b2 100%);
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fb923c 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -433,16 +433,16 @@ body.light-mode .holographic-text {
 
 /* Light Mode Cyber Blue Text */
 body.light-mode .text-cyber-blue {
-  color: #6366f1;
+  color: #f97316;
 }
 
 /* Light Mode Shadow Adjustments */
 body.light-mode .shadow-cyber {
-  box-shadow: 0 10px 40px rgba(139, 92, 246, 0.2), 0 0 20px rgba(217, 70, 239, 0.1);
+  box-shadow: 0 10px 40px rgba(249, 115, 22, 0.2), 0 0 20px rgba(251, 146, 60, 0.1);
 }
 
 body.light-mode .shadow-cyber-pink {
-  box-shadow: 0 10px 40px rgba(236, 72, 153, 0.2), 0 0 20px rgba(217, 70, 239, 0.1);
+  box-shadow: 0 10px 40px rgba(249, 115, 22, 0.2), 0 0 20px rgba(251, 146, 60, 0.1);
 }
 
 /* Light Mode Card Shadows */
@@ -467,7 +467,7 @@ body.light-mode .gradient-border {
   inset: 0;
   border-radius: 24px;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.5), rgba(217, 70, 239, 0.3), rgba(6, 182, 212, 0.3));
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.5), rgba(251, 146, 60, 0.3), rgba(251, 191, 36, 0.3));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -497,22 +497,22 @@ body.light-mode .gradient-border {
 
 .hover-lift:hover {
   transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 25px 50px rgba(139, 92, 246, 0.25);
+  box-shadow: 0 25px 50px rgba(249, 115, 22, 0.25);
 }
 
-/* Gradient Magenta - Updated */
+/* Gradient Magenta - Updated to Orange */
 .bg-gradient-magenta {
-  background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #ec4899 100%);
+  background: linear-gradient(135deg, #f97316 0%, #fb923c 50%, #fbbf24 100%);
 }
 
 /* Shadow Glow */
 .shadow-glow {
-  box-shadow: 0 10px 40px rgba(139, 92, 246, 0.4), 0 0 20px rgba(217, 70, 239, 0.2);
+  box-shadow: 0 10px 40px rgba(249, 115, 22, 0.4), 0 0 20px rgba(251, 146, 60, 0.2);
 }
 
 /* Text Glow */
 .text-glow {
-  text-shadow: 0 0 20px rgba(139, 92, 246, 0.5), 0 0 40px rgba(139, 92, 246, 0.3);
+  text-shadow: 0 0 20px rgba(249, 115, 22, 0.5), 0 0 40px rgba(249, 115, 22, 0.3);
 }
 
 /* Ripple Effect */
@@ -568,31 +568,31 @@ body.light-mode .bg-gradient-void {
 }
 
 body.light-mode .bg-gradient-cyber {
-  background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #ec4899 100%);
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fb923c 100%);
 }
 
 /* Light Mode Button Styles */
 body.light-mode .btn-primary {
-  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25);
+  box-shadow: 0 4px 20px rgba(249, 115, 22, 0.25);
 }
 
 body.light-mode .btn-primary:hover {
-  box-shadow: 0 8px 30px rgba(139, 92, 246, 0.35);
+  box-shadow: 0 8px 30px rgba(249, 115, 22, 0.35);
 }
 
 body.light-mode .btn-secondary {
-  background: rgba(139, 92, 246, 0.08);
-  color: #7c3aed;
-  border-color: rgba(139, 92, 246, 0.25);
+  background: rgba(249, 115, 22, 0.08);
+  color: #ea580c;
+  border-color: rgba(249, 115, 22, 0.25);
 }
 
 body.light-mode .btn-secondary:hover {
-  background: rgba(139, 92, 246, 0.15);
+  background: rgba(249, 115, 22, 0.15);
 }
 
 /* Light Mode Neon Effects - Toned Down */
 body.light-mode .neon-glow {
-  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 4px 20px rgba(249, 115, 22, 0.2);
 }
 
 body.light-mode .animate-cyber-pulse {
@@ -601,7 +601,7 @@ body.light-mode .animate-cyber-pulse {
 
 /* Light Mode Hover Effects */
 body.light-mode .hover-lift:hover {
-  box-shadow: 0 15px 40px rgba(139, 92, 246, 0.15);
+  box-shadow: 0 15px 40px rgba(249, 115, 22, 0.15);
 }
 
 /* Light Mode Matrix Background - Hidden */
@@ -611,7 +611,7 @@ body.light-mode .matrix-bg {
 
 /* Light Mode Gradient Text */
 body.light-mode .gradient-text {
-  background: linear-gradient(135deg, #7c3aed 0%, #c026d3 35%, #0891b2 70%, #7c3aed 100%);
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 35%, #fb923c 70%, #ea580c 100%);
   background-size: 200% 200%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

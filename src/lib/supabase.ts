@@ -322,10 +322,10 @@ export const db = {
         .order('added_at', { ascending: false })
       return { data, error }
     },
-    create: async (name: string, addedBy: string) => {
+    create: async (name: string, addedBy: string, number?: string, location?: string) => {
       const { data, error } = await supabase
         .from('books')
-        .insert([{ name, added_by: addedBy }])
+        .insert([{ name, added_by: addedBy, number: number || '', location: location || '' }])
         .select()
         .single()
       return { data, error }

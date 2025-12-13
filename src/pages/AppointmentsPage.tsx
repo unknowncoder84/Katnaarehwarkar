@@ -150,7 +150,7 @@ const AppointmentsPage: React.FC = () => {
             {/* Appointment Date */}
             <div>
               <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>
-                APPOINTMENT DATE <span className="text-cyber-pink">*</span>
+                APPOINTMENT DATE <span className="text-orange-500">*</span>
               </label>
               <div className="relative">
                 <input
@@ -184,7 +184,7 @@ const AppointmentsPage: React.FC = () => {
             {/* For User */}
             <div>
               <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>
-                FOR USER <span className="text-cyber-pink">*</span>
+                FOR USER <span className="text-orange-500">*</span>
               </label>
               <select
                 value={formData.user}
@@ -225,7 +225,7 @@ const AppointmentsPage: React.FC = () => {
           {/* Appointment Details */}
           <div className="mb-6">
             <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>
-              APPOINTMENT DETAILS <span className="text-cyber-pink">*</span>
+              APPOINTMENT DETAILS <span className="text-orange-500">*</span>
             </label>
             <textarea
               value={formData.details}
@@ -288,7 +288,7 @@ const AppointmentsPage: React.FC = () => {
                     >
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2">
-                          <Calendar size={16} className="text-cyber-pink" />
+                          <Calendar size={16} className="text-orange-500" />
                           {formatIndianDate(apt.date)}
                         </div>
                       </td>

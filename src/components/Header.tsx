@@ -587,7 +587,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               <div className={`px-4 py-3 text-center border-t ${theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-orange-500/30 bg-white/5'}`}>
                 <button
                   onClick={() => setShowNotifications(false)}
-                  className={`text-xs font-medium ${theme === 'light' ? 'text-purple-600 hover:text-purple-700' : 'text-purple-400 hover:text-purple-300'} transition-colors`}
+                  className={`text-xs font-medium ${theme === 'light' ? 'text-orange-600 hover:text-orange-700' : 'text-orange-400 hover:text-orange-300'} transition-colors`}
                 >
                   Close
                 </button>

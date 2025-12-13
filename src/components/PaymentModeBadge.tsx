@@ -13,10 +13,10 @@ const PaymentModeBadge: React.FC<PaymentModeBadgeProps> = ({ mode, size = 'md' }
       upi: {
         icon: Smartphone,
         label: 'UPI',
-        gradient: 'from-purple-500 to-indigo-500',
-        bgColor: 'bg-purple-500/20',
-        textColor: 'text-purple-400',
-        borderColor: 'border-purple-500/30',
+        gradient: 'from-orange-500 to-amber-500',
+        bgColor: 'bg-orange-500/20',
+        textColor: 'text-orange-400',
+        borderColor: 'border-orange-500/30',
       },
       cash: {
         icon: Banknote,
@@ -45,10 +45,10 @@ const PaymentModeBadge: React.FC<PaymentModeBadgeProps> = ({ mode, size = 'md' }
       card: {
         icon: CreditCard,
         label: 'Card',
-        gradient: 'from-pink-500 to-rose-500',
-        bgColor: 'bg-pink-500/20',
-        textColor: 'text-pink-400',
-        borderColor: 'border-pink-500/30',
+        gradient: 'from-orange-500 to-amber-500',
+        bgColor: 'bg-orange-500/20',
+        textColor: 'text-orange-400',
+        borderColor: 'border-orange-500/30',
       },
       other: {
         icon: Wallet,

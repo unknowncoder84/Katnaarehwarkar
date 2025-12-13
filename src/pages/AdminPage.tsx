@@ -13,6 +13,7 @@ import {
   CheckSquare,
   Clock,
   Bell,
+  Edit2,
 } from 'lucide-react';
 import MainLayout from '../components/MainLayout';
 import { useTheme } from '../contexts/ThemeContext';
@@ -27,6 +28,7 @@ const AdminPage: React.FC = () => {
   const { tasks } = useData();
   
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -38,12 +40,18 @@ const AdminPage: React.FC = () => {
     password: '',
     role: 'user',
   });
+  
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    email: '',
+    username: '',
+  });
 
   const cardBg = theme === 'light' ? 'bg-white/80 backdrop-blur-xl border-gray-200/50' : 'glass-dark border-cyber-blue/20';
   const textPrimary = theme === 'light' ? 'text-gray-900' : 'text-cyber-blue';
   const textSecondary = theme === 'light' ? 'text-gray-600' : 'text-cyber-blue/60';
-  const inputBg = theme === 'light' ? 'bg-white border-gray-300 placeholder-gray-500' : 'bg-white/5 border-purple-500/30 placeholder-gray-400';
-  const hoverBg = theme === 'light' ? 'hover:bg-purple-50' : 'hover:bg-cyber-blue/10';
+  const inputBg = theme === 'light' ? 'bg-white border-gray-300 placeholder-gray-500' : 'bg-white/5 border-orange-500/30 placeholder-gray-400';
+  const hoverBg = theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-cyber-blue/10';
 
   const showNotification = (type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
@@ -93,6 +101,50 @@ const AdminPage: React.FC = () => {
   const confirmDelete = (user: User) => {
     setSelectedUser(user);
     setShowDeleteConfirm(true);
+  };
+
+  const openEditModal = (user: User) => {
+    setSelectedUser(user);
+    setEditFormData({
+      name: user.name,
+      email: user.email,
+      username: user.username || '',
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUser) return;
+    
+    if (!editFormData.name || !editFormData.email) {
+      showNotification('error', 'Name and email are required');
+      return;
+    }
+    
+    try {
+      // Update user in Supabase profiles table
+      const { error } = await import('../lib/supabase').then(m => 
+        m.supabase.from('profiles').update({
+          name: editFormData.name,
+          email: editFormData.email,
+          username: editFormData.username,
+        }).eq('id', selectedUser.id)
+      );
+      
+      if (error) {
+        showNotification('error', error.message || 'Failed to update user');
+        return;
+      }
+      
+      showNotification('success', 'User updated successfully');
+      setShowEditModal(false);
+      setSelectedUser(null);
+      // Refresh the page to get updated data
+      window.location.reload();
+    } catch (err: any) {
+      showNotification('error', err.message || 'Failed to update user');
+    }
   };
 
   return (
@@ -227,7 +279,7 @@ const AdminPage: React.FC = () => {
               <h2 className={`text-xl font-bold ${textPrimary}`}>Tasks Assigned by Admin</h2>
             </div>
             <div className="flex items-center gap-2">
-              <span className={`px-3 py-1 rounded-full text-sm ${textSecondary} bg-purple-500/10`}>
+              <span className={`px-3 py-1 rounded-full text-sm ${textSecondary} bg-orange-500/10`}>
                 {tasks.filter(t => t.status === 'pending').length} Pending
               </span>
               <span className={`px-3 py-1 rounded-full text-sm ${textSecondary} bg-green-500/10`}>
@@ -284,7 +336,7 @@ const AdminPage: React.FC = () => {
                         )}
                       </div>
                       <div className="flex items-center gap-2" title="Notification sent to user">
-                        <Bell size={16} className="text-purple-400" />
+                        <Bell size={16} className="text-orange-400" />
                       </div>
                     </div>
                   </motion.div>
@@ -327,7 +379,7 @@ const AdminPage: React.FC = () => {
                         <div>
                           <p className={`font-medium ${textPrimary}`}>{u.name}</p>
                           {u.id === currentUser?.id && (
-                            <span className="text-xs text-purple-400 font-medium">(You)</span>
+                            <span className="text-xs text-orange-400 font-medium">(You)</span>
                           )}
                         </div>
                       </div>
@@ -341,7 +393,7 @@ const AdminPage: React.FC = () => {
                         disabled={u.id === currentUser?.id}
                         className={`px-3 py-2 rounded-lg border ${inputBg} ${textPrimary} ${
                           u.id === currentUser?.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                        } focus:outline-none focus:border-purple-500`}
+                        } focus:outline-none focus:border-orange-500`}
                       >
                         <option value="admin">Admin</option>
                         <option value="user">User</option>
@@ -360,6 +412,13 @@ const AdminPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => openEditModal(u)}
+                          className={`p-2 rounded-lg transition-all ${hoverBg} hover:scale-110`}
+                          title="Edit user"
+                        >
+                          <Edit2 size={18} className="text-blue-500" />
+                        </button>
                         <button
                           onClick={() => handleToggleStatus(u.id)}
                           disabled={u.id === currentUser?.id}
@@ -437,7 +496,7 @@ const AdminPage: React.FC = () => {
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className={`w-full px-4 py-3 rounded-xl border ${inputBg} ${textPrimary} focus:outline-none focus:border-purple-500 transition-colors`}
+                      className={`w-full px-4 py-3 rounded-xl border ${inputBg} ${textPrimary} focus:outline-none focus:border-orange-500 transition-colors`}
                       placeholder="Enter full name"
                       required
                     />
@@ -448,7 +507,7 @@ const AdminPage: React.FC = () => {
                       type="text"
                       value={formData.username}
                       onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase().replace(/\s+/g, '') })}
-                      className={`w-full px-4 py-3 rounded-xl border ${inputBg} ${textPrimary} focus:outline-none focus:border-purple-500 transition-colors`}
+                      className={`w-full px-4 py-3 rounded-xl border ${inputBg} ${textPrimary} focus:outline-none focus:border-orange-500 transition-colors`}
                       placeholder="Enter username (for login)"
                       required
                     />
@@ -460,7 +519,7 @@ const AdminPage: React.FC = () => {
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className={`w-full px-4 py-3 rounded-xl border ${inputBg} ${textPrimary} focus:outline-none focus:border-purple-500 transition-colors`}
+                      className={`w-full px-4 py-3 rounded-xl border ${inputBg} ${textPrimary} focus:outline-none focus:border-orange-500 transition-colors`}
                       placeholder="Enter email address"
                       required
                     />
@@ -471,7 +530,7 @@ const AdminPage: React.FC = () => {
                       type="password"
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      className={`w-full px-4 py-3 rounded-xl border ${inputBg} ${textPrimary} focus:outline-none focus:border-purple-500 transition-colors`}
+                      className={`w-full px-4 py-3 rounded-xl border ${inputBg} ${textPrimary} focus:outline-none focus:border-orange-500 transition-colors`}
                       placeholder="Enter password"
                       required
                     />
@@ -481,7 +540,7 @@ const AdminPage: React.FC = () => {
                     <select
                       value={formData.role}
                       onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-                      className={`w-full px-4 py-3 rounded-xl border ${inputBg} ${textPrimary} focus:outline-none focus:border-purple-500 transition-colors`}
+                      className={`w-full px-4 py-3 rounded-xl border ${inputBg} ${textPrimary} focus:outline-none focus:border-orange-500 transition-colors`}
                     >
                       <option value="user">User</option>
                       <option value="admin">Admin</option>
@@ -549,6 +608,92 @@ const AdminPage: React.FC = () => {
                     Delete User
                   </button>
                 </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Edit User Modal */}
+        <AnimatePresence>
+          {showEditModal && selectedUser && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              onClick={() => setShowEditModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className={`${cardBg} rounded-2xl border p-6 w-full max-w-md shadow-2xl`}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg">
+                      <Edit2 size={20} className="text-white" />
+                    </div>
+                    <h2 className={`text-xl font-bold ${textPrimary}`}>Edit User</h2>
+                  </div>
+                  <button
+                    onClick={() => setShowEditModal(false)}
+                    className={`p-2 rounded-lg ${hoverBg} transition-colors`}
+                  >
+                    <X size={20} className={textSecondary} />
+                  </button>
+                </div>
+
+                <form onSubmit={handleEditUser} className="space-y-4">
+                  <div>
+                    <label className={`block text-sm font-medium ${textPrimary} mb-2`}>Name</label>
+                    <input
+                      type="text"
+                      value={editFormData.name}
+                      onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                      className={`w-full px-4 py-3 rounded-xl border ${inputBg} ${textPrimary} focus:outline-none focus:border-blue-500 transition-colors`}
+                      placeholder="Enter full name"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className={`block text-sm font-medium ${textPrimary} mb-2`}>Username</label>
+                    <input
+                      type="text"
+                      value={editFormData.username}
+                      onChange={(e) => setEditFormData({ ...editFormData, username: e.target.value.toLowerCase().replace(/\s+/g, '') })}
+                      className={`w-full px-4 py-3 rounded-xl border ${inputBg} ${textPrimary} focus:outline-none focus:border-blue-500 transition-colors`}
+                      placeholder="Enter username"
+                    />
+                  </div>
+                  <div>
+                    <label className={`block text-sm font-medium ${textPrimary} mb-2`}>Email</label>
+                    <input
+                      type="email"
+                      value={editFormData.email}
+                      onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                      className={`w-full px-4 py-3 rounded-xl border ${inputBg} ${textPrimary} focus:outline-none focus:border-blue-500 transition-colors`}
+                      placeholder="Enter email address"
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowEditModal(false)}
+                      className={`flex-1 px-4 py-3 rounded-xl border ${theme === 'light' ? 'border-gray-300 text-gray-700 hover:bg-gray-100' : 'border-white/20 text-white hover:bg-white/10'} font-medium transition-colors`}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
               </motion.div>
             </motion.div>
           )}

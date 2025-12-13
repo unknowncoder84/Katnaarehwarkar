@@ -21,7 +21,7 @@ const EditCasePage: React.FC = () => {
   const bgClass = theme === 'light' ? 'bg-white text-black' : 'glass-dark text-cyber-blue';
   const borderClass = theme === 'light' ? 'border-gray-300' : 'border-cyber-blue/20';
   const sectionHeaderClass = theme === 'light' 
-    ? 'text-lg font-bold mb-4 text-purple-700' 
+    ? 'text-lg font-bold mb-4 text-orange-700' 
     : 'text-lg font-bold font-cyber mb-4 text-cyber-blue text-glow';
   const cancelButtonClass = theme === 'light'
     ? 'flex-1 bg-gray-100 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-200 transition-all duration-300 border border-gray-300'
@@ -42,6 +42,11 @@ const EditCasePage: React.FC = () => {
     onBehalfOf: '',
     noResp: '',
     stage: 'consultation',
+    status: 'pending',
+    circulationStatus: 'non-circulated',
+    interimRelief: '',
+    nextDate: '',
+    filingDate: '',
     fileNo: '',
     stampNo: '',
     regNo: '',
@@ -54,6 +59,14 @@ const EditCasePage: React.FC = () => {
     counselAddress: '',
     additionalDetails: '',
   });
+
+  // Helper to format date for input field
+  const formatDateForInput = (date: Date | string | undefined): string => {
+    if (!date) return '';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '';
+    return d.toISOString().split('T')[0];
+  };
 
   // Load case data when component mounts or case changes
   useEffect(() => {
@@ -70,6 +83,11 @@ const EditCasePage: React.FC = () => {
         onBehalfOf: caseToEdit.onBehalfOf || '',
         noResp: caseToEdit.noResp || '',
         stage: caseToEdit.stage || 'consultation',
+        status: caseToEdit.status || 'pending',
+        circulationStatus: caseToEdit.circulationStatus || 'non-circulated',
+        interimRelief: caseToEdit.interimRelief || '',
+        nextDate: formatDateForInput(caseToEdit.nextDate),
+        filingDate: formatDateForInput(caseToEdit.filingDate),
         fileNo: caseToEdit.fileNo || '',
         stampNo: caseToEdit.stampNo || '',
         regNo: caseToEdit.regNo || '',
@@ -120,6 +138,11 @@ const EditCasePage: React.FC = () => {
         onBehalfOf: formData.onBehalfOf,
         noResp: formData.noResp,
         stage: formData.stage as any,
+        status: formData.status as any,
+        circulationStatus: formData.circulationStatus,
+        interimRelief: formData.interimRelief,
+        nextDate: formData.nextDate || undefined,
+        filingDate: formData.filingDate || undefined,
         fileNo: formData.fileNo,
         stampNo: formData.stampNo,
         regNo: formData.regNo,
@@ -291,6 +314,60 @@ const EditCasePage: React.FC = () => {
                 value={formData.stage}
                 onChange={handleInputChange}
               />
+              <FormSelect
+                label="Case Status"
+                name="status"
+                options={[
+                  { value: 'pending', label: 'Pending' },
+                  { value: 'active', label: 'Active' },
+                  { value: 'closed', label: 'Closed' },
+                  { value: 'on-hold', label: 'On Hold' },
+                ]}
+                value={formData.status}
+                onChange={handleInputChange}
+              />
+            </div>
+          </div>
+
+          {/* Case Status Section */}
+          <div>
+            <h3 className={sectionHeaderClass}>Case Status & Dates</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormSelect
+                label="Circulation Status"
+                name="circulationStatus"
+                options={[
+                  { value: 'non-circulated', label: 'Non Circulated' },
+                  { value: 'circulated', label: 'Circulated' },
+                ]}
+                value={formData.circulationStatus}
+                onChange={handleInputChange}
+              />
+              <FormSelect
+                label="Interim Relief"
+                name="interimRelief"
+                options={[
+                  { value: '', label: 'Not Applicable' },
+                  { value: 'favor', label: 'In Favor' },
+                  { value: 'against', label: 'Against' },
+                ]}
+                value={formData.interimRelief}
+                onChange={handleInputChange}
+              />
+              <FormInput
+                label="Next Date"
+                name="nextDate"
+                type="date"
+                value={formData.nextDate}
+                onChange={handleInputChange}
+              />
+              <FormInput
+                label="Filing Date"
+                name="filingDate"
+                type="date"
+                value={formData.filingDate}
+                onChange={handleInputChange}
+              />
             </div>
           </div>
 
@@ -347,11 +424,11 @@ const EditCasePage: React.FC = () => {
               onClick={() => setIsCounselSectionOpen(!isCounselSectionOpen)}
               className={`w-full flex items-center justify-between p-4 rounded-xl transition-all duration-200 ${
                 theme === 'light' 
-                  ? 'bg-purple-50 hover:bg-purple-100 text-purple-700' 
-                  : 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                  ? 'bg-orange-50 hover:bg-orange-100 text-orange-700' 
+                  : 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30'
               }`}
             >
-              <h3 className={`text-lg font-bold ${theme === 'light' ? 'text-purple-700' : 'text-purple-400'}`}>
+              <h3 className={`text-lg font-bold ${theme === 'light' ? 'text-orange-700' : 'text-orange-400'}`}>
                 Counsel Information (Optional)
               </h3>
               <span className="text-2xl">{isCounselSectionOpen ? '−' : '+'}</span>

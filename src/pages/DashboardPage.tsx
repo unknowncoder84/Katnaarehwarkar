@@ -7,7 +7,6 @@ import {
   ThumbsDown,
   FileText,
   CheckCircle,
-  TrendingUp,
   Scale,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -30,6 +29,7 @@ const DashboardPage: React.FC = () => {
   }, [tasks]);
 
   // Calculate statistics dynamically from actual case data
+  // These stats update automatically when cases array changes (via real-time subscription)
   const stats = useMemo(() => {
     const myCases = cases.length;
     const irFavor = cases.filter((c) => c.interimRelief === 'favor').length;
@@ -37,72 +37,68 @@ const DashboardPage: React.FC = () => {
     const nonCirculated = cases.filter((c) => c.circulationStatus === 'non-circulated').length;
     const circulated = cases.filter((c) => c.circulationStatus === 'circulated').length;
 
-    console.log('📊 Dashboard Stats Updated:', { myCases, pendingTasks: pendingTasksCount, irFavor, irAgainst, nonCirculated, circulated });
+    console.log('📊 Dashboard Stats Updated:', { 
+      myCases, 
+      pendingTasks: pendingTasksCount, 
+      irFavor, 
+      irAgainst, 
+      nonCirculated, 
+      circulated,
+      casesData: cases.map(c => ({ id: c.id, circulationStatus: c.circulationStatus, interimRelief: c.interimRelief }))
+    });
     return { myCases, irFavor, irAgainst, nonCirculated, circulated };
   }, [cases, pendingTasksCount]);
 
   // Dynamic stat cards - each card shows real-time count and navigates to filtered view
-  // All cards use orange gradient for consistency
+  // Clean white cards with colored icons (matching reference design)
   const statCards = [
     { 
-      title: 'My Cases', 
+      title: 'MY CASES', 
       count: stats.myCases, 
-      gradient: 'from-orange-500 to-amber-500', 
+      iconBg: 'bg-blue-500', 
       icon: Briefcase, 
-      glow: 'shadow-orange', 
       path: '/cases', 
-      description: 'View all your cases',
-      filterType: 'all'
+      linkColor: 'text-blue-500'
     },
     { 
-      title: 'Pending Tasks', 
+      title: 'PENDING TASKS', 
       count: pendingTasksCount, 
-      gradient: 'from-orange-600 to-orange-400', 
+      iconBg: 'bg-amber-500', 
       icon: Clock, 
-      glow: 'shadow-orange', 
       path: '/tasks?filter=pending', 
-      description: 'View pending tasks',
-      filterType: 'pending'
+      linkColor: 'text-amber-500'
     },
     { 
-      title: 'IR Favor', 
+      title: 'IR FAVOR', 
       count: stats.irFavor, 
-      gradient: 'from-amber-500 to-yellow-500', 
+      iconBg: 'bg-emerald-500', 
       icon: ThumbsUp, 
-      glow: 'shadow-orange', 
       path: '/cases?filter=ir-favor', 
-      description: 'Cases with IR in favor',
-      filterType: 'ir-favor'
+      linkColor: 'text-emerald-500'
     },
     { 
-      title: 'IR Against', 
+      title: 'IR AGAINST', 
       count: stats.irAgainst, 
-      gradient: 'from-orange-600 to-red-500', 
+      iconBg: 'bg-rose-500', 
       icon: ThumbsDown, 
-      glow: 'shadow-orange', 
       path: '/cases?filter=ir-against', 
-      description: 'Cases with IR against',
-      filterType: 'ir-against'
+      linkColor: 'text-rose-500'
     },
     { 
-      title: 'Non Circulated', 
+      title: 'NON CIRCULATED', 
       count: stats.nonCirculated, 
-      gradient: 'from-amber-600 to-orange-500', 
+      iconBg: 'bg-cyan-500', 
       icon: FileText, 
-      glow: 'shadow-orange', 
       path: '/cases?filter=non-circulated', 
-      description: 'Non-circulated cases',
-      filterType: 'non-circulated'
+      linkColor: 'text-cyan-500'
     },
     { 
-      title: 'Circulated', 
+      title: 'CIRCULATED', 
       count: stats.circulated, 
-      gradient: 'from-orange-500 to-amber-400', 
+      iconBg: 'bg-green-500', 
       icon: CheckCircle, 
-      glow: 'shadow-orange', 
       path: '/cases?filter=circulated', 
-      description: 'Circulated cases',
-      filterType: 'circulated'
+      linkColor: 'text-green-500'
     },
   ];
 
@@ -132,13 +128,10 @@ const DashboardPage: React.FC = () => {
       <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 mb-6 md:mb-8">
         {statCards.map((stat, index) => {
           const Icon = stat.icon;
-          // Both modes use orange gradient backgrounds for consistency
+          // Clean white/dark cards with colored icons (matching reference design)
           const cardClass = theme === 'light'
-            ? `bg-gradient-to-br ${stat.gradient} border-orange-300 hover:border-orange-400 hover:shadow-xl shadow-md`
-            : `bg-gradient-to-br ${stat.gradient} border-orange-500/30 hover:border-orange-500/60`;
-          const subtextColorClass = 'text-white/90 font-bold';
-          const countColorClass = 'text-white';
-          const iconBgClass = 'bg-white/20 border border-white/30';
+            ? 'bg-white border-gray-100 hover:shadow-lg shadow-sm'
+            : 'bg-gray-800/90 border-gray-700/50 hover:border-gray-600';
           
           return (
             <motion.div
@@ -146,29 +139,20 @@ const DashboardPage: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1, duration: 0.5 }}
-              whileHover={{ scale: 1.02, y: -4 }}
+              whileHover={{ scale: 1.02, y: -2 }}
               onClick={() => navigate(stat.path)}
-              className={`relative overflow-hidden p-4 md:p-6 rounded-xl md:rounded-2xl shadow-xl cursor-pointer group border ${cardClass}`}
+              className={`relative p-4 md:p-5 rounded-2xl cursor-pointer group border transition-all duration-300 ${cardClass}`}
             >
-              {/* Background Pattern - only show in dark mode */}
-              {theme === 'dark' && (
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/20" />
-                  <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-white/10" />
-                </div>
-              )}
-              
-              <div className="relative flex items-start justify-between">
+              <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
-                  <p className={`text-xs md:text-sm font-cyber font-medium uppercase tracking-wider ${subtextColorClass} truncate`}>{stat.title}</p>
-                  <p className={`text-2xl sm:text-3xl md:text-5xl font-bold font-cyber mt-1 md:mt-2 ${countColorClass} ${theme === 'dark' ? 'text-glow' : ''}`}>{stat.count}</p>
-                  <div className={`hidden sm:flex items-center gap-1 mt-2 text-sm font-court ${subtextColorClass} group-hover:translate-x-1 transition-transform`}>
-                    <TrendingUp size={14} />
-                    <span>Click to view →</span>
+                  <p className={`text-xs font-medium tracking-wider ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>{stat.title}</p>
+                  <p className={`text-3xl md:text-4xl font-bold mt-2 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>{stat.count}</p>
+                  <div className={`flex items-center gap-1 mt-3 text-sm ${stat.linkColor} group-hover:translate-x-1 transition-transform`}>
+                    <span>→ View details</span>
                   </div>
                 </div>
-                <div className={`p-2 md:p-3 rounded-xl group-hover:scale-110 transition-transform ${iconBgClass}`}>
-                  <Icon size={20} className="text-white md:w-7 md:h-7" />
+                <div className={`p-3 rounded-xl ${stat.iconBg}`}>
+                  <Icon size={22} className="text-white" />
                 </div>
               </div>
             </motion.div>
@@ -210,12 +194,12 @@ const DashboardPage: React.FC = () => {
                   <tr 
                     key={idx} 
                     onClick={() => navigate(`/cases?filter=${row.filter}`)}
-                    className={`${theme === 'light' ? 'hover:bg-purple-50/80' : 'hover:bg-white/5'} transition-colors cursor-pointer group`}
+                    className={`${theme === 'light' ? 'hover:bg-orange-50/80' : 'hover:bg-white/5'} transition-colors cursor-pointer group`}
                   >
                     <td className={`py-3 px-4 uppercase text-sm font-semibold tracking-wide ${theme === 'light' ? 'text-gray-700' : 'text-cyber-blue/60'}`}>
                       <span className="flex items-center gap-2">
                         {row.label}
-                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-purple-500">→</span>
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-orange-500">→</span>
                       </span>
                     </td>
                     <td className={`py-3 px-4 text-right font-bold text-lg ${theme === 'light' ? 'text-gray-900' : 'text-cyber-blue'}`}>
@@ -234,10 +218,10 @@ const DashboardPage: React.FC = () => {
                 ))}
                 <tr 
                   onClick={() => navigate('/cases')}
-                  className={`${theme === 'light' ? 'bg-purple-100/50 hover:bg-purple-200/50' : 'bg-purple-500/10 hover:bg-purple-500/20'} cursor-pointer transition-colors`}
+                  className={`${theme === 'light' ? 'bg-orange-100/50 hover:bg-orange-200/50' : 'bg-orange-500/10 hover:bg-orange-500/20'} cursor-pointer transition-colors`}
                 >
-                  <td className={`py-4 px-4 uppercase text-sm font-bold tracking-wide ${theme === 'light' ? 'text-purple-700' : 'text-purple-400'}`}>Total Cases</td>
-                  <td className={`py-4 px-4 text-right font-bold text-xl ${theme === 'light' ? 'text-purple-700' : 'text-purple-400'}`}>{cases.length}</td>
+                  <td className={`py-4 px-4 uppercase text-sm font-bold tracking-wide ${theme === 'light' ? 'text-orange-700' : 'text-orange-400'}`}>Total Cases</td>
+                  <td className={`py-4 px-4 text-right font-bold text-xl ${theme === 'light' ? 'text-orange-700' : 'text-orange-400'}`}>{cases.length}</td>
                 </tr>
               </tbody>
             </table>

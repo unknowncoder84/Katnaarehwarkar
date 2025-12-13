@@ -40,7 +40,7 @@ const FormInput: React.FC<FormInputProps> = ({
     ? 'text-red-500 text-sm mt-1' 
     : 'text-red-400 text-sm mt-1';
     
-  const requiredClass = theme === 'light' ? 'text-red-500 ml-1' : 'text-pink-400 ml-1';
+  const requiredClass = theme === 'light' ? 'text-red-500 ml-1' : 'text-orange-400 ml-1';
   
   return (
     <div className="flex flex-col">

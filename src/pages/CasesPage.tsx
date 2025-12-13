@@ -42,7 +42,7 @@ const getFilterBadgeStyle = (filter: string): string => {
   if (filter === 'ir-against') return 'bg-red-500/20 text-red-400 border-red-500/30';
   if (filter === 'circulated') return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
   if (filter === 'non-circulated') return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-  return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+  return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
 };
 
 const CasesPage: React.FC = () => {
@@ -108,8 +108,7 @@ const CasesPage: React.FC = () => {
           case 'circulated':
             return c.circulationStatus === 'circulated';
           case 'non-circulated':
-            // Non-circulated matters that don't have any date (no next date, no circulation date)
-            return c.circulationStatus === 'non-circulated' && !c.nextDate && !c.circulationDate;
+            return c.circulationStatus === 'non-circulated';
           // Interim Relief filters
           case 'ir-favor':
             return c.interimRelief === 'favor';
@@ -145,8 +144,8 @@ const CasesPage: React.FC = () => {
 
   const cardBg = theme === 'light' ? 'bg-white/95 backdrop-blur-xl border-gray-200 shadow-md' : 'glass-dark border-cyber-blue/20';
   const borderClass = theme === 'light' ? 'border-gray-200' : 'border-cyber-blue/20';
-  const hoverClass = theme === 'light' ? 'hover:bg-purple-50/80' : 'hover:bg-cyber-blue/10';
-  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300 placeholder-gray-500' : 'bg-white/5 text-white border-purple-500/30 placeholder-gray-400';
+  const hoverClass = theme === 'light' ? 'hover:bg-orange-50/80' : 'hover:bg-cyber-blue/10';
+  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300 placeholder-gray-500' : 'bg-white/5 text-white border-orange-500/30 placeholder-gray-400';
   const headerBgClass = theme === 'light' ? 'bg-gray-100' : 'bg-cyber-blue/10';
   const textPrimary = theme === 'light' ? 'text-gray-900' : 'text-cyber-blue';
   const textSecondary = theme === 'light' ? 'text-gray-700' : 'text-cyber-blue/60';
@@ -201,7 +200,7 @@ const CasesPage: React.FC = () => {
         <div className="flex gap-2 flex-wrap">
           {[
             { label: 'IR Favor', filter: 'ir-favor', color: 'from-green-500 to-emerald-500', borderColor: 'border-green-500/30' },
-            { label: 'IR Against', filter: 'ir-against', color: 'from-red-500 to-pink-500', borderColor: 'border-red-500/30' },
+            { label: 'IR Against', filter: 'ir-against', color: 'from-red-500 to-orange-500', borderColor: 'border-red-500/30' },
             { label: 'Circulated', filter: 'circulated', color: 'from-blue-500 to-cyan-500', borderColor: 'border-blue-500/30' },
             { label: 'Non Circulated', filter: 'non-circulated', color: 'from-yellow-500 to-orange-500', borderColor: 'border-yellow-500/30' },
           ].map((item) => (
@@ -235,19 +234,19 @@ const CasesPage: React.FC = () => {
         <div className="flex gap-3 flex-wrap">
           <button
             onClick={() => exportToCSV(filteredCases, `cases_${new Date().getTime()}.csv`)}
-            className="bg-gradient-to-r from-cyber-green to-emerald-500 text-white px-4 py-2.5 rounded-xl font-semibold font-cyber hover:shadow-cyber transition-all duration-300 text-sm border border-cyber-green/30 flex items-center gap-2"
+            className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2.5 rounded-xl font-semibold font-cyber hover:shadow-orange transition-all duration-300 text-sm border border-orange-500/30 flex items-center gap-2"
           >
             <span>📊</span> CSV
           </button>
           <button
             onClick={() => exportToExcel(filteredCases, `cases_${new Date().getTime()}.xlsx`)}
-            className="bg-gradient-to-r from-cyber-blue to-neon-blue text-white px-4 py-2.5 rounded-xl font-semibold font-cyber hover:shadow-cyber transition-all duration-300 text-sm border border-cyber-blue/30 flex items-center gap-2"
+            className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2.5 rounded-xl font-semibold font-cyber hover:shadow-orange transition-all duration-300 text-sm border border-orange-500/30 flex items-center gap-2"
           >
             <span>📑</span> EXCEL
           </button>
           <button
             onClick={() => exportToPDF(filteredCases, `cases_${new Date().getTime()}.pdf`)}
-            className="bg-gradient-to-r from-cyber-pink to-neon-pink text-white px-4 py-2.5 rounded-xl font-semibold font-cyber hover:shadow-cyber-pink transition-all duration-300 text-sm border border-cyber-pink/30 flex items-center gap-2"
+            className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2.5 rounded-xl font-semibold font-cyber hover:shadow-orange transition-all duration-300 text-sm border border-orange-500/30 flex items-center gap-2"
           >
             <span>📄</span> PDF
           </button>
@@ -260,7 +259,7 @@ const CasesPage: React.FC = () => {
             placeholder="Search cases..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={`pl-11 pr-4 py-2.5 rounded-xl border ${inputBgClass} focus:outline-none focus:border-purple-500 transition-all w-full sm:w-64`}
+            className={`pl-11 pr-4 py-2.5 rounded-xl border ${inputBgClass} focus:outline-none focus:border-orange-500 transition-all w-full sm:w-64`}
           />
         </div>
       </motion.div>

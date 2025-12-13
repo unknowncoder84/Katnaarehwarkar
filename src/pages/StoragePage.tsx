@@ -84,17 +84,17 @@ const StoragePage: React.FC = () => {
   const cardBg = theme === 'light' ? 'bg-white/95 backdrop-blur-xl border-gray-200 shadow-md' : 'glass-dark border-cyber-blue/20';
   const textPrimary = theme === 'light' ? 'text-gray-900' : 'text-cyber-blue';
   const textSecondary = theme === 'light' ? 'text-gray-700' : 'text-cyber-blue/60';
-  const inputBg = theme === 'light' ? 'bg-white border-gray-300 text-gray-900 placeholder-gray-500' : 'bg-white/5 border-purple-500/30 text-white placeholder-gray-400';
+  const inputBg = theme === 'light' ? 'bg-white border-gray-300 text-gray-900 placeholder-gray-500' : 'bg-white/5 border-orange-500/30 text-white placeholder-gray-400';
 
   return (
     <MainLayout>
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-4 md:mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 md:gap-3">
-            <div className="p-2 md:p-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg md:rounded-xl"><Archive size={20} className="text-white md:w-6 md:h-6" /></div>
+            <div className="p-2 md:p-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg md:rounded-xl"><Archive size={20} className="text-white md:w-6 md:h-6" /></div>
             <div><h1 className={`text-xl md:text-3xl font-bold font-cyber ${textPrimary}`}>Storage</h1><p className={`text-sm md:text-base ${textSecondary}`}>Manage files and document storage</p></div>
           </div>
-          {isAdmin && (<button onClick={() => setShowAddForm(!showAddForm)} className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-4 py-2.5 rounded-xl font-semibold hover:shadow-lg transition-all">{showAddForm ? <X size={18} /> : <Plus size={18} />}{showAddForm ? 'Cancel' : 'Add Item'}</button>)}
+          {isAdmin && (<button onClick={() => setShowAddForm(!showAddForm)} className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2.5 rounded-xl font-semibold hover:shadow-lg transition-all">{showAddForm ? <X size={18} /> : <Plus size={18} />}{showAddForm ? 'Cancel' : 'Add Item'}</button>)}
         </div>
       </motion.div>
 
@@ -102,8 +102,8 @@ const StoragePage: React.FC = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="mb-4 md:mb-6">
           <div className="flex items-center gap-2 mb-3"><MapPin size={18} className={textSecondary} /><span className={`text-sm font-semibold ${textSecondary}`}>Filter by Location</span></div>
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => setSelectedLocation(null)} className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${selectedLocation === null ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg' : theme === 'light' ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' : 'bg-white/10 text-gray-300 hover:bg-white/20'}`}>All Locations</button>
-            {storageLocations.map((loc) => (<button key={loc.id} onClick={() => setSelectedLocation(loc.id)} className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 ${selectedLocation === loc.id ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg' : theme === 'light' ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200' : 'bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 border border-indigo-500/30'}`}><Archive size={16} />{loc.name}</button>))}
+            <button onClick={() => setSelectedLocation(null)} className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${selectedLocation === null ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg' : theme === 'light' ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' : 'bg-white/10 text-gray-300 hover:bg-white/20'}`}>All Locations</button>
+            {storageLocations.map((loc) => (<button key={loc.id} onClick={() => setSelectedLocation(loc.id)} className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 ${selectedLocation === loc.id ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg' : theme === 'light' ? 'bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200' : 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 border border-orange-500/30'}`}><Archive size={16} />{loc.name}</button>))}
           </div>
         </motion.div>
       )}
@@ -122,14 +122,14 @@ const StoragePage: React.FC = () => {
             </div>
             {(itemType === 'File' || itemType === 'Document') && (
               <div><label className={`block text-sm font-medium mb-2 ${textSecondary}`}><Upload size={16} className="inline mr-2" />Upload to Dropbox (Optional)</label>
-                <div className={`border-2 border-dashed rounded-xl p-4 text-center ${theme === 'light' ? 'border-gray-300 hover:border-indigo-400' : 'border-purple-500/30 hover:border-indigo-500/50'} transition-colors`}>
+                <div className={`border-2 border-dashed rounded-xl p-4 text-center ${theme === 'light' ? 'border-gray-300 hover:border-orange-400' : 'border-orange-500/30 hover:border-orange-500/50'} transition-colors`}>
                   <input type="file" onChange={handleFileSelect} className="hidden" id="storage-file-upload" />
                   <label htmlFor="storage-file-upload" className="cursor-pointer">{selectedFile ? (<div className="flex items-center justify-center gap-2"><FileText size={20} className="text-indigo-500" /><span className={textPrimary}>{selectedFile.name}</span><button type="button" onClick={(e) => { e.preventDefault(); setSelectedFile(null); }} className="p-1 hover:bg-red-500/20 rounded-full"><X size={16} className="text-red-500" /></button></div>) : (<div><Upload size={32} className={`mx-auto mb-2 ${textSecondary}`} /><p className={textSecondary}>Click to select a file</p><p className={`text-xs ${textSecondary} mt-1`}>File will be uploaded to Dropbox</p></div>)}</label>
                 </div>
               </div>
             )}
             {error && <p className="text-red-500 text-sm">{error}</p>}
-            <button type="submit" disabled={uploading || storageLocations.length === 0} className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50">{uploading ? (<><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Uploading...</>) : (<><Plus size={18} />Add to Storage</>)}</button>
+            <button type="submit" disabled={uploading || storageLocations.length === 0} className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50">{uploading ? (<><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Uploading...</>) : (<><Plus size={18} />Add to Storage</>)}</button>
           </form>
         </motion.div>
       )}
@@ -150,7 +150,7 @@ const StoragePage: React.FC = () => {
                     <td className={`px-4 py-3 ${textPrimary}`}>{item.name}</td>
                     <td className={`px-4 py-3 ${textSecondary}`}>{item.number}</td>
                     <td className={`px-4 py-3 ${textSecondary}`}>{item.location}</td>
-                    <td className={`px-4 py-3`}><span className={`px-2 py-1 rounded-lg text-xs font-semibold ${item.type === 'File' ? 'bg-blue-500/20 text-blue-500' : item.type === 'Document' ? 'bg-green-500/20 text-green-500' : 'bg-purple-500/20 text-purple-500'}`}>{item.type}</span></td>
+                    <td className={`px-4 py-3`}><span className={`px-2 py-1 rounded-lg text-xs font-semibold ${item.type === 'File' ? 'bg-blue-500/20 text-blue-500' : item.type === 'Document' ? 'bg-green-500/20 text-green-500' : 'bg-orange-500/20 text-orange-500'}`}>{item.type}</span></td>
                     <td className={`px-4 py-3 text-sm ${textSecondary}`}>{new Date(item.addedAt).toLocaleDateString()}</td>
                     <td className="px-4 py-3"><div className="flex items-center gap-2">{item.dropboxPath && (<><button onClick={() => handleDownload(item)} className="p-2 text-blue-500 hover:bg-blue-500/20 rounded-lg transition-colors" title="Download from Dropbox"><Download size={16} /></button>{item.dropboxLink && (<a href={item.dropboxLink} target="_blank" rel="noopener noreferrer" className="p-2 text-green-500 hover:bg-green-500/20 rounded-lg transition-colors" title="Open Dropbox Link"><LinkIcon size={16} /></a>)}</>)}{isAdmin && (<button onClick={() => handleDeleteItem(item.id)} className="p-2 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors" title="Delete item"><Trash2 size={16} /></button>)}</div></td>
                   </motion.tr>

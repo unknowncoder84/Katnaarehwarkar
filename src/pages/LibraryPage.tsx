@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, Plus, Trash2, Search, X, MapPin, Upload, FileText, Download, Link as LinkIcon } from 'lucide-react';
+import { BookOpen, Plus, Trash2, Search, X, MapPin, Upload, FileText, Download, Link as LinkIcon, Edit2 } from 'lucide-react';
 import MainLayout from '../components/MainLayout';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -25,6 +25,8 @@ const LibraryPage: React.FC = () => {
   const { isAdmin } = useAuth();
   const { libraryLocations, books, addBook, deleteBook } = useData();
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
@@ -39,7 +41,7 @@ const LibraryPage: React.FC = () => {
     const items: LibraryItem[] = books.map(book => ({
       id: book.id,
       name: book.name,
-      number: book.id.slice(-6).toUpperCase(),
+      number: book.number || book.id.slice(-6).toUpperCase(), // Use stored number, fallback to ID
       location: book.location || 'Default',
       locationId: '',
       type: 'Book' as const,
@@ -54,6 +56,11 @@ const LibraryPage: React.FC = () => {
   const [itemNumber, setItemNumber] = useState('');
   const [itemLocationId, setItemLocationId] = useState('');
   const [itemType, setItemType] = useState<'File' | 'Book'>('Book');
+  
+  // Edit form fields
+  const [editName, setEditName] = useState('');
+  const [editNumber, setEditNumber] = useState('');
+  const [editLocation, setEditLocation] = useState('');
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -83,9 +90,13 @@ const LibraryPage: React.FC = () => {
       }
     }
 
-    // Save to database using addBook function
+    // Save to database using addBook function with number and location
     try {
-      const result = await addBook(itemName);
+      // Get location name from locationId
+      const selectedLoc = libraryLocations.find(loc => loc.id === itemLocationId);
+      const locationName = selectedLoc?.name || '';
+      
+      const result = await addBook(itemName, itemNumber, locationName);
       if (!result.success) {
         setError(result.error || 'Failed to add item');
         return;
@@ -136,6 +147,51 @@ const LibraryPage: React.FC = () => {
     }
   };
 
+  const openEditModal = (item: LibraryItem) => {
+    setEditingItem(item);
+    setEditName(item.name);
+    setEditNumber(item.number);
+    setEditLocation(item.location);
+    setShowEditModal(true);
+  };
+
+  const handleEditItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem) return;
+    
+    try {
+      // Update in Supabase
+      const { supabase } = await import('../lib/supabase');
+      const { error } = await supabase
+        .from('books')
+        .update({
+          name: editName,
+          number: editNumber,
+          location: editLocation,
+        })
+        .eq('id', editingItem.id);
+      
+      if (error) {
+        console.error('Error updating item:', error);
+        alert('Failed to update item: ' + error.message);
+        return;
+      }
+      
+      // Update local state
+      setLibraryItems(prev => prev.map(item => 
+        item.id === editingItem.id 
+          ? { ...item, name: editName, number: editNumber, location: editLocation }
+          : item
+      ));
+      
+      setShowEditModal(false);
+      setEditingItem(null);
+    } catch (err) {
+      console.error('Error updating item:', err);
+      alert('Failed to update item');
+    }
+  };
+
   // Filter by selected location first, then by search term
   const filteredItems = libraryItems.filter((item) => {
     // Filter by location if one is selected
@@ -158,7 +214,7 @@ const LibraryPage: React.FC = () => {
   const textSecondary = theme === 'light' ? 'text-gray-700' : 'text-cyber-blue/60';
   const inputBg = theme === 'light' 
     ? 'bg-white border-gray-300 text-gray-900 placeholder-gray-500' 
-    : 'bg-white/5 border-purple-500/30 text-white placeholder-gray-400';
+    : 'bg-white/5 border-orange-500/30 text-white placeholder-gray-400';
 
   return (
     <MainLayout>
@@ -329,7 +385,7 @@ const LibraryPage: React.FC = () => {
                   Upload to Dropbox (Optional)
                 </label>
                 <div className={`border-2 border-dashed rounded-xl p-4 text-center ${
-                  theme === 'light' ? 'border-gray-300 hover:border-amber-400' : 'border-purple-500/30 hover:border-amber-500/50'
+                  theme === 'light' ? 'border-gray-300 hover:border-amber-400' : 'border-orange-500/30 hover:border-amber-500/50'
                 } transition-colors`}>
                   <input
                     type="file"
@@ -490,6 +546,16 @@ const LibraryPage: React.FC = () => {
                             )}
                           </>
                         )}
+                        {/* Edit - Admin Only */}
+                        {isAdmin && (
+                          <button
+                            onClick={() => openEditModal(item)}
+                            className="p-2 text-blue-500 hover:bg-blue-500/20 rounded-lg transition-colors"
+                            title="Edit item"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                        )}
                         {/* Delete - Admin Only */}
                         {isAdmin && (
                           <button
@@ -509,6 +575,88 @@ const LibraryPage: React.FC = () => {
           </div>
         )}
       </motion.div>
+
+      {/* Edit Item Modal */}
+      {showEditModal && editingItem && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowEditModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className={`${cardBg} rounded-2xl border p-6 w-full max-w-md shadow-2xl`}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg">
+                  <Edit2 size={20} className="text-white" />
+                </div>
+                <h2 className={`text-xl font-bold ${textPrimary}`}>Edit Library Item</h2>
+              </div>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className={`p-2 rounded-lg hover:bg-gray-500/20 transition-colors`}
+              >
+                <X size={20} className={textSecondary} />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditItem} className="space-y-4">
+              <div>
+                <label className={`block text-sm font-medium ${textSecondary} mb-2`}>Name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className={`w-full px-4 py-3 rounded-xl border ${inputBg} focus:outline-none focus:border-blue-500 transition-colors`}
+                  placeholder="Enter item name"
+                  required
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium ${textSecondary} mb-2`}>Number</label>
+                <input
+                  type="text"
+                  value={editNumber}
+                  onChange={(e) => setEditNumber(e.target.value)}
+                  className={`w-full px-4 py-3 rounded-xl border ${inputBg} focus:outline-none focus:border-blue-500 transition-colors`}
+                  placeholder="Enter reference number"
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium ${textSecondary} mb-2`}>Location</label>
+                <select
+                  value={editLocation}
+                  onChange={(e) => setEditLocation(e.target.value)}
+                  className={`w-full px-4 py-3 rounded-xl border ${inputBg} focus:outline-none focus:border-blue-500 transition-colors`}
+                >
+                  <option value="">Select a location...</option>
+                  {libraryLocations.map((loc) => (
+                    <option key={loc.id} value={loc.name}>{loc.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className={`flex-1 px-4 py-3 rounded-xl border ${theme === 'light' ? 'border-gray-300 text-gray-700 hover:bg-gray-100' : 'border-white/20 text-white hover:bg-white/10'} font-medium transition-colors`}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </MainLayout>
   );
 };

@@ -32,7 +32,7 @@ const DisposePage: React.FC = () => {
   const textSecondary = theme === 'light' ? 'text-gray-700' : 'text-cyber-blue/60';
   const inputBg = theme === 'light' 
     ? 'bg-white border-gray-300 text-gray-900 placeholder-gray-500' 
-    : 'bg-white/5 border-purple-500/30 text-white placeholder-gray-400';
+    : 'bg-white/5 border-orange-500/30 text-white placeholder-gray-400';
   const headerBg = theme === 'light' ? 'bg-gray-100' : 'bg-cyber-blue/10';
 
   return (
@@ -66,19 +66,19 @@ const DisposePage: React.FC = () => {
         <div className="flex gap-2 md:gap-3 flex-wrap">
           <button
             onClick={() => exportToCSV(filteredCases, `disposed_cases_${Date.now()}.csv`)}
-            className="bg-gradient-to-r from-cyber-green to-emerald-500 text-white px-3 md:px-4 py-2 md:py-2.5 rounded-lg md:rounded-xl font-semibold font-cyber hover:shadow-lg transition-all text-xs md:text-sm flex items-center gap-1 md:gap-2"
+            className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3 md:px-4 py-2 md:py-2.5 rounded-lg md:rounded-xl font-semibold font-cyber hover:shadow-lg transition-all text-xs md:text-sm flex items-center gap-1 md:gap-2"
           >
             <span>📊</span> CSV
           </button>
           <button
             onClick={() => exportToExcel(filteredCases, `disposed_cases_${Date.now()}.xlsx`)}
-            className="bg-gradient-to-r from-cyber-blue to-neon-blue text-white px-3 md:px-4 py-2 md:py-2.5 rounded-lg md:rounded-xl font-semibold font-cyber hover:shadow-lg transition-all text-xs md:text-sm flex items-center gap-1 md:gap-2"
+            className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3 md:px-4 py-2 md:py-2.5 rounded-lg md:rounded-xl font-semibold font-cyber hover:shadow-lg transition-all text-xs md:text-sm flex items-center gap-1 md:gap-2"
           >
             <span>📑</span> EXCEL
           </button>
           <button
             onClick={() => exportToPDF(filteredCases, `disposed_cases_${Date.now()}.pdf`)}
-            className="bg-gradient-to-r from-cyber-pink to-neon-pink text-white px-3 md:px-4 py-2 md:py-2.5 rounded-lg md:rounded-xl font-semibold font-cyber hover:shadow-lg transition-all text-xs md:text-sm flex items-center gap-1 md:gap-2"
+            className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3 md:px-4 py-2 md:py-2.5 rounded-lg md:rounded-xl font-semibold font-cyber hover:shadow-lg transition-all text-xs md:text-sm flex items-center gap-1 md:gap-2"
           >
             <span>📄</span> PDF
           </button>
@@ -91,7 +91,7 @@ const DisposePage: React.FC = () => {
             placeholder="Search disposed cases..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={`w-full sm:w-56 md:w-64 pl-9 md:pl-11 pr-3 md:pr-4 py-2 md:py-2.5 rounded-lg md:rounded-xl border ${inputBg} focus:outline-none focus:border-purple-500 transition-all text-sm`}
+            className={`w-full sm:w-56 md:w-64 pl-9 md:pl-11 pr-3 md:pr-4 py-2 md:py-2.5 rounded-lg md:rounded-xl border ${inputBg} focus:outline-none focus:border-orange-500 transition-all text-sm`}
           />
         </div>
       </motion.div>
@@ -146,7 +146,7 @@ const DisposePage: React.FC = () => {
                 {filteredCases.map((caseItem, index) => (
                   <tr
                     key={caseItem.id}
-                    className={`border-b ${theme === 'light' ? 'border-gray-100 hover:bg-purple-50/50' : 'border-white/5 hover:bg-white/5'} transition-colors`}
+                    className={`border-b ${theme === 'light' ? 'border-gray-100 hover:bg-orange-50/50' : 'border-white/5 hover:bg-white/5'} transition-colors`}
                   >
                     <td className={`py-4 px-4 text-sm ${textPrimary}`}>{index + 1}</td>
                     <td className={`py-4 px-4 font-medium text-sm ${textPrimary}`}>{caseItem.clientName}</td>

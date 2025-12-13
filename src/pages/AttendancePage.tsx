@@ -279,7 +279,7 @@ const AttendanceCalendar: React.FC<AttendanceCalendarProps> = ({ userId, onClose
       <div
         key={day}
         className={`aspect-square flex items-center justify-center rounded-lg font-semibold text-sm transition-all ${
-          isToday ? 'ring-2 ring-purple-500' : ''
+          isToday ? 'ring-2 ring-orange-500' : ''
         } ${
           status === 'present'
             ? 'bg-green-500 text-white'
@@ -325,9 +325,9 @@ const AttendanceCalendar: React.FC<AttendanceCalendarProps> = ({ userId, onClose
             <p className={`text-xs ${textSecondary}`}>Total</p>
             <p className={`text-2xl font-bold ${textPrimary}`}>{stats.total}</p>
           </div>
-          <div className={`p-4 rounded-xl ${theme === 'light' ? 'bg-purple-100' : 'bg-purple-500/20'}`}>
+          <div className={`p-4 rounded-xl ${theme === 'light' ? 'bg-orange-100' : 'bg-orange-500/20'}`}>
             <p className={`text-xs ${textSecondary}`}>Percentage</p>
-            <p className="text-2xl font-bold text-purple-500">{stats.percentage}%</p>
+            <p className="text-2xl font-bold text-orange-500">{stats.percentage}%</p>
           </div>
         </div>
 

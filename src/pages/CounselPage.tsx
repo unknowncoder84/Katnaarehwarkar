@@ -20,7 +20,7 @@ const CounselPage: React.FC = () => {
   const bgClass = theme === 'light' ? 'bg-white text-black' : 'glass-dark text-cyber-blue';
   const borderClass = theme === 'light' ? 'border-gray-300' : 'border-cyber-blue/20';
   const hoverClass = theme === 'light' ? 'hover:bg-gray-100' : 'hover:bg-cyber-blue/10';
-  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300 placeholder-gray-500' : 'bg-white/5 text-white border-purple-500/30 placeholder-gray-400';
+  const inputBgClass = theme === 'light' ? 'bg-white text-gray-900 border-gray-300 placeholder-gray-500' : 'bg-white/5 text-white border-orange-500/30 placeholder-gray-400';
   const headerBgClass = theme === 'light' ? 'bg-gray-100' : 'bg-cyber-blue/10';
 
   return (
@@ -51,15 +51,15 @@ const CounselPage: React.FC = () => {
         className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between mb-4 md:mb-6 gap-3"
       >
         <div className="flex gap-2 flex-wrap">
-          <button className="bg-gradient-to-r from-cyber-green to-emerald-500 text-white px-3 md:px-4 py-2 rounded font-semibold font-cyber hover:shadow-cyber transition-all flex items-center gap-1 text-sm border border-cyber-green/30">
+          <button className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3 md:px-4 py-2 rounded font-semibold font-cyber hover:shadow-orange transition-all flex items-center gap-1 text-sm border border-orange-500/30">
             <Download size={16} />
             CSV
           </button>
-          <button className="bg-gradient-to-r from-cyber-blue to-neon-blue text-white px-3 md:px-4 py-2 rounded font-semibold font-cyber hover:shadow-cyber transition-all flex items-center gap-1 text-sm border border-cyber-blue/30">
+          <button className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3 md:px-4 py-2 rounded font-semibold font-cyber hover:shadow-orange transition-all flex items-center gap-1 text-sm border border-orange-500/30">
             <Download size={16} />
             EXCEL
           </button>
-          <button className="bg-gradient-to-r from-cyber-pink to-neon-pink text-white px-3 md:px-4 py-2 rounded font-semibold font-cyber hover:shadow-cyber-pink transition-all flex items-center gap-1 text-sm border border-cyber-pink/30">
+          <button className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3 md:px-4 py-2 rounded font-semibold font-cyber hover:shadow-orange transition-all flex items-center gap-1 text-sm border border-orange-500/30">
             <FileText size={16} />
             PDF
           </button>
