@@ -8,6 +8,7 @@ import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { getAllUsers } from '../lib/userManagement';
+import { db } from '../lib/supabase';
 import { User } from '../types';
 import { formatIndianDate } from '../utils/dateFormat';
 
@@ -20,6 +21,9 @@ interface CaseFile {
   url: string;
   dateAttached: Date;
   attachedBy: string;
+  caseId?: string;
+  fileUrl?: string;
+  externalUrl?: string;
 }
 
 interface CaseTask {
@@ -67,6 +71,8 @@ const CaseDetailsPage: React.FC = () => {
   const [files, setFiles] = useState<CaseFile[]>([]);
   const [newFile, setNewFile] = useState({ title: '', file: '', url: '' });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isFileLoading, setIsFileLoading] = useState(false);
+  const [fileNotification, setFileNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   
   // Interim Relief state
   const [interimRelief, setInterimRelief] = useState('NA');
@@ -124,6 +130,39 @@ const CaseDetailsPage: React.FC = () => {
     };
     fetchUsers();
   }, []);
+
+  // Fetch case files from database
+  useEffect(() => {
+    const fetchCaseFiles = async () => {
+      if (!id) return;
+      
+      try {
+        const { data, error } = await db.caseFiles.getByCaseId(id);
+        if (error) {
+          console.error('Error fetching case files:', error);
+          return;
+        }
+        if (data) {
+          // Convert database format to component format
+          const formattedFiles: CaseFile[] = data.map((f: any) => ({
+            id: f.id,
+            title: f.title,
+            file: f.file_url || '',
+            url: f.external_url || '',
+            dateAttached: new Date(f.created_at),
+            attachedBy: f.attached_by || 'Unknown',
+            caseId: f.case_id,
+          }));
+          setFiles(formattedFiles);
+          console.log('✅ Loaded', formattedFiles.length, 'files for case');
+        }
+      } catch (err) {
+        console.error('Error fetching case files:', err);
+      }
+    };
+    
+    fetchCaseFiles();
+  }, [id]);
 
   // Get case data
   const caseData = useMemo(() => {
@@ -218,18 +257,95 @@ const CaseDetailsPage: React.FC = () => {
     }
   };
 
-  const handleAddFile = () => {
-    if (newFile.title && (newFile.file || newFile.url)) {
-      setFiles([...files, {
-        id: Date.now().toString(),
+  const handleAddFile = async () => {
+    if (!id) return;
+    
+    if (!newFile.title) {
+      setFileNotification({ type: 'error', message: 'Please select a document type' });
+      setTimeout(() => setFileNotification(null), 3000);
+      return;
+    }
+    
+    if (!newFile.file && !newFile.url) {
+      setFileNotification({ type: 'error', message: 'Please select a file or provide a URL' });
+      setTimeout(() => setFileNotification(null), 3000);
+      return;
+    }
+    
+    setIsFileLoading(true);
+    try {
+      // Save to database
+      const fileData = {
+        case_id: id,
         title: newFile.title,
-        file: newFile.file,
-        url: newFile.url,
-        dateAttached: new Date(),
-        attachedBy: 'Current User'
-      }]);
-      setNewFile({ title: '', file: '', url: '' });
-      setSelectedFile(null);
+        file_url: newFile.file || null,
+        external_url: newFile.url || null,
+        file_name: selectedFile?.name || null,
+        file_type: selectedFile?.type || null,
+        file_size: selectedFile?.size || null,
+        attached_by: user?.name || 'Unknown',
+        attached_by_id: user?.id || null,
+      };
+      
+      const { data, error } = await db.caseFiles.create(fileData);
+      
+      if (error) {
+        console.error('Error saving file:', error);
+        setFileNotification({ type: 'error', message: 'Failed to save file. Please try again.' });
+        setTimeout(() => setFileNotification(null), 3000);
+        return;
+      }
+      
+      if (data) {
+        // Add to local state
+        const newFileEntry: CaseFile = {
+          id: data.id,
+          title: data.title,
+          file: data.file_url || '',
+          url: data.external_url || '',
+          dateAttached: new Date(data.created_at),
+          attachedBy: data.attached_by || 'Unknown',
+          caseId: data.case_id,
+        };
+        
+        setFiles(prev => [newFileEntry, ...prev]);
+        setNewFile({ title: '', file: '', url: '' });
+        setSelectedFile(null);
+        
+        setFileNotification({ type: 'success', message: `File "${newFile.title}" attached successfully! Visible to all users.` });
+        setTimeout(() => setFileNotification(null), 4000);
+        
+        console.log('✅ File saved to database:', data);
+      }
+    } catch (err) {
+      console.error('Error adding file:', err);
+      setFileNotification({ type: 'error', message: 'Failed to attach file. Please try again.' });
+      setTimeout(() => setFileNotification(null), 3000);
+    } finally {
+      setIsFileLoading(false);
+    }
+  };
+
+  const handleDeleteFile = async (fileId: string) => {
+    if (!window.confirm('Are you sure you want to delete this file?')) return;
+    
+    try {
+      const { error } = await db.caseFiles.delete(fileId);
+      
+      if (error) {
+        console.error('Error deleting file:', error);
+        setFileNotification({ type: 'error', message: 'Failed to delete file' });
+        setTimeout(() => setFileNotification(null), 3000);
+        return;
+      }
+      
+      setFiles(prev => prev.filter(f => f.id !== fileId));
+      setFileNotification({ type: 'success', message: 'File deleted successfully' });
+      setTimeout(() => setFileNotification(null), 3000);
+    } catch (err) {
+      console.error('Error deleting file:', err);
+      setFileNotification({ type: 'error', message: 'Failed to delete file' });
+      setTimeout(() => setFileNotification(null), 3000);
     }
   };
 
@@ -776,6 +892,22 @@ const CaseDetailsPage: React.FC = () => {
         {/* Files Tab */}
         {activeTab === 'files' && (
           <div className={`${bgClass} p-6 rounded-xl border ${borderClass}`}>
+            {/* File Notification */}
+            {fileNotification && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`mb-4 p-4 rounded-xl flex items-center gap-3 ${
+                  fileNotification.type === 'success'
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                }`}
+              >
+                {fileNotification.type === 'success' ? <CheckCircle size={20} /> : <Bell size={20} />}
+                {fileNotification.message}
+              </motion.div>
+            )}
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div>
                 <label className={`block text-sm font-semibold mb-2 ${labelClass}`}>FILE TITLE</label>
@@ -785,6 +917,7 @@ const CaseDetailsPage: React.FC = () => {
                   className={`w-full px-4 py-3 rounded-lg border ${inputBgClass}`}
                 >
                   <option value="">Select Document Type</option>
+                  <option value="Petition">Petition</option>
                   <option value="Case Proceedings">Case Proceedings</option>
                   <option value="Praecipe">Praecipe</option>
                   <option value="Acknowledgments">Acknowledgments</option>
@@ -792,6 +925,9 @@ const CaseDetailsPage: React.FC = () => {
                   <option value="Intimation Notice">Intimation Notice</option>
                   <option value="Communications">Communications</option>
                   <option value="Court Orders">Court Orders</option>
+                  <option value="Affidavit">Affidavit</option>
+                  <option value="Written Statement">Written Statement</option>
+                  <option value="Evidence">Evidence</option>
                   <option value="Other">Other</option>
                 </select>
               </div>
@@ -819,8 +955,19 @@ const CaseDetailsPage: React.FC = () => {
               </div>
             </div>
             <div className="flex justify-end mb-6">
-              <button onClick={handleAddFile} className="bg-gradient-cyber text-white px-6 py-2 rounded-lg font-semibold font-cyber hover:shadow-cyber transition-all border border-cyber-blue/30">
-                ATTACH
+              <button 
+                onClick={handleAddFile} 
+                disabled={isFileLoading}
+                className="bg-gradient-cyber text-white px-6 py-2 rounded-lg font-semibold font-cyber hover:shadow-cyber transition-all border border-cyber-blue/30 flex items-center gap-2 disabled:opacity-50"
+              >
+                {isFileLoading ? (
+                  <>
+                    <RefreshCw size={18} className="animate-spin" />
+                    ATTACHING...
+                  </>
+                ) : (
+                  'ATTACH'
+                )}
               </button>
             </div>
 
@@ -870,7 +1017,7 @@ const CaseDetailsPage: React.FC = () => {
                             <ExternalLink size={18} />
                           </button>
                           <button 
-                            onClick={() => setFiles(files.filter(f => f.id !== file.id))} 
+                            onClick={() => handleDeleteFile(file.id)} 
                             className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500/20 transition-all"
                             title="Delete File"
                           >

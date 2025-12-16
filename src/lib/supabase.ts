@@ -692,6 +692,40 @@ export const db = {
     }
   },
 
+  // Case Files
+  caseFiles: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('case_files')
+        .select('*')
+        .order('created_at', { ascending: false })
+      return { data, error }
+    },
+    getByCaseId: async (caseId: string) => {
+      const { data, error } = await supabase
+        .from('case_files')
+        .select('*')
+        .eq('case_id', caseId)
+        .order('created_at', { ascending: false })
+      return { data, error }
+    },
+    create: async (fileData: any) => {
+      const { data, error } = await supabase
+        .from('case_files')
+        .insert([fileData])
+        .select()
+        .single()
+      return { data, error }
+    },
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('case_files')
+        .delete()
+        .eq('id', id)
+      return { error }
+    }
+  },
+
   // Dashboard Stats
   getDashboardStats: async () => {
     const { data, error } = await supabase.rpc('get_dashboard_stats')
