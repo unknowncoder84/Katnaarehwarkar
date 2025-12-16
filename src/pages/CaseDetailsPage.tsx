@@ -274,25 +274,29 @@ const CaseDetailsPage: React.FC = () => {
     
     setIsFileLoading(true);
     try {
-      // Save to database
-      const fileData = {
+      // Save to database - only include essential fields to avoid constraint issues
+      const fileData: Record<string, any> = {
         case_id: id,
         title: newFile.title,
-        file_url: newFile.file || null,
-        external_url: newFile.url || null,
-        file_name: selectedFile?.name || null,
-        file_type: selectedFile?.type || null,
-        file_size: selectedFile?.size || null,
-        attached_by: user?.name || 'Unknown',
-        attached_by_id: user?.id || null,
+        attached_by: user?.name || 'Admin User',
       };
+      
+      // Only add optional fields if they have values
+      if (newFile.file) fileData.file_url = newFile.file;
+      if (newFile.url) fileData.external_url = newFile.url;
+      if (selectedFile?.name) fileData.file_name = selectedFile.name;
+      if (selectedFile?.type) fileData.file_type = selectedFile.type;
+      if (selectedFile?.size) fileData.file_size = selectedFile.size;
+      
+      console.log('📁 Saving file to database:', fileData);
       
       const { data, error } = await db.caseFiles.create(fileData);
       
       if (error) {
-        console.error('Error saving file:', error);
-        setFileNotification({ type: 'error', message: 'Failed to save file. Please try again.' });
-        setTimeout(() => setFileNotification(null), 3000);
+        console.error('❌ Error saving file:', error);
+        const errorMsg = error.message || error.details || JSON.stringify(error);
+        setFileNotification({ type: 'error', message: `Failed to save file: ${errorMsg}` });
+        setTimeout(() => setFileNotification(null), 5000);
         return;
       }
       
@@ -317,10 +321,10 @@ const CaseDetailsPage: React.FC = () => {
         
         console.log('✅ File saved to database:', data);
       }
-    } catch (err) {
-      console.error('Error adding file:', err);
-      setFileNotification({ type: 'error', message: 'Failed to attach file. Please try again.' });
-      setTimeout(() => setFileNotification(null), 3000);
+    } catch (err: any) {
+      console.error('❌ Error adding file:', err);
+      setFileNotification({ type: 'error', message: `Failed to attach file: ${err.message || 'Unknown error'}` });
+      setTimeout(() => setFileNotification(null), 5000);
     } finally {
       setIsFileLoading(false);
     }
