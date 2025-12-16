@@ -62,6 +62,8 @@ export interface Case {
   interimRelief: string;
   interimDate?: Date | string;
   grantedDate?: Date | string;
+  assignedTo?: string;
+  assignedToName?: string;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;

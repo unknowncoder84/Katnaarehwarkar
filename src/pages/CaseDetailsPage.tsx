@@ -203,6 +203,11 @@ const CaseDetailsPage: React.FC = () => {
         setNextDate(new Date(caseData.nextDate).toISOString().split('T')[0]);
       }
       
+      // Set assigned user from database
+      if (caseData.assignedTo) {
+        setAssignedUserId(caseData.assignedTo);
+      }
+      
       // Set basic details values
       setBasicDetailsState({
         status: caseData.status || 'pending',
@@ -489,6 +494,10 @@ const CaseDetailsPage: React.FC = () => {
     
     setIsBasicDetailsLoading(true);
     try {
+      // Find the assigned user's name
+      const assignedUser = users.find(u => u.id === assignedUserId);
+      const assignedToName = assignedUser ? assignedUser.name : '';
+      
       await updateCase(id, {
         status: basicDetailsState.status as any,
         stage: basicDetailsState.stage as any,
@@ -497,6 +506,8 @@ const CaseDetailsPage: React.FC = () => {
         district: basicDetailsState.district,
         filingDate: basicDetailsState.filingDate || undefined,
         nextDate: basicDetailsState.nextDateBasic || undefined,
+        assignedTo: assignedUserId || undefined,
+        assignedToName: assignedToName || undefined,
       });
       
       // Add to timeline
@@ -726,13 +737,16 @@ const CaseDetailsPage: React.FC = () => {
                   <span className="font-medium">Assigned To -</span>
                   <select 
                     value={assignedUserId} 
-                    onChange={(e) => setAssignedUserId(e.target.value)}
+                    onChange={(e) => {
+                      setAssignedUserId(e.target.value);
+                      setHasBasicDetailsChanged(true);
+                    }}
                     className={`px-3 py-1 rounded border ${inputBgClass} flex-1`}
                   >
                     <option value="">Not Assigned</option>
-                    {users.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name} ({user.role})
+                    {users.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name} ({u.role})
                       </option>
                     ))}
                   </select>
