@@ -14,7 +14,7 @@ interface CreateCaseFormProps {
 }
 
 const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) => {
-  const { addCase, caseTypes, courts } = useData();
+  const { addCase, caseTypes, courts, districts } = useData();
   const { theme } = useTheme();
   const { user } = useAuth();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -225,9 +225,10 @@ const CreateCaseForm: React.FC<CreateCaseFormProps> = ({ onClose, onSuccess }) =
             onChange={handleInputChange}
             error={errors.partiesName}
           />
-          <FormInput
+          <FormSelect
             label="District"
             name="district"
+            options={districts.map((d) => ({ value: d.name, label: d.name }))}
             value={formData.district}
             onChange={handleInputChange}
             error={errors.district}

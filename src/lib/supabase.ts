@@ -313,6 +313,32 @@ export const db = {
     }
   },
 
+  // Districts
+  districts: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('districts')
+        .select('*')
+        .order('name', { ascending: true })
+      return { data, error }
+    },
+    create: async (name: string) => {
+      const { data, error } = await supabase
+        .from('districts')
+        .insert([{ name }])
+        .select()
+        .single()
+      return { data, error }
+    },
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('districts')
+        .delete()
+        .eq('id', id)
+      return { error }
+    }
+  },
+
   // Books (Library)
   books: {
     getAll: async () => {

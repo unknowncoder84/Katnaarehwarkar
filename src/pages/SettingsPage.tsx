@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Moon, Sun, Trash2, BookOpen, Archive } from 'lucide-react';
+import { Moon, Sun, Trash2, BookOpen, Archive, MapPin } from 'lucide-react';
 import MainLayout from '../components/MainLayout';
 import { useTheme } from '../contexts/ThemeContext';
 import { useData } from '../contexts/DataContext';
@@ -8,12 +8,14 @@ import { useData } from '../contexts/DataContext';
 const SettingsPage: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { 
-    courts, caseTypes, addCourt, deleteCourt, addCaseType, deleteCaseType,
+    courts, caseTypes, districts, addCourt, deleteCourt, addCaseType, deleteCaseType,
+    addDistrict, deleteDistrict,
     libraryLocations, storageLocations, addLibraryLocation, deleteLibraryLocation,
     addStorageLocation, deleteStorageLocation
   } = useData();
   const [courtName, setCourtName] = useState('');
   const [caseTypeName, setCaseTypeName] = useState('');
+  const [districtName, setDistrictName] = useState('');
   const [libraryLocationName, setLibraryLocationName] = useState('');
   const [storageLocationName, setStorageLocationName] = useState('');
 
@@ -28,6 +30,13 @@ const SettingsPage: React.FC = () => {
     if (caseTypeName.trim()) {
       addCaseType(caseTypeName);
       setCaseTypeName('');
+    }
+  };
+
+  const handleAddDistrict = () => {
+    if (districtName.trim()) {
+      addDistrict(districtName);
+      setDistrictName('');
     }
   };
 
@@ -174,6 +183,70 @@ const SettingsPage: React.FC = () => {
                     onClick={() => deleteCaseType(ct.id)}
                     className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
                     title="Delete Case Type"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* District Management */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+        className={`${cardBg} p-6 rounded-2xl mb-6 border`}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg">
+            <MapPin size={20} className="text-white" />
+          </div>
+          <div>
+            <h2 className={`text-xl font-bold ${textPrimary}`}>District Management</h2>
+            <p className={`text-sm ${textSecondary}`}>Add and manage districts for case filing</p>
+          </div>
+        </div>
+        
+        {/* Add District Form */}
+        <div className="mb-6">
+          <label className={`block text-sm font-semibold mb-2 ${textSecondary}`}>Add New District</label>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <textarea
+              value={districtName}
+              onChange={(e) => setDistrictName(e.target.value)}
+              placeholder="Enter district name (e.g., Mumbai, Pune, Nagpur)"
+              rows={2}
+              className={`flex-1 px-4 py-3 border rounded-xl focus:outline-none focus:border-green-500 transition-colors resize-none ${inputBgClass}`}
+            />
+            <button
+              onClick={handleAddDistrict}
+              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-300 font-medium font-cyber border border-green-500/30 self-start"
+            >
+              Add District
+            </button>
+          </div>
+        </div>
+
+        {/* Districts List */}
+        <div>
+          <label className={`block text-sm font-semibold mb-2 ${textSecondary}`}>Existing Districts ({districts.length})</label>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {districts.length === 0 ? (
+              <p className={`text-center py-6 ${textSecondary}`}>No districts added yet</p>
+            ) : (
+              districts.map((district) => (
+                <div key={district.id} className={`flex items-center justify-between ${itemBgClass} p-4 rounded-xl hover:shadow-md transition-all`}>
+                  <div className="flex items-center gap-3">
+                    <MapPin size={18} className="text-green-500" />
+                    <span className={`${textPrimary} font-medium`}>{district.name}</span>
+                  </div>
+                  <button
+                    onClick={() => deleteDistrict(district.id)}
+                    className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
+                    title="Delete District"
                   >
                     <Trash2 size={18} />
                   </button>

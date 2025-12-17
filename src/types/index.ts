@@ -137,6 +137,13 @@ export interface CaseType {
   createdAt: Date;
 }
 
+// District Types
+export interface District {
+  id: string;
+  name: string;
+  createdAt: Date;
+}
+
 // Library and Storage Location Types
 export interface LibraryLocation {
   id: string;
@@ -239,6 +246,7 @@ export interface DataContextType {
   transactions: Transaction[];
   courts: Court[];
   caseTypes: CaseType[];
+  districts: District[];
   books: Book[];
   sofaItems: SofaItem[];
   libraryLocations: LibraryLocation[];
@@ -260,6 +268,9 @@ export interface DataContextType {
   deleteCourt: (id: string) => void | Promise<void>;
   addCaseType: (caseTypeName: string) => void | Promise<void>;
   deleteCaseType: (id: string) => void | Promise<void>;
+  // District Management
+  addDistrict: (districtName: string) => void | Promise<void>;
+  deleteDistrict: (id: string) => void | Promise<void>;
   // Library Management
   addBook: (name: string, number?: string, location?: string) => { success: boolean; error?: string } | Promise<{ success: boolean; error?: string }>;
   deleteBook: (id: string) => void | Promise<void>;

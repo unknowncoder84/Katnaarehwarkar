@@ -210,7 +210,44 @@ GRANT ALL ON storage_locations TO authenticated;
 GRANT ALL ON storage_locations TO anon;
 
 -- =====================================================
--- 8. FIX BOOKS TABLE
+-- 8. FIX DISTRICTS TABLE
+-- =====================================================
+CREATE TABLE IF NOT EXISTS districts (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    created_by VARCHAR(255),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE districts ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "districts_all" ON districts;
+CREATE POLICY "districts_all" ON districts FOR ALL USING (true);
+GRANT ALL ON districts TO authenticated;
+GRANT ALL ON districts TO anon;
+
+-- Insert default districts if table is empty
+INSERT INTO districts (name) 
+SELECT name FROM (VALUES 
+    ('Mumbai'),
+    ('Pune'),
+    ('Nagpur'),
+    ('Nashik'),
+    ('Aurangabad'),
+    ('Thane'),
+    ('Kolhapur'),
+    ('Solapur'),
+    ('Sangli'),
+    ('Satara'),
+    ('Ahmednagar'),
+    ('Ratnagiri'),
+    ('Sindhudurg'),
+    ('Raigad'),
+    ('Palghar')
+) AS default_districts(name)
+WHERE NOT EXISTS (SELECT 1 FROM districts LIMIT 1);
+
+-- =====================================================
+-- 9. FIX BOOKS TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS books (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -228,7 +265,7 @@ GRANT ALL ON books TO authenticated;
 GRANT ALL ON books TO anon;
 
 -- =====================================================
--- 9. FIX SOFA ITEMS TABLE
+-- 10. FIX SOFA ITEMS TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS sofa_items (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

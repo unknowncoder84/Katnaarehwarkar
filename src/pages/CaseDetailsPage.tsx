@@ -56,7 +56,7 @@ interface TimelineEvent {
 const CaseDetailsPage: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { cases, deleteCase, updateCase, courts, caseTypes } = useData();
+  const { cases, deleteCase, updateCase, courts, caseTypes, districts } = useData();
   const { theme } = useTheme();
   const { isAdmin, user } = useAuth();
   
@@ -892,12 +892,10 @@ const CaseDetailsPage: React.FC = () => {
                     value={basicDetailsState.district}
                     onChange={(e) => handleBasicDetailsChange('district', e.target.value)}
                   >
-                    <option value="">Select</option>
-                    <option value="Mumbai">Mumbai</option>
-                    <option value="Pune">Pune</option>
-                    <option value="Nagpur">Nagpur</option>
-                    <option value="Nashik">Nashik</option>
-                    <option value="Aurangabad">Aurangabad</option>
+                    <option value="">Select District</option>
+                    {districts.map((district) => (
+                      <option key={district.id} value={district.name}>{district.name}</option>
+                    ))}
                   </select>
                 </div>
               </div>

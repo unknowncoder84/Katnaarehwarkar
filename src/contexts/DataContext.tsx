@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Case, Counsel, Appointment, Transaction, Court, CaseType, Book, SofaItem, Task, Attendance, AttendanceStatus, Expense, DataContextType, LibraryLocation, StorageLocation } from '../types';
+import { Case, Counsel, Appointment, Transaction, Court, CaseType, District, Book, SofaItem, Task, Attendance, AttendanceStatus, Expense, DataContextType, LibraryLocation, StorageLocation } from '../types';
 import { db, supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -57,6 +57,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     { id: '3', name: 'Commercial', createdAt: new Date() },
     { id: '4', name: 'Family', createdAt: new Date() },
   ]);
+  const [districts, setDistricts] = useState<District[]>([
+    { id: '1', name: 'Mumbai', createdAt: new Date() },
+    { id: '2', name: 'Pune', createdAt: new Date() },
+    { id: '3', name: 'Nagpur', createdAt: new Date() },
+    { id: '4', name: 'Nashik', createdAt: new Date() },
+    { id: '5', name: 'Aurangabad', createdAt: new Date() },
+  ]);
   const [books, setBooks] = useState<Book[]>([]);
   const [sofaItems, setSofaItems] = useState<SofaItem[]>([]);
   const [libraryLocations, setLibraryLocations] = useState<LibraryLocation[]>([]);
@@ -79,6 +86,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         transactionsRes,
         courtsRes,
         caseTypesRes,
+        districtsRes,
         booksRes,
         sofaItemsRes,
         libraryLocationsRes,
@@ -93,6 +101,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         db.transactions.getAll(),
         db.courts.getAll(),
         db.caseTypes.getAll(),
+        db.districts.getAll(),
         db.books.getAll(),
         db.sofaItems.getAll(),
         db.libraryLocations.getAll(),
@@ -109,6 +118,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (transactionsRes.error) console.error('❌ Error fetching transactions:', transactionsRes.error);
       if (courtsRes.error) console.error('❌ Error fetching courts:', courtsRes.error);
       if (caseTypesRes.error) console.error('❌ Error fetching case types:', caseTypesRes.error);
+      if (districtsRes.error) console.error('❌ Error fetching districts:', districtsRes.error);
       if (booksRes.error) console.error('❌ Error fetching books:', booksRes.error);
       if (sofaItemsRes.error) console.error('❌ Error fetching sofa items:', sofaItemsRes.error);
       if (libraryLocationsRes.error) console.error('❌ Error fetching library locations:', libraryLocationsRes.error);
@@ -142,6 +152,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (caseTypesRes.data && caseTypesRes.data.length > 0) {
         setCaseTypes(toCamelCase(caseTypesRes.data));
         console.log(`✅ Loaded ${caseTypesRes.data.length} case types from database`);
+      }
+      if (districtsRes.data && districtsRes.data.length > 0) {
+        setDistricts(toCamelCase(districtsRes.data));
+        console.log(`✅ Loaded ${districtsRes.data.length} districts from database`);
       }
       if (booksRes.data) {
         setBooks(toCamelCase(booksRes.data));
@@ -608,6 +622,27 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCaseTypes((prev) => prev.filter((ct) => ct.id !== id));
   };
 
+  // District operations
+  const addDistrict = async (districtName: string) => {
+    const { data, error } = await db.districts.create(districtName);
+    if (error) {
+      console.error('Error adding district:', error);
+      return;
+    }
+    if (data) {
+      setDistricts((prev) => [...prev, toCamelCase(data)]);
+    }
+  };
+
+  const deleteDistrict = async (id: string) => {
+    const { error } = await db.districts.delete(id);
+    if (error) {
+      console.error('Error deleting district:', error);
+      return;
+    }
+    setDistricts((prev) => prev.filter((d) => d.id !== id));
+  };
+
   // Library Management - Books
   const addBook = async (name: string, number?: string, location?: string): Promise<{ success: boolean; error?: string }> => {
     if (!name || name.trim().length === 0) {
@@ -1060,6 +1095,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     transactions,
     courts,
     caseTypes,
+    districts,
     books,
     sofaItems,
     libraryLocations,
@@ -1081,6 +1117,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     deleteCourt,
     addCaseType,
     deleteCaseType,
+    addDistrict,
+    deleteDistrict,
     addBook,
     deleteBook,
     addSofaItem,
