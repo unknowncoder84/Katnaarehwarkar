@@ -66,6 +66,8 @@ const CaseDetailsPage: React.FC = () => {
   // Users state
   const [users, setUsers] = useState<User[]>([]);
   const [assignedUserId, setAssignedUserId] = useState<string>('');
+  const [isAssignmentSaving, setIsAssignmentSaving] = useState(false);
+  const [assignmentNotification, setAssignmentNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   
   // Files state
   const [files, setFiles] = useState<CaseFile[]>([]);
@@ -488,6 +490,47 @@ const CaseDetailsPage: React.FC = () => {
     setHasBasicDetailsChanged(true);
   };
 
+  // Handle Assignment Change - Auto-save immediately
+  const handleAssignmentChange = async (userId: string) => {
+    if (!id) return;
+    
+    setAssignedUserId(userId);
+    setIsAssignmentSaving(true);
+    
+    try {
+      // Find the assigned user's name
+      const assignedUser = users.find(u => u.id === userId);
+      const assignedToName = assignedUser ? assignedUser.name : '';
+      
+      // Save directly to database using supabase
+      const { error } = await db.cases.update(id, {
+        assigned_to: userId || null,
+        assigned_to_name: assignedToName || null,
+      });
+      
+      if (error) {
+        console.error('Error saving assignment:', error);
+        setAssignmentNotification({ type: 'error', message: 'Failed to save assignment. Please run the database migration.' });
+        setTimeout(() => setAssignmentNotification(null), 5000);
+        return;
+      }
+      
+      setAssignmentNotification({ 
+        type: 'success', 
+        message: assignedToName ? `Case assigned to ${assignedToName}` : 'Assignment removed' 
+      });
+      setTimeout(() => setAssignmentNotification(null), 3000);
+      
+      console.log('✅ Assignment saved:', assignedToName || 'None');
+    } catch (error) {
+      console.error('Error saving assignment:', error);
+      setAssignmentNotification({ type: 'error', message: 'Failed to save assignment' });
+      setTimeout(() => setAssignmentNotification(null), 3000);
+    } finally {
+      setIsAssignmentSaving(false);
+    }
+  };
+
   // Handle Save Basic Details
   const handleSaveBasicDetails = async () => {
     if (!id) return;
@@ -737,11 +780,9 @@ const CaseDetailsPage: React.FC = () => {
                   <span className="font-medium">Assigned To -</span>
                   <select 
                     value={assignedUserId} 
-                    onChange={(e) => {
-                      setAssignedUserId(e.target.value);
-                      setHasBasicDetailsChanged(true);
-                    }}
-                    className={`px-3 py-1 rounded border ${inputBgClass} flex-1`}
+                    onChange={(e) => handleAssignmentChange(e.target.value)}
+                    disabled={isAssignmentSaving}
+                    className={`px-3 py-1 rounded border ${inputBgClass} flex-1 ${isAssignmentSaving ? 'opacity-50' : ''}`}
                   >
                     <option value="">Not Assigned</option>
                     {users.map((u) => (
@@ -750,7 +791,17 @@ const CaseDetailsPage: React.FC = () => {
                       </option>
                     ))}
                   </select>
+                  {isAssignmentSaving && <span className="text-xs text-amber-500">Saving...</span>}
                 </div>
+                {assignmentNotification && (
+                  <div className={`text-sm px-2 py-1 rounded ${
+                    assignmentNotification.type === 'success' 
+                      ? 'bg-green-500/20 text-green-400' 
+                      : 'bg-red-500/20 text-red-400'
+                  }`}>
+                    {assignmentNotification.message}
+                  </div>
+                )}
                 <p><span className="font-medium">Name of Parties -</span> {caseData.partiesName}</p>
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Case Status -</span>
