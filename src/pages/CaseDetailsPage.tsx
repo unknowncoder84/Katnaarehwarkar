@@ -8,9 +8,10 @@ import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { getAllUsers } from '../lib/userManagement';
-import { db } from '../lib/supabase';
+import { db, supabase } from '../lib/supabase';
 import { User } from '../types';
 import { formatIndianDate } from '../utils/dateFormat';
+import { uploadFile, deleteFile, downloadFile } from '../lib/fileStorage';
 
 type TabType = 'basic' | 'files' | 'interim' | 'circulation' | 'payments' | 'tasks' | 'timeline';
 
@@ -273,7 +274,7 @@ const CaseDetailsPage: React.FC = () => {
       return;
     }
     
-    if (!newFile.file && !newFile.url) {
+    if (!selectedFile && !newFile.url) {
       setFileNotification({ type: 'error', message: 'Please select a file or provide a URL' });
       setTimeout(() => setFileNotification(null), 3000);
       return;
@@ -281,29 +282,59 @@ const CaseDetailsPage: React.FC = () => {
     
     setIsFileLoading(true);
     try {
-      // Save to database - only include essential fields to avoid constraint issues
+      let fileUrl = '';
+      let storagePath = '';
+      
+      // If user selected a file, upload to Supabase Storage
+      if (selectedFile) {
+        console.log('📤 Uploading file to Supabase Storage...');
+        const uploadResult = await uploadFile(selectedFile, id, selectedFile.name);
+        
+        if (!uploadResult.success) {
+          setFileNotification({ type: 'error', message: `Upload failed: ${uploadResult.error}` });
+          setTimeout(() => setFileNotification(null), 5000);
+          setIsFileLoading(false);
+          return;
+        }
+        
+        fileUrl = uploadResult.url || '';
+        storagePath = uploadResult.path || '';
+        console.log('✅ File uploaded to storage:', fileUrl);
+      }
+      
+      // Save to database
       const fileData: Record<string, any> = {
         case_id: id,
         title: newFile.title,
         attached_by: user?.name || 'Admin User',
       };
       
-      // Only add optional fields if they have values
-      if (newFile.file) fileData.file_url = newFile.file;
-      if (newFile.url) fileData.external_url = newFile.url;
-      if (selectedFile?.name) fileData.file_name = selectedFile.name;
-      if (selectedFile?.type) fileData.file_type = selectedFile.type;
-      if (selectedFile?.size) fileData.file_size = selectedFile.size;
+      // Add file URLs
+      if (fileUrl) {
+        fileData.file_url = fileUrl;
+        fileData.storage_path = storagePath;
+      }
+      if (newFile.url) {
+        fileData.external_url = newFile.url;
+      }
       
-      console.log('📁 Saving file to database:', fileData);
+      // Add file metadata
+      if (selectedFile) {
+        fileData.file_name = selectedFile.name;
+        fileData.file_type = selectedFile.type;
+        fileData.file_size = selectedFile.size;
+        fileData.mime_type = selectedFile.type;
+      }
+      
+      console.log('💾 Saving file metadata to database:', fileData);
       
       const { data, error } = await db.caseFiles.create(fileData);
       
       if (error) {
-        console.error('❌ Error saving file:', error);
-        const errorMsg = error.message || error.details || JSON.stringify(error);
-        setFileNotification({ type: 'error', message: `Failed to save file: ${errorMsg}` });
+        console.error('❌ Error saving file metadata:', error);
+        setFileNotification({ type: 'error', message: `Failed to save file: ${error.message}` });
         setTimeout(() => setFileNotification(null), 5000);
+        setIsFileLoading(false);
         return;
       }
       
@@ -323,10 +354,17 @@ const CaseDetailsPage: React.FC = () => {
         setNewFile({ title: '', file: '', url: '' });
         setSelectedFile(null);
         
-        setFileNotification({ type: 'success', message: `File "${newFile.title}" attached successfully! Visible to all users.` });
-        setTimeout(() => setFileNotification(null), 4000);
+        // Reset file input
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
         
-        console.log('✅ File saved to database:', data);
+        setFileNotification({ 
+          type: 'success', 
+          message: `✅ File "${newFile.title}" uploaded successfully! All users can now download it from anywhere.` 
+        });
+        setTimeout(() => setFileNotification(null), 5000);
+        
+        console.log('✅ File saved successfully:', data);
       }
     } catch (err: any) {
       console.error('❌ Error adding file:', err);
@@ -341,17 +379,39 @@ const CaseDetailsPage: React.FC = () => {
     if (!window.confirm('Are you sure you want to delete this file?')) return;
     
     try {
+      // Find the file to get storage path
+      const fileToDelete = files.find(f => f.id === fileId);
+      
+      // Delete from Supabase Storage if it has a storage path
+      if (fileToDelete) {
+        // Get the file data from database to find storage_path
+        const { data: fileData } = await supabase
+          .from('case_files')
+          .select('storage_path')
+          .eq('id', fileId)
+          .single();
+        
+        if (fileData?.storage_path) {
+          console.log('🗑️ Deleting file from storage:', fileData.storage_path);
+          const deleteResult = await deleteFile(fileData.storage_path);
+          if (!deleteResult.success) {
+            console.warn('⚠️ Failed to delete from storage:', deleteResult.error);
+          }
+        }
+      }
+      
+      // Delete from database
       const { error } = await db.caseFiles.delete(fileId);
       
       if (error) {
-        console.error('Error deleting file:', error);
+        console.error('Error deleting file from database:', error);
         setFileNotification({ type: 'error', message: 'Failed to delete file' });
         setTimeout(() => setFileNotification(null), 3000);
         return;
       }
       
       setFiles(prev => prev.filter(f => f.id !== fileId));
-      setFileNotification({ type: 'success', message: 'File deleted successfully' });
+      setFileNotification({ type: 'success', message: 'File deleted successfully from storage and database' });
       setTimeout(() => setFileNotification(null), 3000);
     } catch (err) {
       console.error('Error deleting file:', err);
@@ -361,39 +421,19 @@ const CaseDetailsPage: React.FC = () => {
   };
 
   const handleDownloadFile = (file: CaseFile) => {
-    // Priority: 1. External URL (Dropbox/Drive), 2. File URL from database
+    // Priority: 1. External URL (Dropbox/Drive), 2. Supabase Storage URL
     if (file.url && file.url.trim() !== '') {
       // Open external URL in new tab (Dropbox, Google Drive, etc.)
+      console.log('📥 Opening external URL:', file.url);
       window.open(file.url, '_blank');
-    } else if (file.file && file.file.startsWith('blob:')) {
-      // Blob URLs only work in the same browser session
-      // Show error message for other users
-      setFileNotification({ 
-        type: 'error', 
-        message: 'This file was uploaded locally and is not available for download. Please ask the uploader to provide a Dropbox/Drive link.' 
-      });
-      setTimeout(() => setFileNotification(null), 5000);
     } else if (file.file && file.file.trim() !== '') {
-      // Try to open the file URL
-      try {
-        const link = document.createElement('a');
-        link.href = file.file;
-        link.download = file.title || 'download';
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } catch (err) {
-        setFileNotification({ 
-          type: 'error', 
-          message: 'Unable to download file. The file may have been uploaded locally by another user.' 
-        });
-        setTimeout(() => setFileNotification(null), 5000);
-      }
+      // Download from Supabase Storage
+      console.log('📥 Downloading from Supabase Storage:', file.file);
+      downloadFile(file.file, file.title);
     } else {
       setFileNotification({ 
         type: 'error', 
-        message: 'No file URL available. Please provide a Dropbox/Drive link when uploading.' 
+        message: 'No file URL available. The file may not have been uploaded correctly.' 
       });
       setTimeout(() => setFileNotification(null), 5000);
     }
@@ -981,6 +1021,15 @@ const CaseDetailsPage: React.FC = () => {
         {/* Files Tab */}
         {activeTab === 'files' && (
           <div className={`${bgClass} p-6 rounded-xl border ${borderClass}`}>
+            {/* Info Message */}
+            <div className="mb-4 p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-start gap-3">
+              <FileText size={20} className="text-blue-400 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-blue-300">
+                <p className="font-semibold mb-1">📤 Cloud File Storage Enabled</p>
+                <p>Files uploaded here are stored in Supabase Cloud Storage. All authenticated users can download files from anywhere, anytime. Files are permanently accessible even after browser restart.</p>
+              </div>
+            </div>
+            
             {/* File Notification */}
             {fileNotification && (
               <motion.div
