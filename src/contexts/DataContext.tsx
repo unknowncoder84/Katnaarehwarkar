@@ -85,6 +85,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         storageLocationsRes,
         tasksRes,
         expensesRes,
+        attendanceRes,
       ] = await Promise.all([
         db.cases.getAll(),
         db.counsel.getAll(),
@@ -98,6 +99,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         db.storageLocations.getAll(),
         db.tasks.getAll(),
         db.expenses.getAll(),
+        db.attendance.getAll(),
       ]);
 
       // Log any errors from individual queries
@@ -113,6 +115,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (storageLocationsRes.error) console.error('❌ Error fetching storage locations:', storageLocationsRes.error);
       if (tasksRes.error) console.error('❌ Error fetching tasks:', tasksRes.error);
       if (expensesRes.error) console.error('❌ Error fetching expenses:', expensesRes.error);
+      if (attendanceRes.error) console.error('❌ Error fetching attendance:', attendanceRes.error);
 
       // Update state with fetched data
       if (casesRes.data) {
@@ -163,6 +166,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (expensesRes.data) {
         setExpenses(toCamelCase(expensesRes.data));
         console.log(`✅ Loaded ${expensesRes.data.length} expenses from database`);
+      }
+      if (attendanceRes.data) {
+        setAttendance(toCamelCase(attendanceRes.data));
+        console.log(`✅ Loaded ${attendanceRes.data.length} attendance records from database`);
       }
       
       console.log('✅ All data fetched from database successfully!');
@@ -855,35 +862,74 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return tasks.filter((t) => t.status === 'pending').length;
   };
 
-  // Attendance Management Functions
+  // Attendance Management Functions - DATABASE FIRST approach
   const markAttendance = async (userId: string, date: Date, status: AttendanceStatus) => {
+    console.log('🔵 markAttendance called:', { userId, date, status });
+    
     const dateStr = date.toISOString().split('T')[0];
-    const existingRecord = attendance.find(
-      (a) => a.userId === userId && new Date(a.date).toISOString().split('T')[0] === dateStr
-    );
-
-    if (existingRecord) {
-      // Update existing record
-      const updatedAttendance = attendance.map((a) =>
-        a.id === existingRecord.id
-          ? { ...a, status, updatedAt: new Date() }
-          : a
-      );
-      setAttendance(updatedAttendance);
-    } else {
-      // Create new record
-      const newAttendance: Attendance = {
-        id: Date.now().toString(),
-        userId,
-        userName: '', // Will be filled from users context
-        date,
+    
+    try {
+      // Use upsert to handle both insert and update
+      const attendanceData = {
+        user_id: userId,
+        user_name: '', // Will be filled from context if needed
+        date: dateStr,
         status,
-        markedBy: user?.id || '',
-        markedByName: user?.name || '',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        marked_by: user?.id || null,
+        marked_by_name: user?.name || '',
       };
-      setAttendance([...attendance, newAttendance]);
+      
+      console.log('🔵 Saving attendance to database...', attendanceData);
+      const { data, error } = await db.attendance.upsert(attendanceData);
+      
+      if (error) {
+        console.error('❌ Database error saving attendance:', error);
+        // Fallback to local state
+        const existingRecord = attendance.find(
+          (a) => a.userId === userId && new Date(a.date).toISOString().split('T')[0] === dateStr
+        );
+
+        if (existingRecord) {
+          const updatedAttendance = attendance.map((a) =>
+            a.id === existingRecord.id
+              ? { ...a, status, updatedAt: new Date() }
+              : a
+          );
+          setAttendance(updatedAttendance);
+        } else {
+          const newAttendance: Attendance = {
+            id: Date.now().toString(),
+            userId,
+            userName: '',
+            date,
+            status,
+            markedBy: user?.id || '',
+            markedByName: user?.name || '',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          setAttendance([...attendance, newAttendance]);
+        }
+        return;
+      }
+      
+      if (data) {
+        console.log('✅ Attendance saved to database successfully:', data);
+        // Update local state
+        const existingIndex = attendance.findIndex(
+          (a) => a.userId === userId && new Date(a.date).toISOString().split('T')[0] === dateStr
+        );
+        
+        const newRecord = toCamelCase(data);
+        if (existingIndex >= 0) {
+          setAttendance(prev => prev.map((a, i) => i === existingIndex ? newRecord : a));
+        } else {
+          setAttendance(prev => [...prev, newRecord]);
+        }
+      }
+    } catch (err) {
+      console.error('❌ Error saving attendance:', err);
+      alert('Failed to save attendance. Please check your connection.');
     }
   };
 

@@ -361,19 +361,41 @@ const CaseDetailsPage: React.FC = () => {
   };
 
   const handleDownloadFile = (file: CaseFile) => {
-    // Priority: 1. URL (Dropbox/Drive), 2. Local file
-    if (file.url) {
-      // Open external URL in new tab
+    // Priority: 1. External URL (Dropbox/Drive), 2. File URL from database
+    if (file.url && file.url.trim() !== '') {
+      // Open external URL in new tab (Dropbox, Google Drive, etc.)
       window.open(file.url, '_blank');
-    } else if (file.file) {
-      // Download local file
-      const link = document.createElement('a');
-      link.href = file.file;
-      link.download = file.title || 'download';
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    } else if (file.file && file.file.startsWith('blob:')) {
+      // Blob URLs only work in the same browser session
+      // Show error message for other users
+      setFileNotification({ 
+        type: 'error', 
+        message: 'This file was uploaded locally and is not available for download. Please ask the uploader to provide a Dropbox/Drive link.' 
+      });
+      setTimeout(() => setFileNotification(null), 5000);
+    } else if (file.file && file.file.trim() !== '') {
+      // Try to open the file URL
+      try {
+        const link = document.createElement('a');
+        link.href = file.file;
+        link.download = file.title || 'download';
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (err) {
+        setFileNotification({ 
+          type: 'error', 
+          message: 'Unable to download file. The file may have been uploaded locally by another user.' 
+        });
+        setTimeout(() => setFileNotification(null), 5000);
+      }
+    } else {
+      setFileNotification({ 
+        type: 'error', 
+        message: 'No file URL available. Please provide a Dropbox/Drive link when uploading.' 
+      });
+      setTimeout(() => setFileNotification(null), 5000);
     }
   };
 
