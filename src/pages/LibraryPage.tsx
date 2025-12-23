@@ -194,8 +194,8 @@ const LibraryPage: React.FC = () => {
 
   // Filter by selected location first, then by search term
   const filteredItems = libraryItems.filter((item) => {
-    // Filter by location if one is selected
-    if (selectedLocation && item.locationId !== selectedLocation) {
+    // Filter by location if one is selected (now comparing by location name)
+    if (selectedLocation && item.location !== selectedLocation) {
       return false;
     }
     // Then filter by search term
@@ -250,69 +250,41 @@ const LibraryPage: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Location Filter Buttons */}
-      {libraryLocations.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="mb-4 md:mb-6"
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <MapPin size={18} className={textSecondary} />
-            <span className={`text-sm font-semibold ${textSecondary}`}>Filter by Location</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {/* All Button */}
-            <button
-              onClick={() => setSelectedLocation(null)}
-              className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
-                selectedLocation === null
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg'
-                  : theme === 'light'
-                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    : 'bg-white/10 text-gray-300 hover:bg-white/20'
-              }`}
-            >
-              All Locations
-            </button>
-            {/* Dynamic Location Buttons from Settings */}
+      {/* Location Filter Dropdown */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+        className="mb-4 md:mb-6"
+      >
+        <div className="flex items-center gap-2 mb-3">
+          <MapPin size={18} className={textSecondary} />
+          <span className={`text-sm font-semibold ${textSecondary}`}>Filter by Location</span>
+        </div>
+        <div className="relative max-w-xs">
+          <select
+            value={selectedLocation || ''}
+            onChange={(e) => setSelectedLocation(e.target.value || null)}
+            className={`w-full px-4 py-3 rounded-xl border appearance-none cursor-pointer ${inputBg} focus:outline-none focus:border-amber-500 transition-all pr-10`}
+          >
+            <option value="">All Locations</option>
             {libraryLocations.map((loc) => (
-              <button
-                key={loc.id}
-                onClick={() => setSelectedLocation(loc.id)}
-                className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 ${
-                  selectedLocation === loc.id
-                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg'
-                    : theme === 'light'
-                      ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
-                      : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30'
-                }`}
-              >
-                <BookOpen size={16} />
-                {loc.name}
-              </button>
+              <option key={loc.id} value={loc.name}>{loc.name}</option>
             ))}
+          </select>
+          {/* Dropdown Arrow Icon */}
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+            <svg className={`w-5 h-5 ${textSecondary}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
           </div>
-        </motion.div>
-      )}
-
-      {/* No Locations Message */}
-      {libraryLocations.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className={`${cardBg} p-4 rounded-xl border mb-4 md:mb-6`}
-        >
-          <div className="flex items-center gap-3">
-            <MapPin size={20} className="text-amber-500" />
-            <p className={textSecondary}>
-              No library locations configured. {isAdmin ? 'Add locations in Settings to organize your library.' : 'Contact admin to add library locations.'}
-            </p>
-          </div>
-        </motion.div>
-      )}
+        </div>
+        {libraryLocations.length === 0 && (
+          <p className={`text-sm mt-2 ${textSecondary}`}>
+            {isAdmin ? 'Add locations in Settings to organize your library.' : 'Contact admin to add library locations.'}
+          </p>
+        )}
+      </motion.div>
 
       {/* Admin Only: Add Item Form */}
       {isAdmin && showAddForm && (

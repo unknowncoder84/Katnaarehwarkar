@@ -73,14 +73,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         className={`${bgClass} w-64 md:w-72 h-screen flex flex-col transition-transform duration-300 ease-in-out border-r ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } fixed md:relative z-40 overflow-hidden`}
-        style={{
-          backgroundImage: theme === 'dark' ? `url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60')` : 'none',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
       >
-        {/* Background Overlay */}
-        <div className={`absolute inset-0 ${theme === 'dark' ? 'bg-[#1a1a2e]/95' : 'bg-white/98'}`} />
+        {/* Background Overlay - Solid black for dark mode */}
+        <div className={`absolute inset-0 ${theme === 'dark' ? 'bg-[#1a1a2e]' : 'bg-white/98'}`} />
         {/* Header */}
         <div className={`relative p-4 md:p-5 border-b ${theme === 'light' ? 'border-gray-100' : 'border-white/5'}`}>
           <div className="flex items-center justify-between">

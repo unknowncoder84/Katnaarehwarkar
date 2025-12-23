@@ -5,25 +5,13 @@ import MainLayout from '../components/MainLayout';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
+import { StorageItem } from '../types';
 import { dropbox, downloadBlob } from '../lib/dropbox';
-
-interface StorageItem {
-  id: string;
-  name: string;
-  number: string;
-  location: string;
-  locationId: string;
-  type: 'File' | 'Document' | 'Box';
-  addedAt: Date;
-  addedBy: string;
-  dropboxPath?: string;
-  dropboxLink?: string;
-}
 
 const StoragePage: React.FC = () => {
   const { theme } = useTheme();
   const { isAdmin, user } = useAuth();
-  const { storageLocations } = useData();
+  const { storageLocations, storageItems, addStorageItem, deleteStorageItem, cases } = useData();
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
@@ -31,13 +19,26 @@ const StoragePage: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
-  // Storage items state - starts empty, items are added dynamically
-  const [storageItems, setStorageItems] = useState<StorageItem[]>([]);
-  
+  const [selectedCaseId, setSelectedCaseId] = useState('');
   const [itemName, setItemName] = useState('');
   const [itemNumber, setItemNumber] = useState('');
   const [itemLocationId, setItemLocationId] = useState('');
   const [itemType, setItemType] = useState<'File' | 'Document' | 'Box'>('File');
+
+  // Handler for case selection - auto-fills name and number
+  const handleCaseSelect = (caseId: string) => {
+    setSelectedCaseId(caseId);
+    if (caseId) {
+      const selectedCase = cases.find(c => c.id === caseId);
+      if (selectedCase) {
+        setItemName(selectedCase.clientName);
+        setItemNumber(selectedCase.fileNo);
+      }
+    } else {
+      setItemName('');
+      setItemNumber('');
+    }
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) setSelectedFile(e.target.files[0]);
@@ -57,18 +58,43 @@ const StoragePage: React.FC = () => {
         const result = await dropbox.uploadFile(selectedFile, `storage-${Date.now()}`);
         dropboxPath = result.path;
         try { const linkResult = await dropbox.getShareableLink(result.path); dropboxLink = linkResult.url; } catch { console.log('Could not get shareable link'); }
-      } catch (err) { console.error('Dropbox upload error:', err); setError('File upload failed.'); } finally { setUploading(false); }
+      } catch (err) { console.error('Dropbox upload error:', err); setError('File upload failed.'); setUploading(false); return; } finally { setUploading(false); }
     }
 
-    const newItem: StorageItem = { id: Date.now().toString(), name: itemName, number: itemNumber, location: selectedLoc.name, locationId: itemLocationId, type: itemType, addedAt: new Date(), addedBy: user?.name || 'User', dropboxPath, dropboxLink };
-    setStorageItems([...storageItems, newItem]);
-    setItemName(''); setItemNumber(''); setItemLocationId(''); setItemType('File'); setSelectedFile(null); setShowAddForm(false);
+    // Use DataContext to add storage item
+    const result = await addStorageItem({
+      name: itemName,
+      number: itemNumber,
+      location: selectedLoc.name,
+      locationId: itemLocationId,
+      type: itemType,
+      addedBy: user?.name || 'User',
+      dropboxPath,
+      dropboxLink,
+    });
+
+    if (result.success) {
+      setSelectedCaseId('');
+      setItemName(''); 
+      setItemNumber(''); 
+      setItemLocationId(''); 
+      setItemType('File'); 
+      setSelectedFile(null); 
+      setShowAddForm(false);
+    } else {
+      setError(result.error || 'Failed to add storage item');
+    }
   };
 
   const handleDeleteItem = async (id: string) => {
     const item = storageItems.find(i => i.id === id);
     if (item?.dropboxPath) { try { await dropbox.deleteFile(item.dropboxPath); } catch (err) { console.error('Error deleting from Dropbox:', err); } }
-    setStorageItems(storageItems.filter(item => item.id !== id));
+    
+    // Use DataContext to delete storage item
+    const result = await deleteStorageItem(id);
+    if (!result.success) {
+      alert('Failed to delete storage item: ' + (result.error || 'Unknown error'));
+    }
   };
 
   const handleDownload = async (item: StorageItem) => {
@@ -115,10 +141,80 @@ const StoragePage: React.FC = () => {
           <h2 className={`text-lg md:text-xl font-bold font-cyber mb-3 md:mb-4 ${textPrimary}`}>Add New Item</h2>
           <form onSubmit={handleAddItem} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div><label className={`block text-sm font-medium mb-2 ${textSecondary}`}>Name *</label><input type="text" value={itemName} onChange={(e) => setItemName(e.target.value)} placeholder="Enter item name..." className={`w-full px-4 py-2.5 rounded-xl border ${inputBg} focus:outline-none focus:border-indigo-500 transition-all`} /></div>
-              <div><label className={`block text-sm font-medium mb-2 ${textSecondary}`}>Number *</label><input type="text" value={itemNumber} onChange={(e) => setItemNumber(e.target.value)} placeholder="Enter reference number..." className={`w-full px-4 py-2.5 rounded-xl border ${inputBg} focus:outline-none focus:border-indigo-500 transition-all`} /></div>
-              <div><label className={`block text-sm font-medium mb-2 ${textSecondary}`}>Location *</label><select value={itemLocationId} onChange={(e) => setItemLocationId(e.target.value)} className={`w-full px-4 py-2.5 rounded-xl border ${inputBg} focus:outline-none focus:border-indigo-500 transition-all`} disabled={storageLocations.length === 0}><option value="">Select a location...</option>{storageLocations.map((loc) => (<option key={loc.id} value={loc.id}>{loc.name}</option>))}</select>{storageLocations.length === 0 && <p className="text-xs text-indigo-500 mt-1">Add locations in Settings first</p>}</div>
-              <div><label className={`block text-sm font-medium mb-2 ${textSecondary}`}>Type</label><select value={itemType} onChange={(e) => setItemType(e.target.value as 'File' | 'Document' | 'Box')} className={`w-full px-4 py-2.5 rounded-xl border ${inputBg} focus:outline-none focus:border-indigo-500 transition-all`}><option value="File">File</option><option value="Document">Document</option><option value="Box">Box</option></select></div>
+              {/* Select Case Dropdown - NEW */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${textSecondary}`}>
+                  Select Case (Optional)
+                </label>
+                <select 
+                  value={selectedCaseId} 
+                  onChange={(e) => handleCaseSelect(e.target.value)} 
+                  className={`w-full px-4 py-2.5 rounded-xl border ${inputBg} focus:outline-none focus:border-indigo-500 transition-all`}
+                >
+                  <option value="">-- Select a case or enter manually --</option>
+                  {cases.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.clientName} - File #{c.fileNo}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-indigo-500 mt-1">Select a case to auto-fill name and number</p>
+              </div>
+
+              {/* Name - Auto-filled or manual */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${textSecondary}`}>Name *</label>
+                <input 
+                  type="text" 
+                  value={itemName} 
+                  onChange={(e) => setItemName(e.target.value)} 
+                  placeholder={selectedCaseId ? "Auto-filled from case" : "Enter item name..."} 
+                  className={`w-full px-4 py-2.5 rounded-xl border ${inputBg} focus:outline-none focus:border-indigo-500 transition-all`} 
+                />
+              </div>
+
+              {/* Number - Auto-filled or manual */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${textSecondary}`}>Number *</label>
+                <input 
+                  type="text" 
+                  value={itemNumber} 
+                  onChange={(e) => setItemNumber(e.target.value)} 
+                  placeholder={selectedCaseId ? "Auto-filled from case" : "Enter reference number..."} 
+                  className={`w-full px-4 py-2.5 rounded-xl border ${inputBg} focus:outline-none focus:border-indigo-500 transition-all`} 
+                />
+              </div>
+
+              {/* Location */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${textSecondary}`}>Location *</label>
+                <select 
+                  value={itemLocationId} 
+                  onChange={(e) => setItemLocationId(e.target.value)} 
+                  className={`w-full px-4 py-2.5 rounded-xl border ${inputBg} focus:outline-none focus:border-indigo-500 transition-all`} 
+                  disabled={storageLocations.length === 0}
+                >
+                  <option value="">Select a location...</option>
+                  {storageLocations.map((loc) => (
+                    <option key={loc.id} value={loc.id}>{loc.name}</option>
+                  ))}
+                </select>
+                {storageLocations.length === 0 && <p className="text-xs text-indigo-500 mt-1">Add locations in Settings first</p>}
+              </div>
+
+              {/* Type */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${textSecondary}`}>Type</label>
+                <select 
+                  value={itemType} 
+                  onChange={(e) => setItemType(e.target.value as 'File' | 'Document' | 'Box')} 
+                  className={`w-full px-4 py-2.5 rounded-xl border ${inputBg} focus:outline-none focus:border-indigo-500 transition-all`}
+                >
+                  <option value="File">File</option>
+                  <option value="Document">Document</option>
+                  <option value="Box">Box</option>
+                </select>
+              </div>
             </div>
             {(itemType === 'File' || itemType === 'Document') && (
               <div><label className={`block text-sm font-medium mb-2 ${textSecondary}`}><Upload size={16} className="inline mr-2" />Upload to Dropbox (Optional)</label>

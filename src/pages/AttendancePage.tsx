@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar as CalendarIcon, UserCheck, UserX, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar as CalendarIcon, UserCheck, UserX, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import MainLayout from '../components/MainLayout';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -8,7 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { AttendanceStatus } from '../types';
 
 const AttendancePage: React.FC = () => {
-  const { attendance, markAttendance, getAttendanceByDate } = useData();
+  const { attendance, markAttendance, clearAttendance, getAttendanceByDate } = useData();
   const { theme } = useTheme();
   const { user, users, isAdmin } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -25,6 +25,10 @@ const AttendancePage: React.FC = () => {
 
   const handleMarkAttendance = async (userId: string, status: AttendanceStatus) => {
     await markAttendance(userId, selectedDate, status);
+  };
+
+  const handleClearAttendance = async (userId: string) => {
+    await clearAttendance(userId, selectedDate);
   };
 
   const getUserAttendanceStatus = (userId: string): AttendanceStatus | null => {
@@ -150,6 +154,20 @@ const AttendancePage: React.FC = () => {
                     >
                       <UserX size={20} />
                       Absent
+                    </button>
+                    <button
+                      onClick={() => handleClearAttendance(u.id)}
+                      className={`px-4 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
+                        status === null
+                          ? 'bg-gray-500 text-white shadow-lg'
+                          : theme === 'light'
+                            ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            : 'bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 border border-gray-500/30'
+                      }`}
+                      title="Clear attendance (leave as not marked)"
+                    >
+                      <X size={20} />
+                      Clear
                     </button>
                     <button
                       onClick={() => {

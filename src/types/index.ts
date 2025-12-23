@@ -177,6 +177,20 @@ export interface SofaItem {
   addedBy: string;
 }
 
+// Storage Management Types
+export interface StorageItem {
+  id: string;
+  name: string;
+  number: string;
+  location: string; // Location name for display
+  locationId: string; // References StorageLocation id
+  type: 'File' | 'Document' | 'Box';
+  addedAt: Date;
+  addedBy: string;
+  dropboxPath?: string;
+  dropboxLink?: string;
+}
+
 // Task Management Types
 export type TaskType = 'case' | 'custom';
 export type TaskStatus = 'pending' | 'completed';
@@ -249,6 +263,7 @@ export interface DataContextType {
   districts: District[];
   books: Book[];
   sofaItems: SofaItem[];
+  storageItems: StorageItem[];
   libraryLocations: LibraryLocation[];
   storageLocations: StorageLocation[];
   tasks: Task[];
@@ -276,6 +291,9 @@ export interface DataContextType {
   deleteBook: (id: string) => void | Promise<void>;
   addSofaItem: (caseId: string, compartment: 'C1' | 'C2') => { success: boolean; error?: string } | Promise<{ success: boolean; error?: string }>;
   removeSofaItem: (id: string) => void | Promise<void>;
+  // Storage Management
+  addStorageItem: (item: Omit<StorageItem, 'id' | 'addedAt'>) => { success: boolean; error?: string } | Promise<{ success: boolean; error?: string }>;
+  deleteStorageItem: (id: string) => { success: boolean; error?: string } | Promise<{ success: boolean; error?: string }>;
   getDisposedCases: () => Case[];
   // Library and Storage Location Management
   addLibraryLocation: (name: string) => Promise<{ success: boolean; error?: string }>;
@@ -290,6 +308,7 @@ export interface DataContextType {
   getPendingTasksCount: (userId?: string) => number;
   // Attendance Management
   markAttendance: (userId: string, date: Date, status: AttendanceStatus) => void | Promise<void>;
+  clearAttendance: (userId: string, date: Date) => void | Promise<void>;
   getAttendanceByUser: (userId: string, month?: number, year?: number) => Attendance[];
   getAttendanceByDate: (date: Date) => Attendance[];
   // Expense Management

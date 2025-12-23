@@ -32,10 +32,22 @@ const DashboardPage: React.FC = () => {
   // These stats update automatically when cases array changes (via real-time subscription)
   const stats = useMemo(() => {
     const myCases = cases.length;
-    const irFavor = cases.filter((c) => c.interimRelief === 'favor').length;
-    const irAgainst = cases.filter((c) => c.interimRelief === 'against').length;
-    const nonCirculated = cases.filter((c) => c.circulationStatus === 'non-circulated').length;
-    const circulated = cases.filter((c) => c.circulationStatus === 'circulated').length;
+    // Handle both uppercase and lowercase values for interim relief
+    const irFavor = cases.filter((c) => 
+      c.interimRelief?.toLowerCase() === 'favor'
+    ).length;
+    const irAgainst = cases.filter((c) => 
+      c.interimRelief?.toLowerCase() === 'against'
+    ).length;
+    // Handle both formats: 'non-circulated', 'NON CIRCULATED', 'non circulated'
+    const nonCirculated = cases.filter((c) => {
+      const status = c.circulationStatus?.toLowerCase().replace(/\s+/g, '-');
+      return status === 'non-circulated' || !c.circulationStatus;
+    }).length;
+    const circulated = cases.filter((c) => {
+      const status = c.circulationStatus?.toLowerCase().replace(/\s+/g, '-');
+      return status === 'circulated';
+    }).length;
 
     console.log('📊 Dashboard Stats Updated:', { 
       myCases, 

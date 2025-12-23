@@ -13,6 +13,7 @@ import { formatIndianDate } from '../utils/dateFormat';
 type TaskFilter = 'all' | 'my-tasks' | 'pending' | 'completed';
 type TaskTypeFilter = 'all' | 'case' | 'custom';
 type ViewMode = 'list' | 'calendar';
+type TimePeriodFilter = 'all' | 'week' | 'month' | 'year';
 
 const TasksPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -21,6 +22,7 @@ const TasksPage: React.FC = () => {
   const { user, isAdmin } = useAuth();
   const [filter, setFilter] = useState<TaskFilter>('my-tasks');
   const [typeFilter, setTypeFilter] = useState<TaskTypeFilter>('all');
+  const [timePeriodFilter, setTimePeriodFilter] = useState<TimePeriodFilter>('all');
   const [userFilter, setUserFilter] = useState<string>('all');
   const [users, setUsers] = useState<UserType[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -74,8 +76,45 @@ const TasksPage: React.FC = () => {
       filtered = filtered.filter((t) => t.type === typeFilter);
     }
 
+    // Apply time period filter based on deadline
+    if (timePeriodFilter !== 'all') {
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      filtered = filtered.filter((t) => {
+        const deadline = new Date(t.deadline);
+        
+        switch (timePeriodFilter) {
+          case 'week': {
+            // Get start of current week (Sunday)
+            const startOfWeek = new Date(startOfToday);
+            startOfWeek.setDate(startOfToday.getDate() - startOfToday.getDay());
+            // Get end of current week (Saturday)
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+            return deadline >= startOfWeek && deadline <= endOfWeek;
+          }
+          case 'month': {
+            // Current month
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+            return deadline >= startOfMonth && deadline <= endOfMonth;
+          }
+          case 'year': {
+            // Current year
+            const startOfYear = new Date(now.getFullYear(), 0, 1);
+            const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+            return deadline >= startOfYear && deadline <= endOfYear;
+          }
+          default:
+            return true;
+        }
+      });
+    }
+
     return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [tasks, filter, typeFilter, userFilter, user?.id]);
+  }, [tasks, filter, typeFilter, timePeriodFilter, userFilter, user?.id]);
 
   const stats = useMemo(() => {
     const myTasks = tasks.filter((t) => t.assignedTo === user?.id);
@@ -275,6 +314,32 @@ const TasksPage: React.FC = () => {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Time Period Filter */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex items-center gap-2 mr-2">
+          <Calendar size={18} className={textSecondary} />
+          <span className={`text-sm font-semibold ${textSecondary}`}>Time Period:</span>
+        </div>
+        {(['all', 'week', 'month', 'year'] as TimePeriodFilter[]).map((period) => (
+          <button
+            key={period}
+            onClick={() => setTimePeriodFilter(period)}
+            className={`px-4 py-2 rounded-xl font-medium transition-all duration-300 text-sm ${
+              timePeriodFilter === period
+                ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg'
+                : theme === 'light'
+                  ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/30'
+            }`}
+          >
+            {period === 'all' ? 'All Time' : 
+             period === 'week' ? 'This Week' : 
+             period === 'month' ? 'This Month' : 
+             'This Year'}
+          </button>
+        ))}
       </div>
 
       {/* Calendar View */}

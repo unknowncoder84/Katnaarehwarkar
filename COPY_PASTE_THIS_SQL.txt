@@ -1,0 +1,25 @@
+-- =====================================================
+-- COPY THIS ENTIRE FILE AND PASTE INTO SUPABASE
+-- =====================================================
+
+-- Fix ALL location issues in books table
+UPDATE books
+SET location = CASE
+  WHEN location IS NULL THEN 'L1'
+  WHEN TRIM(location) = '' THEN 'L1'
+  WHEN LOWER(TRIM(location)) = 'l1' THEN 'L1'
+  WHEN LOWER(TRIM(location)) = 'l2' THEN 'L2'
+  ELSE UPPER(TRIM(location))
+END;
+
+-- Set default for future books
+ALTER TABLE books 
+ALTER COLUMN location SET DEFAULT 'L1';
+
+-- Verify the fix
+SELECT 
+  location,
+  COUNT(*) as count
+FROM books
+GROUP BY location
+ORDER BY location;

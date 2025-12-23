@@ -54,6 +54,7 @@ const CasesPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<CaseView>('all-cases');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [sortBy, setSortBy] = useState<'none' | 'fileNo-asc' | 'fileNo-desc'>('none');
 
   // Read filter from URL on mount and when URL changes
   useEffect(() => {
@@ -105,15 +106,48 @@ const CasesPage: React.FC = () => {
             return c.status === 'active';
           case 'closed':
             return c.status === 'closed';
+          // Circulation filters with improved logic
           case 'circulated':
-            return c.circulationStatus === 'circulated';
+            // Show only circulated cases with future next date
+            const circulatedDate = c.nextDate ? new Date(c.nextDate) : null;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            // Handle both formats: 'circulated', 'CIRCULATED'
+            const isCirculated = c.circulationStatus?.toLowerCase().replace(/\s+/g, '-') === 'circulated';
+            return (
+              isCirculated &&
+              circulatedDate &&
+              circulatedDate >= today
+            );
           case 'non-circulated':
-            return c.circulationStatus === 'non-circulated';
-          // Interim Relief filters
+            // Show ONLY cases that meet ALL these conditions:
+            // 1. Marked as non-circulated OR
+            // 2. Have no next date OR
+            // 3. Have a past next date (but NOT future dates)
+            const nonCirculatedDate = c.nextDate ? new Date(c.nextDate) : null;
+            const todayNonCirc = new Date();
+            todayNonCirc.setHours(0, 0, 0, 0);
+            
+            // Handle both formats: 'non-circulated', 'NON CIRCULATED'
+            const circStatus = c.circulationStatus?.toLowerCase().replace(/\s+/g, '-');
+            const isCirculatedStatus = circStatus === 'circulated';
+            
+            // If case is explicitly marked as circulated with a future date, exclude it
+            if (isCirculatedStatus && nonCirculatedDate && nonCirculatedDate >= todayNonCirc) {
+              return false;
+            }
+            
+            // Include if: marked as non-circulated OR no date OR past date
+            return (
+              circStatus === 'non-circulated' || !c.circulationStatus ||
+              !nonCirculatedDate ||
+              nonCirculatedDate < todayNonCirc
+            );
+          // Interim Relief filters - handle both uppercase and lowercase
           case 'ir-favor':
-            return c.interimRelief === 'favor';
+            return c.interimRelief?.toLowerCase() === 'favor';
           case 'ir-against':
-            return c.interimRelief === 'against';
+            return c.interimRelief?.toLowerCase() === 'against';
           default:
             return true;
         }
@@ -129,8 +163,23 @@ const CasesPage: React.FC = () => {
       );
     }
 
+    // Apply sorting
+    if (sortBy === 'fileNo-asc') {
+      filtered = [...filtered].sort((a, b) => {
+        const numA = parseInt(a.fileNo) || 0;
+        const numB = parseInt(b.fileNo) || 0;
+        return numA - numB;
+      });
+    } else if (sortBy === 'fileNo-desc') {
+      filtered = [...filtered].sort((a, b) => {
+        const numA = parseInt(a.fileNo) || 0;
+        const numB = parseInt(b.fileNo) || 0;
+        return numB - numA;
+      });
+    }
+
     return filtered;
-  }, [cases, activeTab, searchTerm, statusFilter]);
+  }, [cases, activeTab, searchTerm, statusFilter, sortBy]);
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -222,6 +271,29 @@ const CasesPage: React.FC = () => {
             </button>
           ))}
         </div>
+      </motion.div>
+
+      {/* Sort Dropdown */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.075 }}
+        className="mb-4"
+      >
+        <p className={`text-xs font-semibold uppercase mb-2 ${textSecondary}`}>Sort Cases</p>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as any)}
+          className={`px-4 py-2 rounded-xl border font-medium transition-all duration-200 ${
+            theme === 'light'
+              ? 'bg-white border-gray-200 text-gray-700 hover:border-gray-300'
+              : 'bg-gray-800 border-gray-600 text-gray-200 hover:border-gray-500'
+          } focus:outline-none focus:ring-2 focus:ring-orange-500`}
+        >
+          <option value="none">Default Order</option>
+          <option value="fileNo-asc">📈 File No: Low to High</option>
+          <option value="fileNo-desc">📉 File No: High to Low</option>
+        </select>
       </motion.div>
 
       {/* Export Buttons and Search */}

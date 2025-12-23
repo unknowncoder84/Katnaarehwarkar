@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Clock, User, Trash2, Edit, X, CheckCircle } from 'lucide-react';
+import { Calendar, Clock, User, Trash2, Edit, X, CheckCircle, AlertCircle } from 'lucide-react';
 import MainLayout from '../components/MainLayout';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -56,6 +56,22 @@ const AppointmentsPage: React.FC = () => {
     return Array.from(clientSet);
   }, [cases]);
 
+  // Split appointments into completed and upcoming
+  const { completedAppointments, upcomingAppointments } = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const completed = appointments
+      .filter(apt => new Date(apt.date) < today)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const upcoming = appointments
+      .filter(apt => new Date(apt.date) >= today)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    return { completedAppointments: completed, upcomingAppointments: upcoming };
+  }, [appointments]);
+
   // Show notification helper
   const showNotification = (type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
@@ -91,12 +107,6 @@ const AppointmentsPage: React.FC = () => {
       }
     }
   };
-
-  const sortedAppointments = useMemo(() => {
-    return [...appointments].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
-  }, [appointments]);
 
   const bgClass = theme === 'light' ? 'bg-white text-black' : 'glass-dark text-cyber-blue';
   const borderClass = theme === 'light' ? 'border-gray-300' : 'border-cyber-blue/20';
@@ -253,18 +263,28 @@ const AppointmentsPage: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className={`${bgClass} p-6 rounded-xl border ${borderClass}`}
+        className={`${bgClass} p-6 rounded-xl border ${borderClass} mb-6`}
       >
-        <h2 className="text-lg font-semibold mb-4">
-          Upcoming Appointments ({sortedAppointments.length})
-        </h2>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg">
+            <AlertCircle size={20} className="text-white" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold">
+              Upcoming Appointments ({upcomingAppointments.length})
+            </h2>
+            <p className={`text-sm ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+              Today and future appointments
+            </p>
+          </div>
+        </div>
         
-        {/* Appointments List */}
+        {/* Upcoming Appointments List */}
         <div className="space-y-4">
-          {sortedAppointments.length === 0 ? (
+          {upcomingAppointments.length === 0 ? (
             <div className={`p-8 text-center ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
-              <Calendar size={48} className="mx-auto mb-4 opacity-50" />
-              <p>No appointments scheduled</p>
+              <AlertCircle size={48} className="mx-auto mb-4 opacity-50" />
+              <p>No upcoming appointments</p>
               <p className="text-sm mt-2">Create a new appointment using the form above</p>
             </div>
           ) : (
@@ -281,14 +301,14 @@ const AppointmentsPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedAppointments.map((apt) => (
+                  {upcomingAppointments.map((apt) => (
                     <tr 
                       key={apt.id} 
-                      className={`border-b ${borderClass} ${theme === 'light' ? 'hover:bg-gray-50' : 'hover:bg-white/5'} transition-colors`}
+                      className={`border-b ${borderClass} border-l-4 border-l-green-500 ${theme === 'light' ? 'hover:bg-green-50' : 'hover:bg-green-500/10'} transition-colors`}
                     >
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2">
-                          <Calendar size={16} className="text-orange-500" />
+                          <Calendar size={16} className="text-green-500" />
                           {formatIndianDate(apt.date)}
                         </div>
                       </td>
@@ -301,6 +321,100 @@ const AppointmentsPage: React.FC = () => {
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2">
                           <User size={16} className="text-green-400" />
+                          {apt.userName || apt.user || '-'}
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">{apt.client || '-'}</td>
+                      <td className="py-4 px-4 max-w-xs truncate">{apt.details || '-'}</td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setEditingAppointment(apt)}
+                            className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                            title="Edit appointment"
+                          >
+                            <Edit size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(apt.id)}
+                            className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                            title="Delete appointment"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Completed Appointments */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className={`${bgClass} p-6 rounded-xl border ${borderClass}`}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-gradient-to-r from-gray-500 to-slate-500 rounded-lg">
+            <CheckCircle size={20} className="text-white" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold">
+              Completed Appointments ({completedAppointments.length})
+            </h2>
+            <p className={`text-sm ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+              Past appointments
+            </p>
+          </div>
+        </div>
+        
+        {/* Completed Appointments List */}
+        <div className="space-y-4">
+          {completedAppointments.length === 0 ? (
+            <div className={`p-8 text-center ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+              <CheckCircle size={48} className="mx-auto mb-4 opacity-50" />
+              <p>No completed appointments</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto opacity-75">
+              <table className="w-full">
+                <thead>
+                  <tr className={`border-b ${borderClass}`}>
+                    <th className={`text-left py-3 px-4 font-semibold ${theme === 'light' ? 'text-gray-700' : 'text-gray-400'}`}>DATE</th>
+                    <th className={`text-left py-3 px-4 font-semibold ${theme === 'light' ? 'text-gray-700' : 'text-gray-400'}`}>TIME</th>
+                    <th className={`text-left py-3 px-4 font-semibold ${theme === 'light' ? 'text-gray-700' : 'text-gray-400'}`}>USER</th>
+                    <th className={`text-left py-3 px-4 font-semibold ${theme === 'light' ? 'text-gray-700' : 'text-gray-400'}`}>CLIENT</th>
+                    <th className={`text-left py-3 px-4 font-semibold ${theme === 'light' ? 'text-gray-700' : 'text-gray-400'}`}>DETAILS</th>
+                    <th className={`text-left py-3 px-4 font-semibold ${theme === 'light' ? 'text-gray-700' : 'text-gray-400'}`}>ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {completedAppointments.map((apt) => (
+                    <tr 
+                      key={apt.id} 
+                      className={`border-b ${borderClass} border-l-4 border-l-gray-400 ${theme === 'light' ? 'hover:bg-gray-50' : 'hover:bg-gray-500/10'} transition-colors`}
+                    >
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2">
+                          <Calendar size={16} className="text-gray-500" />
+                          {formatIndianDate(apt.date)}
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2">
+                          <Clock size={16} className="text-gray-400" />
+                          {apt.time || '--:--'}
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2">
+                          <User size={16} className="text-gray-400" />
                           {apt.userName || apt.user || '-'}
                         </div>
                       </td>

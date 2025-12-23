@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Case, Counsel, Appointment, Transaction, Court, CaseType, District, Book, SofaItem, Task, Attendance, AttendanceStatus, Expense, DataContextType, LibraryLocation, StorageLocation } from '../types';
+import { Case, Counsel, Appointment, Transaction, Court, CaseType, District, Book, SofaItem, StorageItem, Task, Attendance, AttendanceStatus, Expense, DataContextType, LibraryLocation, StorageLocation } from '../types';
 import { db, supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -66,6 +66,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ]);
   const [books, setBooks] = useState<Book[]>([]);
   const [sofaItems, setSofaItems] = useState<SofaItem[]>([]);
+  const [storageItems, setStorageItems] = useState<StorageItem[]>([]);
   const [libraryLocations, setLibraryLocations] = useState<LibraryLocation[]>([]);
   const [storageLocations, setStorageLocations] = useState<StorageLocation[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -89,6 +90,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         districtsRes,
         booksRes,
         sofaItemsRes,
+        storageItemsRes,
         libraryLocationsRes,
         storageLocationsRes,
         tasksRes,
@@ -104,6 +106,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         db.districts.getAll(),
         db.books.getAll(),
         db.sofaItems.getAll(),
+        db.storageItems.getAll(),
         db.libraryLocations.getAll(),
         db.storageLocations.getAll(),
         db.tasks.getAll(),
@@ -121,6 +124,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (districtsRes.error) console.error('❌ Error fetching districts:', districtsRes.error);
       if (booksRes.error) console.error('❌ Error fetching books:', booksRes.error);
       if (sofaItemsRes.error) console.error('❌ Error fetching sofa items:', sofaItemsRes.error);
+      if (storageItemsRes.error) console.error('❌ Error fetching storage items:', storageItemsRes.error);
       if (libraryLocationsRes.error) console.error('❌ Error fetching library locations:', libraryLocationsRes.error);
       if (storageLocationsRes.error) console.error('❌ Error fetching storage locations:', storageLocationsRes.error);
       if (tasksRes.error) console.error('❌ Error fetching tasks:', tasksRes.error);
@@ -164,6 +168,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (sofaItemsRes.data) {
         setSofaItems(toCamelCase(sofaItemsRes.data));
         console.log(`✅ Loaded ${sofaItemsRes.data.length} sofa items from database`);
+      }
+      if (storageItemsRes.data) {
+        setStorageItems(toCamelCase(storageItemsRes.data));
+        console.log(`✅ Loaded ${storageItemsRes.data.length} storage items from database`);
       }
       if (libraryLocationsRes.data) {
         setLibraryLocations(toCamelCase(libraryLocationsRes.data));
@@ -701,6 +709,57 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSofaItems((prev) => prev.filter((item) => item.id !== id));
   };
 
+  // Storage Management - Storage Items
+  const addStorageItem = async (item: Omit<StorageItem, 'id' | 'addedAt'>): Promise<{ success: boolean; error?: string }> => {
+    if (!item.name || item.name.trim().length === 0) {
+      return { success: false, error: 'Item name cannot be empty' };
+    }
+    if (!item.locationId) {
+      return { success: false, error: 'Location is required' };
+    }
+
+    // Build the data object - include all required fields
+    const insertData: any = {
+      name: item.name,
+      number: item.number || '',
+      location: item.location || '', // Location name for display
+      location_id: item.locationId,
+      type: item.type || 'File',
+      added_by: user?.id || '',
+    };
+
+    // Only add dropbox fields if they have values (makes them optional)
+    if (item.dropboxPath) {
+      insertData.dropbox_path = item.dropboxPath;
+    }
+    if (item.dropboxLink) {
+      insertData.dropbox_link = item.dropboxLink;
+    }
+
+    console.log('🔵 Creating storage item:', insertData);
+    const { data, error } = await db.storageItems.create(insertData);
+
+    if (error) {
+      console.error('❌ Error creating storage item:', error);
+      return { success: false, error: error.message };
+    }
+    if (data) {
+      console.log('✅ Storage item created:', data);
+      setStorageItems((prev) => [toCamelCase(data), ...prev]);
+    }
+    return { success: true };
+  };
+
+  const deleteStorageItem = async (id: string): Promise<{ success: boolean; error?: string }> => {
+    const { error } = await db.storageItems.delete(id);
+    if (error) {
+      console.error('Error deleting storage item:', error);
+      return { success: false, error: error.message };
+    }
+    setStorageItems((prev) => prev.filter((item) => item.id !== id));
+    return { success: true };
+  };
+
   // Library Location Management - DATABASE FIRST approach for persistence
   const addLibraryLocation = async (name: string): Promise<{ success: boolean; error?: string }> => {
     if (!name || name.trim().length === 0) {
@@ -968,6 +1027,37 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Clear attendance (delete record) - Admin only
+  const clearAttendance = async (userId: string, date: Date) => {
+    console.log('🔵 clearAttendance called:', { userId, date });
+    
+    const dateStr = date.toISOString().split('T')[0];
+    
+    try {
+      // Delete from database
+      const { error } = await supabase
+        .from('attendance')
+        .delete()
+        .eq('user_id', userId)
+        .eq('date', dateStr);
+      
+      if (error) {
+        console.error('❌ Database error clearing attendance:', error);
+        // Still update local state
+      }
+      
+      // Update local state - remove the attendance record
+      setAttendance(prev => prev.filter(
+        (a) => !(a.userId === userId && new Date(a.date).toISOString().split('T')[0] === dateStr)
+      ));
+      
+      console.log('✅ Attendance cleared successfully');
+    } catch (err) {
+      console.error('❌ Error clearing attendance:', err);
+      alert('Failed to clear attendance. Please check your connection.');
+    }
+  };
+
   const getAttendanceByUser = (userId: string, month?: number, year?: number): Attendance[] => {
     let filtered = attendance.filter((a) => a.userId === userId);
     
@@ -1098,6 +1188,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     districts,
     books,
     sofaItems,
+    storageItems,
     libraryLocations,
     storageLocations,
     tasks,
@@ -1123,6 +1214,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     deleteBook,
     addSofaItem,
     removeSofaItem,
+    addStorageItem,
+    deleteStorageItem,
     getDisposedCases,
     addLibraryLocation,
     deleteLibraryLocation,
@@ -1134,6 +1227,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     completeTask,
     getPendingTasksCount,
     markAttendance,
+    clearAttendance,
     getAttendanceByUser,
     getAttendanceByDate,
     addExpense,

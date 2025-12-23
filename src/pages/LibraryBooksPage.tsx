@@ -1,32 +1,95 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, Plus, Trash2, Search } from 'lucide-react';
+import { BookOpen, Plus, Trash2, Search, Filter } from 'lucide-react';
 import MainLayout from '../components/MainLayout';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const LibraryBooksPage: React.FC = () => {
-  const { books, addBook, deleteBook } = useData();
+  const { books, addBook, deleteBook, libraryLocations } = useData();
   const { theme } = useTheme();
+  const { isAdmin } = useAuth();
   const [bookName, setBookName] = useState('');
+  const [bookLocationId, setBookLocationId] = useState('');
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterLocation, setFilterLocation] = useState('all'); // 'all' or location name
+
+  // Get unique locations from books (for filtering existing books)
+  const uniqueLocationsFromBooks = useMemo(() => {
+    const locations = new Set<string>();
+    books.forEach(book => {
+      if (book.location && book.location.trim()) {
+        locations.add(book.location.trim());
+      }
+    });
+    return Array.from(locations).sort();
+  }, [books]);
+
+  // Combine library locations from settings with locations found in books
+  const allAvailableLocations = useMemo(() => {
+    const locationSet = new Set<string>();
+    
+    // Add locations from settings
+    libraryLocations.forEach(loc => locationSet.add(loc.name));
+    
+    // Add locations from existing books
+    uniqueLocationsFromBooks.forEach(loc => locationSet.add(loc));
+    
+    return Array.from(locationSet).sort();
+  }, [libraryLocations, uniqueLocationsFromBooks]);
+
+  // Filter books based on selected location and search term
+  const filteredBooks = useMemo(() => {
+    return books.filter((book) => {
+      // Filter by location if not 'all'
+      if (filterLocation !== 'all') {
+        const bookLoc = book.location?.trim() || '';
+        if (bookLoc !== filterLocation) {
+          return false;
+        }
+      }
+      // Filter by search term
+      if (searchTerm) {
+        return book.name.toLowerCase().includes(searchTerm.toLowerCase());
+      }
+      return true;
+    });
+  }, [books, filterLocation, searchTerm]);
+
+  // Count books per location
+  const getBookCountForLocation = (locationName: string): number => {
+    return books.filter(book => book.location?.trim() === locationName).length;
+  };
 
   const handleAddBook = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
-    const result = await addBook(bookName);
+    if (!bookName.trim()) {
+      setError('Please enter a book name');
+      return;
+    }
+
+    if (!bookLocationId) {
+      setError('Please select a location');
+      return;
+    }
+
+    // Get the location name to store with the book
+    const selectedLocation = libraryLocations.find(loc => loc.id === bookLocationId);
+    const locationName = selectedLocation?.name || bookLocationId;
+    
+    // Pass location name when adding book
+    const result = await addBook(bookName.trim(), '', locationName);
     if (result.success) {
       setBookName('');
+      // Keep the same location selected for convenience
     } else {
       setError(result.error || 'Failed to add book');
     }
   };
-
-  const filteredBooks = books.filter((book) =>
-    book.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const cardBg = theme === 'light' 
     ? 'bg-white/95 backdrop-blur-xl border-gray-200 shadow-md' 
@@ -51,11 +114,51 @@ const LibraryBooksPage: React.FC = () => {
           </div>
           <div>
             <h1 className={`text-xl md:text-3xl font-bold font-cyber ${textPrimary}`}>
-              Library Books (L1)
+              Library Books
             </h1>
             <p className={`text-sm md:text-base ${textSecondary}`}>Manage your legal reference books</p>
           </div>
         </div>
+      </motion.div>
+
+      {/* Filter Section - Dropdown */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+        className={`${cardBg} p-4 rounded-xl border mb-4`}
+      >
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <div className="flex items-center gap-2">
+            <Filter size={18} className="text-orange-500" />
+            <span className={`text-sm font-semibold ${textPrimary}`}>Filter by Location:</span>
+          </div>
+          <select
+            value={filterLocation}
+            onChange={(e) => setFilterLocation(e.target.value)}
+            className={`px-4 py-2 rounded-xl border ${inputBg} focus:outline-none focus:border-orange-500 transition-all min-w-[200px]`}
+          >
+            <option value="all">📚 All Locations ({books.length} books)</option>
+            {allAvailableLocations.map((location) => (
+              <option key={location} value={location}>
+                📍 {location} ({getBookCountForLocation(location)} books)
+              </option>
+            ))}
+          </select>
+          {filterLocation !== 'all' && (
+            <button
+              onClick={() => setFilterLocation('all')}
+              className="text-sm text-orange-500 hover:text-orange-600 underline"
+            >
+              Clear Filter
+            </button>
+          )}
+        </div>
+        {filterLocation !== 'all' && (
+          <p className={`mt-2 text-sm ${textSecondary}`}>
+            Showing {filteredBooks.length} book(s) in "{filterLocation}"
+          </p>
+        )}
       </motion.div>
 
       {/* Add Book Form */}
@@ -66,20 +169,46 @@ const LibraryBooksPage: React.FC = () => {
         className={`${cardBg} p-4 md:p-6 rounded-xl md:rounded-2xl border mb-4 md:mb-6`}
       >
         <h2 className={`text-lg md:text-xl font-bold font-cyber mb-3 md:mb-4 ${textPrimary}`}>Add New Book</h2>
-        <form onSubmit={handleAddBook} className="flex flex-col sm:flex-row gap-3 md:gap-4">
-          <div className="flex-1">
-            <input
-              type="text"
-              value={bookName}
-              onChange={(e) => setBookName(e.target.value)}
-              placeholder="Enter book name..."
-              className={`w-full px-3 md:px-4 py-2.5 md:py-3 rounded-lg md:rounded-xl border ${inputBg} focus:outline-none focus:border-orange-500 transition-all text-sm md:text-base`}
-            />
-            {error && <p className="text-red-500 text-xs md:text-sm mt-2">{error}</p>}
+        <form onSubmit={handleAddBook} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${textSecondary}`}>Book Name *</label>
+              <input
+                type="text"
+                value={bookName}
+                onChange={(e) => setBookName(e.target.value)}
+                placeholder="Enter book name..."
+                className={`w-full px-3 md:px-4 py-2.5 md:py-3 rounded-lg md:rounded-xl border ${inputBg} focus:outline-none focus:border-orange-500 transition-all text-sm md:text-base`}
+                required
+              />
+            </div>
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${textSecondary}`}>Location *</label>
+              <select
+                value={bookLocationId}
+                onChange={(e) => setBookLocationId(e.target.value)}
+                className={`w-full px-3 md:px-4 py-2.5 md:py-3 rounded-lg md:rounded-xl border ${inputBg} focus:outline-none focus:border-orange-500 transition-all text-sm md:text-base`}
+                required
+              >
+                <option value="">Select a location...</option>
+                {libraryLocations.map((location) => (
+                  <option key={location.id} value={location.id}>
+                    📚 {location.name}
+                  </option>
+                ))}
+              </select>
+              {libraryLocations.length === 0 && (
+                <p className="text-xs text-orange-500 mt-1">
+                  {isAdmin ? 'Add locations in Settings first' : 'Contact admin to add library locations'}
+                </p>
+              )}
+            </div>
           </div>
+          {error && <p className="text-red-500 text-xs md:text-sm">{error}</p>}
           <button
             type="submit"
-            className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl font-semibold font-cyber hover:shadow-lg transition-all text-sm md:text-base"
+            disabled={libraryLocations.length === 0}
+            className="w-full md:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl font-semibold font-cyber hover:shadow-lg transition-all text-sm md:text-base disabled:opacity-50"
           >
             <Plus size={18} />
             Add Book
@@ -115,15 +244,23 @@ const LibraryBooksPage: React.FC = () => {
       >
         <div className="p-4 border-b border-gray-200/20">
           <h2 className={`text-lg font-bold font-cyber ${textPrimary}`}>
-            Books in L1 ({filteredBooks.length})
+            {filterLocation !== 'all' ? `Books in ${filterLocation}` : 'All Books'} ({filteredBooks.length})
           </h2>
         </div>
         
         {filteredBooks.length === 0 ? (
           <div className="p-8 text-center">
             <BookOpen size={48} className={`mx-auto mb-4 ${textSecondary} opacity-50`} />
-            <p className={textSecondary}>No books found</p>
-            <p className={`text-sm mt-2 ${textSecondary}`}>Add a book using the form above</p>
+            <p className={textSecondary}>
+              {searchTerm ? 'No books match your search' : filterLocation !== 'all' ? `No books in "${filterLocation}"` : 'No books found'}
+            </p>
+            <p className={`text-sm mt-2 ${textSecondary}`}>
+              {filterLocation !== 'all' 
+                ? 'Try selecting a different location or add a book to this location.'
+                : libraryLocations.length > 0 
+                  ? 'Add a book using the form above'
+                  : 'First, add library locations in Settings'}
+            </p>
           </div>
         ) : (
           <div className="divide-y divide-gray-200/10">
@@ -132,7 +269,7 @@ const LibraryBooksPage: React.FC = () => {
                 key={book.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
+                transition={{ delay: index * 0.03 }}
                 className={`p-4 flex items-center justify-between ${theme === 'light' ? 'hover:bg-orange-50/50' : 'hover:bg-white/5'} transition-colors`}
               >
                 <div className="flex items-center gap-4">
@@ -140,7 +277,14 @@ const LibraryBooksPage: React.FC = () => {
                     <BookOpen size={20} className="text-amber-500" />
                   </div>
                   <div>
-                    <p className={`font-semibold ${textPrimary}`}>{book.name}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className={`font-semibold ${textPrimary}`}>{book.name}</p>
+                      {book.location && (
+                        <span className="text-xs px-2 py-1 rounded-full bg-orange-500/20 text-orange-600">
+                          📍 {book.location}
+                        </span>
+                      )}
+                    </div>
                     <p className={`text-sm ${textSecondary}`}>
                       Added: {new Date(book.addedAt).toLocaleDateString()}
                     </p>
