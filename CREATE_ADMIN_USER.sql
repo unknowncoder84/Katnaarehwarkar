@@ -1,0 +1,25 @@
+-- =====================================================
+-- ⚠️ THIS FILE IS OUTDATED - USE THE NEW ONE INSTEAD!
+-- =====================================================
+-- 
+-- This SQL script is incomplete and won't fix your login issue.
+-- 
+-- Please use: FIXED_USER_SETUP.sql
+-- 
+-- That file contains:
+-- ✅ Complete table structure
+-- ✅ All authentication functions
+-- ✅ User management functions
+-- ✅ Default users (admin, vipin, user)
+-- ✅ Verification queries
+-- 
+-- Instructions:
+-- 1. Open FIXED_USER_SETUP.sql
+-- 2. Copy the ENTIRE file
+-- 3. Paste into Supabase SQL Editor
+-- 4. Run it
+-- 5. Try logging in with: admin / admin123
+-- 
+-- For detailed instructions, see: LOGIN_FIX_INSTRUCTIONS.md
+-- 
+-- =====================================================
