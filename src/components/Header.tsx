@@ -338,7 +338,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 setShowResults(true);
               }}
               onFocus={() => setShowResults(true)}
-              onBlur={() => setTimeout(() => setShowResults(false), 200)}
+              onBlur={() => setTimeout(() => setShowResults(false), 300)}
               className={`w-full pl-10 md:pl-11 pr-8 md:pr-10 py-2 md:py-3 ${inputBgClass} border rounded-xl md:rounded-2xl focus:outline-none focus:border-orange-500/50 focus:bg-white/10 transition-all text-sm`}
             />
             {searchTerm && (
@@ -376,7 +376,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                     {searchResults.cases.map(c => (
                       <button
                         key={c.id}
-                        onClick={() => handleResultClick('case', c.id)}
+                        onMouseDown={(e) => { e.preventDefault(); handleResultClick('case', c.id); }}
                         className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{c.clientName}</p>
@@ -393,7 +393,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                     {searchResults.counsel.map(c => (
                       <button
                         key={c.id}
-                        onClick={() => handleResultClick('counsel', c.id)}
+                        onMouseDown={(e) => { e.preventDefault(); handleResultClick('counsel', c.id); }}
                         className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{c.name}</p>
@@ -410,7 +410,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                     {searchResults.appointments.map(a => (
                       <button
                         key={a.id}
-                        onClick={() => handleResultClick('appointment', a.id)}
+                        onMouseDown={(e) => { e.preventDefault(); handleResultClick('appointment', a.id); }}
                         className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{a.client}</p>
@@ -427,7 +427,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                     {searchResults.tasks.map(t => (
                       <button
                         key={t.id}
-                        onClick={() => handleResultClick('task', t.id)}
+                        onMouseDown={(e) => { e.preventDefault(); handleResultClick('task', t.id); }}
                         className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{t.title}</p>
@@ -444,7 +444,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                     {searchResults.expenses.map(e => (
                       <button
                         key={e.id}
-                        onClick={() => handleResultClick('expense', e.id)}
+                        onMouseDown={(ev) => { ev.preventDefault(); handleResultClick('expense', e.id); }}
                         className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{e.description}</p>
@@ -461,7 +461,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                     {searchResults.books.map(b => (
                       <button
                         key={b.id}
-                        onClick={() => handleResultClick('book', b.id)}
+                        onMouseDown={(e) => { e.preventDefault(); handleResultClick('book', b.id); }}
                         className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{b.name}</p>
@@ -478,7 +478,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                     {searchResults.sofaItems.map(s => (
                       <button
                         key={s.id}
-                        onClick={() => handleResultClick('sofaItem', s.id)}
+                        onMouseDown={(e) => { e.preventDefault(); handleResultClick('sofaItem', s.id); }}
                         className={`w-full px-4 py-3 text-left ${theme === 'light' ? 'hover:bg-orange-50' : 'hover:bg-white/5'} transition-colors`}
                       >
                         <p className={`font-medium ${textClass}`}>{s.caseName}</p>
