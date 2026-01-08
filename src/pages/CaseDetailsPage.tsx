@@ -119,7 +119,6 @@ const CaseDetailsPage: React.FC = () => {
   const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
   const [newTimelineEvent, setNewTimelineEvent] = useState({ title: '', description: '' });
   const [editingTimelineEvent, setEditingTimelineEvent] = useState<TimelineEvent | null>(null);
-  const [isTimelineLoading, setIsTimelineLoading] = useState(false);
 
   // Fetch all users on component mount
   useEffect(() => {
@@ -629,7 +628,6 @@ const CaseDetailsPage: React.FC = () => {
   const handleAddTimelineEvent = async () => {
     if (!newTimelineEvent.title || !id) return;
     
-    setIsTimelineLoading(true);
     try {
       const { data, error } = await db.caseTimeline.create({
         case_id: id,
@@ -657,8 +655,6 @@ const CaseDetailsPage: React.FC = () => {
       }
     } catch (err) {
       console.error('Error adding timeline event:', err);
-    } finally {
-      setIsTimelineLoading(false);
     }
   };
 
