@@ -21,19 +21,29 @@ const Calendar: React.FC = () => {
 
   // Get appointments and case dates for the current month
   const dayEvents = useMemo(() => {
-    const events: Record<string, { appointments: number; cases: number }> = {};
+    const events: Record<string, { appointments: number; cases: number; birthdays: number; anniversaries: number; other: number }> = {};
     
-    // Count appointments per day
+    // Count appointments per day by type
     appointments.forEach((apt) => {
       const dateStr = format(new Date(apt.date), 'yyyy-MM-dd');
-      if (!events[dateStr]) events[dateStr] = { appointments: 0, cases: 0 };
-      events[dateStr].appointments++;
+      if (!events[dateStr]) events[dateStr] = { appointments: 0, cases: 0, birthdays: 0, anniversaries: 0, other: 0 };
+      
+      // Categorize by event type
+      if (apt.eventType === 'birthday') {
+        events[dateStr].birthdays++;
+      } else if (apt.eventType === 'anniversary') {
+        events[dateStr].anniversaries++;
+      } else if (apt.eventType === 'other') {
+        events[dateStr].other++;
+      } else {
+        events[dateStr].appointments++;
+      }
     });
     
     // Count case next dates per day
     cases.forEach((c) => {
       const dateStr = format(new Date(c.nextDate), 'yyyy-MM-dd');
-      if (!events[dateStr]) events[dateStr] = { appointments: 0, cases: 0 };
+      if (!events[dateStr]) events[dateStr] = { appointments: 0, cases: 0, birthdays: 0, anniversaries: 0, other: 0 };
       events[dateStr].cases++;
     });
     
@@ -97,7 +107,7 @@ const Calendar: React.FC = () => {
         {allDays.map((day, index) => {
           const dateStr = day ? format(day, 'yyyy-MM-dd') : '';
           const events = dateStr ? dayEvents[dateStr] : null;
-          const hasEvents = events && (events.appointments > 0 || events.cases > 0);
+          const hasEvents = events && (events.appointments > 0 || events.cases > 0 || events.birthdays > 0 || events.anniversaries > 0 || events.other > 0);
           
           return (
             <div
@@ -119,9 +129,18 @@ const Calendar: React.FC = () => {
             >
               <span className="relative z-10">{day ? format(day, 'd') : ''}</span>
               {hasEvents && day && (
-                <div className="absolute bottom-1 flex gap-0.5 z-10">
+                <div className="absolute bottom-1 flex gap-0.5 z-10 flex-wrap justify-center">
                   {events.appointments > 0 && (
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-bounce" title={`${events.appointments} appointment(s)`} />
+                    <div className="text-xs" title={`${events.appointments} appointment(s)`}>📅</div>
+                  )}
+                  {events.birthdays > 0 && (
+                    <div className="text-xs" title={`${events.birthdays} birthday(s)`}>🎂</div>
+                  )}
+                  {events.anniversaries > 0 && (
+                    <div className="text-xs" title={`${events.anniversaries} anniversary(ies)`}>💐</div>
+                  )}
+                  {events.other > 0 && (
+                    <div className="text-xs" title={`${events.other} other event(s)`}>🎉</div>
                   )}
                   {events.cases > 0 && (
                     <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: '0.1s' }} title={`${events.cases} case date(s)`} />
@@ -140,14 +159,35 @@ const Calendar: React.FC = () => {
 
       {/* Legend and Today indicator */}
       <div className={`mt-4 pt-4 border-t ${theme === 'light' ? 'border-gray-200' : 'border-cyber-blue/20'} space-y-3`}>
+        {/* Add Event Button */}
+        <button
+          onClick={() => navigate('/appointments')}
+          className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold py-3 rounded-xl hover:shadow-lg transition-all duration-300 border border-green-500/30 flex items-center justify-center gap-2 mb-3"
+        >
+          <CalendarIcon size={18} />
+          Add New Event
+        </button>
+        
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-gradient-cyber animate-cyber-pulse" />
           <span className={`text-sm font-court ${textSecondary}`}>Today: {format(new Date(), 'MMMM d, yyyy')}</span>
         </div>
-        <div className="flex items-center gap-4 text-xs">
+        <div className="flex items-center gap-4 text-xs flex-wrap">
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-blue-500" />
+            <span>📅</span>
             <span className={textSecondary}>Appointments</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span>🎂</span>
+            <span className={textSecondary}>Birthdays</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span>💐</span>
+            <span className={textSecondary}>Anniversaries</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span>🎉</span>
+            <span className={textSecondary}>Other Events</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-amber-500" />

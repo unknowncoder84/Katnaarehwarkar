@@ -46,7 +46,7 @@ const DashboardPage: React.FC = () => {
     }).length;
     const circulated = cases.filter((c) => {
       const status = c.circulationStatus?.toLowerCase().replace(/\s+/g, '-');
-      return status === 'circulated';
+      return status === 'circulated' || status === 'circulation';
     }).length;
 
     console.log('📊 Dashboard Stats Updated:', { 
@@ -195,7 +195,7 @@ const DashboardPage: React.FC = () => {
                   { label: 'Consultation', value: cases.filter((c) => c.stage === 'consultation').length, filter: 'consultation' },
                   { label: 'Drafting', value: cases.filter((c) => c.stage === 'drafting').length, filter: 'drafting' },
                   { label: 'Filing', value: cases.filter((c) => c.stage === 'filing').length, filter: 'filing' },
-                  { label: 'Circulation', value: cases.filter((c) => c.stage === 'circulation').length, filter: 'circulation' },
+                  { label: 'Circulation', value: stats.circulated, filter: 'circulated' },
                   { label: 'Notice', value: cases.filter((c) => c.stage === 'notice').length, filter: 'notice' },
                   { label: 'Pre Admission', value: cases.filter((c) => c.stage === 'pre-admission').length, filter: 'pre-admission' },
                   { label: 'Admitted', value: cases.filter((c) => c.stage === 'admitted').length, filter: 'admitted' },

@@ -70,6 +70,9 @@ export const uploadFile = async (
   fileName?: string
 ): Promise<UploadResult> => {
   try {
+    // Auto-initialize storage bucket if it doesn't exist
+    await initializeStorage();
+    
     // Generate unique file name
     const timestamp = Date.now();
     const sanitizedFileName = fileName || file.name.replace(/[^a-zA-Z0-9.-]/g, '_');

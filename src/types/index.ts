@@ -93,6 +93,7 @@ export interface Appointment {
   userId?: string; // From database (user_id column)
   client: string;
   details: string;
+  eventType?: 'appointment' | 'birthday' | 'anniversary' | 'other'; // Event type for special events
   createdAt: Date;
   updatedAt: Date;
 }

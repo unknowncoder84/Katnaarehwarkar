@@ -4,6 +4,7 @@ import { IndianRupee, TrendingUp, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
 import PaymentModeBadge from '../components/PaymentModeBadge';
+import MonthYearPicker from '../components/MonthYearPicker';
 import { useData } from '../contexts/DataContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { formatIndianDate } from '../utils/dateFormat';
@@ -67,26 +68,11 @@ const FinancePage: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-6"
       >
-        <div className="flex items-center gap-4">
-          <label className={`font-semibold ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
-            Select Month:
-          </label>
-          <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className={`px-4 py-2 rounded-lg border font-medium ${
-              theme === 'light'
-                ? 'bg-white border-gray-300 text-gray-900'
-                : 'bg-white/10 border-orange-500/30 text-white'
-            } focus:outline-none focus:ring-2 focus:ring-orange-500`}
-          >
-            {monthOptions.map((option) => (
-              <option key={option.value} value={option.value} className="bg-gray-900 text-white">
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <MonthYearPicker
+          value={selectedMonth}
+          onChange={setSelectedMonth}
+          label="Select Month:"
+        />
       </motion.div>
 
       {/* Stats - Only Total Received and Total Transactions */}

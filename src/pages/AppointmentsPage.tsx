@@ -18,6 +18,7 @@ const AppointmentsPage: React.FC = () => {
     user: '',
     client: '',
     details: '',
+    eventType: 'appointment', // New field: 'appointment', 'birthday', 'anniversary', 'other'
   });
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -56,20 +57,24 @@ const AppointmentsPage: React.FC = () => {
     return Array.from(clientSet);
   }, [cases]);
 
-  // Split appointments into completed and upcoming
-  const { completedAppointments, upcomingAppointments } = useMemo(() => {
+  // Split appointments into completed, upcoming, and special events
+  const { completedAppointments, upcomingAppointments, specialEvents } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const completed = appointments
-      .filter(apt => new Date(apt.date) < today)
+      .filter(apt => new Date(apt.date) < today && (!apt.eventType || apt.eventType === 'appointment'))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const upcoming = appointments
-      .filter(apt => new Date(apt.date) >= today)
+      .filter(apt => new Date(apt.date) >= today && (!apt.eventType || apt.eventType === 'appointment'))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-    return { completedAppointments: completed, upcomingAppointments: upcoming };
+    const special = appointments
+      .filter(apt => apt.eventType && apt.eventType !== 'appointment')
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    return { completedAppointments: completed, upcomingAppointments: upcoming, specialEvents: special };
   }, [appointments]);
 
   // Show notification helper
@@ -88,8 +93,9 @@ const AppointmentsPage: React.FC = () => {
           user: formData.user,
           client: formData.client,
           details: formData.details,
+          eventType: formData.eventType as 'appointment' | 'birthday' | 'anniversary' | 'other',
         });
-        setFormData({ date: '', time: '', user: '', client: '', details: '' });
+        setFormData({ date: '', time: '', user: '', client: '', details: '', eventType: 'appointment' });
         showNotification('success', 'Appointment created successfully!');
       } catch (error) {
         showNotification('error', 'Failed to create appointment');
@@ -155,6 +161,35 @@ const AppointmentsPage: React.FC = () => {
         <h2 className="text-lg font-semibold mb-6">New Appointment</h2>
         
         <form onSubmit={handleSubmit}>
+          {/* Event Type Selector */}
+          <div className="mb-6">
+            <label className={`block text-sm font-semibold mb-3 ${labelClass}`}>
+              EVENT TYPE <span className="text-orange-500">*</span>
+            </label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { value: 'appointment', label: 'Appointment', icon: '📅', color: 'blue' },
+                { value: 'birthday', label: 'Birthday', icon: '🎂', color: 'pink' },
+                { value: 'anniversary', label: 'Anniversary', icon: '💐', color: 'purple' },
+                { value: 'other', label: 'Other Event', icon: '🎉', color: 'green' },
+              ].map((type) => (
+                <button
+                  key={type.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, eventType: type.value })}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    formData.eventType === type.value
+                      ? `border-${type.color}-500 bg-${type.color}-500/20`
+                      : `border-gray-600 ${theme === 'light' ? 'hover:bg-gray-100' : 'hover:bg-white/5'}`
+                  }`}
+                >
+                  <div className="text-3xl mb-2">{type.icon}</div>
+                  <div className="font-semibold text-sm">{type.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* First Row - Date, Time, User, Client */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             {/* Appointment Date */}
@@ -349,6 +384,104 @@ const AppointmentsPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Special Events Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+        className={`${bgClass} p-6 rounded-xl border ${borderClass} mb-6`}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
+            <span className="text-2xl">🎉</span>
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold">
+              Special Events ({specialEvents.length})
+            </h2>
+            <p className={`text-sm ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+              Birthdays, Anniversaries & Other Events
+            </p>
+          </div>
+        </div>
+        
+        {/* Special Events List */}
+        <div className="space-y-3">
+          {specialEvents.length === 0 ? (
+            <div className={`p-8 text-center ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+              <span className="text-5xl mb-4 block">🎂</span>
+              <p>No special events added yet</p>
+              <p className="text-sm mt-2">Add birthdays, anniversaries, or other special events</p>
+            </div>
+          ) : (
+            specialEvents.map((apt) => {
+              const eventIcon = apt.eventType === 'birthday' ? '🎂' : apt.eventType === 'anniversary' ? '💐' : '🎉';
+              const eventColor = apt.eventType === 'birthday' ? 'pink' : apt.eventType === 'anniversary' ? 'purple' : 'green';
+              
+              return (
+                <div 
+                  key={apt.id} 
+                  className={`p-4 rounded-xl border-2 border-${eventColor}-500/30 bg-${eventColor}-500/10 ${theme === 'light' ? 'hover:bg-' + eventColor + '-50' : 'hover:bg-' + eventColor + '-500/20'} transition-colors`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3 flex-1">
+                      <span className="text-3xl">{eventIcon}</span>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-bold text-lg capitalize">{apt.eventType}</h3>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold bg-${eventColor}-500/20 text-${eventColor}-400 border border-${eventColor}-500/30`}>
+                            {apt.eventType}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-sm mb-2">
+                          <div className="flex items-center gap-2">
+                            <Calendar size={14} className={`text-${eventColor}-400`} />
+                            <span>{formatIndianDate(apt.date)}</span>
+                          </div>
+                          {apt.time && (
+                            <div className="flex items-center gap-2">
+                              <Clock size={14} className={`text-${eventColor}-400`} />
+                              <span>{apt.time}</span>
+                            </div>
+                          )}
+                        </div>
+                        {apt.client && (
+                          <div className="flex items-center gap-2 text-sm mb-2">
+                            <User size={14} className={`text-${eventColor}-400`} />
+                            <span className="font-semibold">{apt.client}</span>
+                          </div>
+                        )}
+                        {apt.details && (
+                          <p className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-300'}`}>
+                            {apt.details}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setEditingAppointment(apt)}
+                        className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                        title="Edit event"
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(apt.id)}
+                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                        title="Delete event"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
       </motion.div>
