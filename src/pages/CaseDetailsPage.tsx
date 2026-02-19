@@ -1829,14 +1829,14 @@ const CaseDetailsPage: React.FC = () => {
               </div>
               <button 
                 onClick={handleAddTimelineEvent} 
-                disabled={!newTimelineEvent.title}
+                disabled={!newTimelineEvent.title || isTimelineLoading}
                 className={`px-6 py-2 rounded-lg font-semibold font-cyber transition-all border ${
-                  newTimelineEvent.title 
+                  newTimelineEvent.title && !isTimelineLoading
                     ? 'bg-gradient-cyber text-white hover:shadow-cyber border-cyber-blue/30' 
                     : 'bg-gray-400 text-gray-200 cursor-not-allowed border-gray-400'
                 }`}
               >
-                ADD EVENT
+                {isTimelineLoading ? 'ADDING...' : 'ADD EVENT'}
               </button>
             </div>
 
