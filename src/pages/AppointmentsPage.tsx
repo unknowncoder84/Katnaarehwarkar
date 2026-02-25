@@ -58,10 +58,12 @@ const AppointmentsPage: React.FC = () => {
   }, [cases]);
 
   // Split appointments into completed, upcoming, and special events
+  // Special events (birthdays, anniversaries, other) are NEVER filtered by date - they stay permanently
   const { completedAppointments, upcomingAppointments, specialEvents } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    // Only filter regular appointments by date
     const completed = appointments
       .filter(apt => new Date(apt.date) < today && (!apt.eventType || apt.eventType === 'appointment'))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -70,6 +72,7 @@ const AppointmentsPage: React.FC = () => {
       .filter(apt => new Date(apt.date) >= today && (!apt.eventType || apt.eventType === 'appointment'))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+    // Special events are NEVER filtered by date - they stay in the Special Events section forever
     const special = appointments
       .filter(apt => apt.eventType && apt.eventType !== 'appointment')
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
