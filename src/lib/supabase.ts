@@ -754,6 +754,13 @@ export const db = {
 
   // Case Payments
   casePayments: {
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('case_payments')
+        .select('*, cases(client_name, file_no)')
+        .order('date', { ascending: false })
+      return { data, error }
+    },
     getByCaseId: async (caseId: string) => {
       const { data, error } = await supabase
         .from('case_payments')

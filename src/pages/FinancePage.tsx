@@ -1,18 +1,36 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { IndianRupee, TrendingUp, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
 import PaymentModeBadge from '../components/PaymentModeBadge';
 import MonthYearPicker from '../components/MonthYearPicker';
-import { useData } from '../contexts/DataContext';
+import { db } from '../lib/supabase';
 import { useTheme } from '../contexts/ThemeContext';
 import { formatIndianDate } from '../utils/dateFormat';
 
 const FinancePage: React.FC = () => {
   const navigate = useNavigate();
-  const { transactions, cases } = useData();
   const { theme } = useTheme();
+
+  // Local state for payments
+  const [allPayments, setAllPayments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch all payments on mount
+  useEffect(() => {
+    const fetchPayments = async () => {
+      setLoading(true);
+      const { data, error } = await db.casePayments.getAll();
+      if (error) {
+        console.error('Failed to fetch case payments:', error);
+      } else {
+        setAllPayments(data || []);
+      }
+      setLoading(false);
+    };
+    fetchPayments();
+  }, []);
 
   // Generate month options (current month and past 12 months)
   const monthOptions = useMemo(() => {
@@ -30,22 +48,23 @@ const FinancePage: React.FC = () => {
   // Selected month state (default to current month)
   const [selectedMonth, setSelectedMonth] = useState(monthOptions[0]?.value || '');
 
-  // Filter transactions by selected month
+  // Filter payments by selected month using the `date` field
   const filteredTransactions = useMemo(() => {
-    if (!selectedMonth) return transactions;
-    
+    if (!selectedMonth) return allPayments;
+
     const [year, month] = selectedMonth.split('-').map(Number);
-    return transactions.filter((t) => {
-      const txDate = new Date(t.createdAt);
-      return txDate.getFullYear() === year && txDate.getMonth() + 1 === month;
+    return allPayments.filter((p) => {
+      if (!p.date) return false;
+      const [pYear, pMonth] = p.date.split('-').map(Number);
+      return pYear === year && pMonth === month;
     });
-  }, [transactions, selectedMonth]);
+  }, [allPayments, selectedMonth]);
 
   // Calculate totals for selected month
   const monthlyTotalReceived = useMemo(() => {
     return filteredTransactions
-      .filter((t) => t.status === 'received')
-      .reduce((sum, t) => sum + t.amount, 0);
+      .filter((p) => p.is_accepted === true)
+      .reduce((sum, p) => sum + (p.amount || 0), 0);
   }, [filteredTransactions]);
 
   const monthlyTransactionCount = useMemo(() => {
@@ -158,37 +177,50 @@ const FinancePage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredTransactions.length > 0 ? (
-                filteredTransactions.map((t) => {
-                  const caseData = cases.find((c) => c.id === t.caseId);
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className={`py-12 text-center ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+                    Loading...
+                  </td>
+                </tr>
+              ) : filteredTransactions.length > 0 ? (
+                filteredTransactions.map((p) => {
+                  const status = p.is_accepted ? 'received' : 'pending';
                   return (
-                    <tr key={t.id} className={`border-b ${theme === 'light' ? 'border-gray-100 hover:bg-orange-50/50' : 'border-white/10 hover:bg-white/5'} transition-colors`}>
+                    <tr key={p.id} className={`border-b ${theme === 'light' ? 'border-gray-100 hover:bg-orange-50/50' : 'border-white/10 hover:bg-white/5'} transition-colors`}>
                       <td className={`py-4 px-6 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
-                        {formatIndianDate(t.createdAt)}
+                        {formatIndianDate(p.date)}
                       </td>
-                      <td className={`py-4 px-6 font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>₹{t.amount.toLocaleString()}</td>
+                      <td className={`py-4 px-6 font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>₹{(p.amount || 0).toLocaleString()}</td>
                       <td className="py-4 px-6">
-                        <PaymentModeBadge mode={t.paymentMode} size="md" />
+                        <PaymentModeBadge mode={(p.payment_mode || '').toLowerCase()} size="md" />
                       </td>
                       <td className="py-4 px-6">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            t.status === 'received'
+                            status === 'received'
                               ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/30'
                               : 'bg-amber-500/20 text-amber-500 border border-amber-500/30'
                           }`}
                         >
-                          {t.status.charAt(0).toUpperCase() + t.status.slice(1)}
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
                         </span>
                       </td>
-                      <td className={`py-4 px-6 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>{t.receivedBy}</td>
+                      <td className={`py-4 px-6 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>{p.received_by}</td>
                       <td className="py-4 px-6">
-                        <button 
-                          onClick={() => caseData && navigate(`/cases/${caseData.id}`)}
-                          className="px-4 py-2 bg-gradient-cyber text-white rounded-lg text-sm font-medium font-cyber hover:shadow-cyber transition-all border border-cyber-blue/30"
-                        >
-                          VIEW CASE
-                        </button>
+                        <div className="flex flex-col gap-1">
+                          {p.cases && (
+                            <span className={`text-xs ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
+                              {p.cases.client_name} {p.cases.file_no ? `• ${p.cases.file_no}` : ''}
+                            </span>
+                          )}
+                          <button
+                            onClick={() => navigate(`/cases/${p.case_id}`)}
+                            className="px-4 py-2 bg-gradient-cyber text-white rounded-lg text-sm font-medium font-cyber hover:shadow-cyber transition-all border border-cyber-blue/30 w-fit"
+                          >
+                            VIEW CASE
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
